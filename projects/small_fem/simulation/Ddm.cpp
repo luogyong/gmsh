@@ -134,7 +134,7 @@ void compute(const Options& option){
   MPI_Comm_rank(MPI_COMM_WORLD,&myId);
 
   if(numProcs != 2)
-    ;//throw Exception("I just do two MPI Processes");
+    throw Exception("I just do two MPI Processes");
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
