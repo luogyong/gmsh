@@ -41,8 +41,8 @@ FormulationSteadyWaveVectorSlow(GroupOfElement& goe,
   basis->preEvaluateDerivatives(*gC1);
   basis->preEvaluateFunctions(*gC2);
 
-  jac1 = new GroupOfJacobian(goe, *basis, *gC1, "jacobian");
-  jac2 = new GroupOfJacobian(goe, *basis, *gC2, "invert");
+  jac1 = new GroupOfJacobian(goe, *gC1, "jacobian");
+  jac2 = new GroupOfJacobian(goe, *gC2, "invert");
 }
 
 FormulationSteadyWaveVectorSlow::~FormulationSteadyWaveVectorSlow(void){

@@ -39,8 +39,8 @@ FormulationPoisson::FormulationPoisson(GroupOfElement& goe,
   basis->preEvaluateDerivatives(gCL);
   basis->preEvaluateFunctions(gCR);
 
-  GroupOfJacobian jacL(goe, *basis, gCL, "invert");
-  GroupOfJacobian jacR(goe, *basis, gCR, "jacobian");
+  GroupOfJacobian jacL(goe, gCL, "invert");
+  GroupOfJacobian jacR(goe, gCR, "jacobian");
 
   localTermsL = new TermGradGrad(jacL, *basis, gWL);
   localTermsR = new TermProjectionField(jacR, *basis, gWR, gCR, fSource);

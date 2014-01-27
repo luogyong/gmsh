@@ -1,4 +1,6 @@
 #include "Exception.h"
+#include "ReferenceSpaceManager.h"
+
 #include "TermGradGrad.h"
 
 using namespace std;
@@ -9,7 +11,7 @@ TermGradGrad::TermGradGrad(const GroupOfJacobian& goj,
   // Basis Check //
   bFunction getFunction;
 
-  switch(basis.getType()){
+  switch(basis.getForm()){
   case 0:
     getFunction = &Basis::getPreEvaluatedDerivatives;
     break;
@@ -26,7 +28,7 @@ TermGradGrad::TermGradGrad(const GroupOfJacobian& goj,
 
   // Orientations & Functions //
   orientationStat = &goj.getAllElements().getOrientationStats();
-  nOrientation    = basis.getReferenceSpace().getNReferenceSpace();
+  nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 
   // Compute //

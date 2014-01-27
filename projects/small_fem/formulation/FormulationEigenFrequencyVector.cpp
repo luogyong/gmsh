@@ -31,8 +31,8 @@ FormulationEigenFrequencyVector(GroupOfElement& goe,
   basis->preEvaluateDerivatives(gC1);
   basis->preEvaluateFunctions(gC2);
 
-  GroupOfJacobian jac1(goe, *basis, gC1, "jacobian");
-  GroupOfJacobian jac2(goe, *basis, gC2, "invert");
+  GroupOfJacobian jac1(goe, gC1, "jacobian");
+  GroupOfJacobian jac2(goe, gC2, "invert");
 
   localTerms1 = new TermCurlCurl(jac1, *basis, gW1);
   localTerms2 = new TermGradGrad(jac2, *basis, gW2);

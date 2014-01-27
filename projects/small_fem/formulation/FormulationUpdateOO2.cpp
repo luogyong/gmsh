@@ -1,3 +1,4 @@
+#include "ReferenceSpaceManager.h"
 #include "BasisGenerator.h"
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
@@ -41,8 +42,8 @@ FormulationUpdateOO2(const FunctionSpaceScalar& fs,
   basis->preEvaluateFunctions(*gCFF);
   basis->preEvaluateDerivatives(*gCGG);
 
-  jacFF = new GroupOfJacobian(*goe, *basis, *gCFF, "jacobian");
-  jacGG = new GroupOfJacobian(*goe, *basis, *gCGG, "invert");
+  jacFF = new GroupOfJacobian(*goe, *gCFF, "jacobian");
+  jacGG = new GroupOfJacobian(*goe, *gCGG, "invert");
 
   // DDM //
   this->solution = &solution;
@@ -142,11 +143,11 @@ rhs(size_t equationI, size_t elementId) const{
     phi = eFunFF(equationI, g);
 
     // Get *physical* coordinate
-    basis->getReferenceSpace().mapFromABCtoXYZ(element,
-                                               (*gCFF)(g, 0),
-                                               (*gCFF)(g, 1),
-                                               (*gCFF)(g, 2),
-                                               pxyz);
+    ReferenceSpaceManager::mapFromABCtoXYZ(element,
+                                           (*gCFF)(g, 0),
+                                           (*gCFF)(g, 1),
+                                           (*gCFF)(g, 2),
+                                           pxyz);
     xyz(0) = pxyz[0];
     xyz(1) = pxyz[1];
     xyz(2) = pxyz[2];
@@ -171,11 +172,11 @@ rhs(size_t equationI, size_t elementId) const{
     Mapper::hCurl(eFunGG, equationI, g, *jac, gradPhi);
 
     // Get *physical* coordinate
-    basis->getReferenceSpace().mapFromABCtoXYZ(element,
-                                               (*gCGG)(g, 0),
-                                               (*gCGG)(g, 1),
-                                               (*gCGG)(g, 2),
-                                               pxyz);
+    ReferenceSpaceManager::mapFromABCtoXYZ(element,
+                                           (*gCGG)(g, 0),
+                                           (*gCGG)(g, 1),
+                                           (*gCGG)(g, 2),
+                                           pxyz);
     xyz(0) = pxyz[0];
     xyz(1) = pxyz[1];
     xyz(2) = pxyz[2];

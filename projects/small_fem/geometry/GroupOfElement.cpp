@@ -6,13 +6,6 @@
 
 using namespace std;
 
-GroupOfElement::OrientationSort::OrientationSort(const Basis& basis){
-  this->basis = &basis;
-}
-
-GroupOfElement::OrientationSort::~OrientationSort(void){
-}
-
 GroupOfElement::GroupOfElement
 (std::multimap<int, const MElement*>::iterator begin,
  std::multimap<int, const MElement*>::iterator end,
@@ -29,6 +22,7 @@ GroupOfElement::GroupOfElement
   element = new vector<const MElement*>(lst.begin(), lst.end());
 
   orientationStat = NULL;
+  orientAllElements();
 }
 
 GroupOfElement::~GroupOfElement(void){
@@ -39,20 +33,20 @@ GroupOfElement::~GroupOfElement(void){
 }
 
 void GroupOfElement::
-orientAllElements(const Basis& basis){
+orientAllElements(void){
   // If already oriented, delete old orientation //
   if(orientationStat)
     throw Exception
       ("GroupOfElement already oriented");
 
   // Sort //
-  OrientationSort sortPredicate(basis);
   sort(element->begin(), element->end(), sortPredicate);
 
   // Get Orientation Stats //
   // Get some Data
-  const size_t nOrient  = basis.getReferenceSpace().getNReferenceSpace();
   const size_t nElement = element->size();
+  const size_t nOrient  =
+    ReferenceSpaceManager::getNOrientation((*element)[0]->getType());
 
   // Init
   orientationStat = new vector<size_t>(nOrient);
@@ -62,17 +56,7 @@ orientAllElements(const Basis& basis){
 
   // Compute
   for(size_t i = 0; i < nElement; i++)
-    (*orientationStat)
-      [basis.getReferenceSpace().getReferenceSpace(*(*element)[i])]++;
-
-  // The last line is cool isn't it :-) ?
-}
-
-void GroupOfElement::unoriented(void){
-  if(orientationStat)
-    delete orientationStat;
-
-  orientationStat = NULL;
+    (*orientationStat)[ReferenceSpaceManager::getOrientation(*(*element)[i])]++;
 }
 
 void GroupOfElement::

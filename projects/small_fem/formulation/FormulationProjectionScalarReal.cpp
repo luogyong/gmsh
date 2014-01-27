@@ -26,7 +26,7 @@ FormulationProjectionScalar(double (*f)(fullVector<double>& xyz),
 
   // Local Terms //
   basis->preEvaluateFunctions(gC);
-  GroupOfJacobian jac(goe, *basis, gC, "jacobian");
+  GroupOfJacobian jac(goe, gC, "jacobian");
 
   localTerms1 = new TermFieldField(jac, *basis, gW);
   localTerms2 = new TermProjectionField(jac, *basis, gW, gC, f);

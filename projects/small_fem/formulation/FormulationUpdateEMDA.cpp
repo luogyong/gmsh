@@ -1,3 +1,4 @@
+#include "ReferenceSpaceManager.h"
 #include "BasisGenerator.h"
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
@@ -32,7 +33,7 @@ FormulationUpdateEMDA(const FunctionSpaceScalar& fs,
 
   // Pre-evalution //
   basis->preEvaluateFunctions(*gC);
-  jac = new GroupOfJacobian(*goe, *basis, *gC, "jacobian");
+  jac = new GroupOfJacobian(*goe, *gC, "jacobian");
 
   // DDM //
   this->solution = &solution;
@@ -114,11 +115,11 @@ rhs(size_t equationI, size_t elementId) const{
     phi = eFun(equationI, g);
 
     // Get *physical* coordinate
-    basis->getReferenceSpace().mapFromABCtoXYZ(element,
-                                               (*gC)(g, 0),
-                                               (*gC)(g, 1),
-                                               (*gC)(g, 2),
-                                               pxyz);
+    ReferenceSpaceManager::mapFromABCtoXYZ(element,
+                                           (*gC)(g, 0),
+                                           (*gC)(g, 1),
+                                           (*gC)(g, 2),
+                                           pxyz);
     xyz(0) = pxyz[0];
     xyz(1) = pxyz[1];
     xyz(2) = pxyz[2];

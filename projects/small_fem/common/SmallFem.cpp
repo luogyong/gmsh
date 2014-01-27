@@ -4,6 +4,7 @@
 #include "petsc.h"
 #include "slepc.h"
 
+#include "ReferenceSpaceManager.h"
 #include "BasisFactory.h"
 #include "Context.h"
 
@@ -91,6 +92,9 @@ void SmallFem::Finalize(void){
 
     // Clear Gmsh BasisFactory
     BasisFactory::clearAll();
+
+    // Clear SmallFEM ReferenceSpace
+    ReferenceSpaceManager::clear();
 
     // Delete Options
     delete option;

@@ -1,4 +1,6 @@
 #include "Exception.h"
+#include "ReferenceSpaceManager.h"
+
 #include "TermProjectionGrad.h"
 
 using namespace std;
@@ -12,7 +14,7 @@ TermProjectionGrad(const GroupOfJacobian& goj,
   // Basis Check //
   bFunction getFunction;
 
-  switch(basis.getType()){
+  switch(basis.getForm()){
   case 0:
     getFunction = &Basis::getPreEvaluatedDerivatives;
     break;
@@ -29,7 +31,7 @@ TermProjectionGrad(const GroupOfJacobian& goj,
 
   // Orientations & Functions //
   orientationStat = &goj.getAllElements().getOrientationStats();
-  nOrientation    = basis.getReferenceSpace().getNReferenceSpace();
+  nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 
   // Compute //
@@ -117,11 +119,11 @@ computeB(const GroupOfJacobian& goj,
       // Loop on Gauss Points
       for(size_t g = 0; g < nG; g++){
         // Compute f in the *physical* coordinate
-        basis.getReferenceSpace().mapFromABCtoXYZ(goj.getAllElements().get(e),
-                                                  gC(g, 0),
-                                                  gC(g, 1),
-                                                  gC(g, 2),
-                                                  pxyz);
+        ReferenceSpaceManager::mapFromABCtoXYZ(goj.getAllElements().get(e),
+                                               gC(g, 0),
+                                               gC(g, 1),
+                                               gC(g, 2),
+                                               pxyz);
         xyz(0) = pxyz[0];
         xyz(1) = pxyz[1];
         xyz(2) = pxyz[2];

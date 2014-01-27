@@ -1,4 +1,6 @@
 #include "Exception.h"
+#include "ReferenceSpaceManager.h"
+
 #include "TermFieldField.h"
 
 using namespace std;
@@ -7,14 +9,14 @@ TermFieldField::TermFieldField(const GroupOfJacobian& goj,
                                const Basis& basis,
                                const fullVector<double>& integrationWeights){
   // Basis Check //
-  if(basis.getType() != 0)
+  if(basis.getForm() != 0)
     throw
       Exception
       ("A Field Field Term must use a 0form basis");
 
   // Orientations & Functions //
   orientationStat = &goj.getAllElements().getOrientationStats();
-  nOrientation    = basis.getReferenceSpace().getNReferenceSpace();
+  nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 
   // Compute //

@@ -31,7 +31,7 @@ dirichlet(SystemAbstract<scalar>& sys,
   const FunctionSpace& fs = sys.getFunctionSpace();
 
   Basis* basis = BasisGenerator::generate(goe.get(0).getType(),
-                                          fs.getBasis(0).getType(),
+                                          fs.getBasis(0).getForm(),
                                           fs.getBasis(0).getOrder(),
                                           "hierarchical");
 
@@ -70,7 +70,7 @@ dirichlet(SystemAbstract<scalar>& sys,
   const FunctionSpace& fs = sys.getFunctionSpace();
 
   Basis* basis = BasisGenerator::generate(goe.get(0).getType(),
-                                          fs.getBasis(0).getType(),
+                                          fs.getBasis(0).getForm(),
                                           fs.getBasis(0).getOrder(),
                                           "hierarchical");
 

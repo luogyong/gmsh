@@ -5,8 +5,6 @@
 
 #include "GroupOfElement.h"
 #include "fullMatrix.h"
-#include "Basis.h"
-
 #include "Jacobian.h"
 
 /**
@@ -23,7 +21,6 @@ class GroupOfJacobian{
 
  public:
   GroupOfJacobian(const GroupOfElement& goe,
-                  const Basis& basis,
                   const fullMatrix<double>& point,
                   const std::string type);
 
@@ -38,13 +35,13 @@ class GroupOfJacobian{
 /**
    @fn GroupOfJacobian::GroupOfJacobian
    @param goe A group of element (GroupOfElement)
-   @param basis A Basis
    @param point A [ N x 3 ] matrix (a set of N points and their coordinates)
    @param type A string
 
-   Instanciate a GroupOfJacobian. This group will contain the Jacobian
+   Instanciate a GroupOfJacobian.
+   This group will contain the Jacobian
    of the element of the given GroupOfElement, computed at the given points,
-   for the given type, and with given Basis ReferenceSpace.
+   and for the given type.
 
    @see Jacobian::Jacobian(const MElement&, const Basis&, const fullMatrix<double>&, const std::string)
    **

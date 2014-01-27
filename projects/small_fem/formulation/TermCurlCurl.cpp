@@ -1,5 +1,7 @@
 #include <cmath>
 #include "Exception.h"
+#include "ReferenceSpaceManager.h"
+
 #include "TermCurlCurl.h"
 
 using namespace std;
@@ -10,7 +12,7 @@ TermCurlCurl::TermCurlCurl(const GroupOfJacobian& goj,
   // Basis Check //
   bFunction getFunction;
 
-  switch(basis.getType()){
+  switch(basis.getForm()){
   case 1:
     getFunction = &Basis::getPreEvaluatedDerivatives;
     break;
@@ -27,7 +29,7 @@ TermCurlCurl::TermCurlCurl(const GroupOfJacobian& goj,
 
   // Orientations & Functions //
   orientationStat = &goj.getAllElements().getOrientationStats();
-  nOrientation    = basis.getReferenceSpace().getNReferenceSpace();
+  nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 
   // Compute //

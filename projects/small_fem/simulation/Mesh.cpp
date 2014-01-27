@@ -26,7 +26,8 @@ void compute(const Options& option){
     BasisGenerator::generate(domain.get(0).getType(),
                              0, 1, "hierarchical");
   // Get Reference Space //
-  const ReferenceSpace& refSpace = basis->getReferenceSpace();
+  const ReferenceSpace& refSpace =
+    ReferenceSpaceManager::getReferenceSpace(basis->getType());
 
   // Alloc Orientations //
   const size_t size = domain.getNumber();
@@ -36,7 +37,7 @@ void compute(const Options& option){
   cout << "## Analyzing" << endl << flush;
 
   for(size_t i = 0; i < size; i++)
-    orientation[i] = (double)(refSpace.getReferenceSpace(domain.get(i)));
+    orientation[i] = (double)(refSpace.getOrientation(domain.get(i)));
 
   // Full Mesh //
   cout << "## Full Mesh data" << endl << flush

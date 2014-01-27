@@ -7,9 +7,8 @@
 
 #include "Mesh.h"
 #include "MElement.h"
-
-#include "Basis.h"
 #include "Exception.h"
+#include "ReferenceSpaceManager.h"
 
 /**
    @class GroupOfElement
@@ -21,18 +20,6 @@
 class Mesh;
 
 class GroupOfElement{
- private:
-  class OrientationSort{
-   private:
-    const Basis* basis;
-
-   public:
-     OrientationSort(const Basis& basis);
-    ~OrientationSort(void);
-
-    bool operator()(const MElement* a, const MElement* b) const;
-  };
-
  private:
   const Mesh* mesh;
 
@@ -54,14 +41,15 @@ class GroupOfElement{
 
   const Mesh& getMesh(void) const;
 
-  void orientAllElements(const Basis& basis);
   const std::vector<size_t>& getOrientationStats(void) const;
-  void unoriented(void);
 
   void getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const;
   void getAllVertexCoordinate(fullMatrix<double>& coord) const;
 
   std::string toString(void) const;
+ private:
+  void orientAllElements(void);
+  static bool sortPredicate(const MElement* a, const MElement* b);
 };
 
 
@@ -133,11 +121,12 @@ class GroupOfElement{
 // Inline Functions //
 //////////////////////
 
-inline bool GroupOfElement::OrientationSort::operator()
-(const MElement* a, const MElement* b) const{
+inline bool GroupOfElement::sortPredicate(const MElement* a, const MElement* b){
   return
-    basis->getReferenceSpace().getReferenceSpace(*a) <
-    basis->getReferenceSpace().getReferenceSpace(*b);
+    ((a->getType()  < b->getType())) ||
+    ((a->getType() == b->getType()) &&
+     (ReferenceSpaceManager::getOrientation(*a) <
+      ReferenceSpaceManager::getOrientation(*b)));
 }
 
 inline size_t GroupOfElement::getNumber(void) const{

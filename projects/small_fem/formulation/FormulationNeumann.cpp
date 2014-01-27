@@ -31,7 +31,7 @@ FormulationNeumann(GroupOfElement& goe, double k, size_t order){
   // Local Terms //
   basis->preEvaluateFunctions(gC);
 
-  GroupOfJacobian jac(goe, *basis, gC, "jacobian");
+  GroupOfJacobian jac(goe, gC, "jacobian");
 
   localTerms = new TermFieldField(jac, *basis, gW);
 }

@@ -1,4 +1,6 @@
 #include "Exception.h"
+#include "ReferenceSpaceManager.h"
+
 #include "TermProjectionField.h"
 
 using namespace std;
@@ -10,14 +12,14 @@ TermProjectionField(const GroupOfJacobian& goj,
                     const fullMatrix<double>& integrationPoints,
                     double (*f)(fullVector<double>& xyz)){
   // Basis Check //
-  if(basis.getType() != 0)
+  if(basis.getForm() != 0)
     throw
       Exception
       ("A Field Term must use a 0form basis");
 
   // Orientations & Function //
   orientationStat = &goj.getAllElements().getOrientationStats();
-  nOrientation    = basis.getReferenceSpace().getNReferenceSpace();
+  nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 
   // Compute //
@@ -94,11 +96,11 @@ void TermProjectionField::computeB(const GroupOfJacobian& goj,
 
       for(size_t g = 0; g < nG; g++){
         // Compute f in the *physical* coordinate
-        basis.getReferenceSpace().mapFromABCtoXYZ(goj.getAllElements().get(e),
-                                                  gC(g, 0),
-                                                  gC(g, 1),
-                                                  gC(g, 2),
-                                                  pxyz);
+        ReferenceSpaceManager::mapFromABCtoXYZ(goj.getAllElements().get(e),
+                                               gC(g, 0),
+                                               gC(g, 1),
+                                               gC(g, 2),
+                                               pxyz);
         xyz(0) = pxyz[0];
         xyz(1) = pxyz[1];
         xyz(2) = pxyz[2];

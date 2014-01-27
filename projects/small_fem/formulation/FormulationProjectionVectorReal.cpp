@@ -27,7 +27,7 @@ FormulationProjectionVector(fullVector<double> (*f)(fullVector<double>& xyz),
   // Local Terms //
   basis->preEvaluateFunctions(gC);
 
-  GroupOfJacobian jac(goe, *basis, gC, "invert");
+  GroupOfJacobian jac(goe, gC, "invert");
 
   localTerms1 = new TermGradGrad(jac, *basis, gW);
   localTerms2 = new TermProjectionGrad(jac, *basis, gW, gC, f);

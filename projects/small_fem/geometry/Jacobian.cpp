@@ -1,4 +1,6 @@
 #include <sstream>
+
+#include "ReferenceSpaceManager.h"
 #include "Jacobian.h"
 
 using namespace std;
@@ -8,7 +10,6 @@ const string Jacobian::invertString   = string("invert");
 const string Jacobian::bothString     = string("both");
 
 Jacobian::Jacobian(const MElement& element,
-                   const Basis& basis,
                    const fullMatrix<double>& point,
                    const string type){
   // Check //
@@ -27,13 +28,13 @@ Jacobian::Jacobian(const MElement& element,
 
   // Compute //
   if(!type.compare(jacobianString))
-    computeJacobians(basis);
+    computeJacobians();
 
   else if (!type.compare(invertString))
-    computeInvertFromScratch(basis);
+    computeInvertFromScratch();
 
   else if (!type.compare(bothString)){
-    computeJacobians(basis);
+    computeJacobians();
     computeInvertFromJac();
   }
 
@@ -86,7 +87,7 @@ void Jacobian::deleteInvertJac(void){
   invJac = NULL;
 }
 
-void Jacobian::computeJacobians(const Basis& basis){
+void Jacobian::computeJacobians(void){
   // Init Jac //
   const size_t nPoint = point->size1();
   jac = new jac_t(nPoint) ;
@@ -100,11 +101,11 @@ void Jacobian::computeJacobians(const Basis& basis){
     mJac = new fullMatrix<double>(3, 3);
 
     tmp->second =
-      basis.getReferenceSpace().getJacobian(*element,
-                                            (*point)(i, 0),
-                                            (*point)(i, 1),
-                                            (*point)(i, 2),
-                                            *mJac);
+      ReferenceSpaceManager::getJacobian(*element,
+                                         (*point)(i, 0),
+                                         (*point)(i, 1),
+                                         (*point)(i, 2),
+                                         *mJac);
     tmp->first = mJac;
     (*jac)[i]  = tmp;
   }
@@ -124,7 +125,6 @@ void Jacobian::computeInvertFromJac(void){
     mIJac = new fullMatrix<double>(3, 3);
 
     naiveInvert(*(*jac)[i]->first, (*jac)[i]->second, *mIJac);
-    //(*jac)[i]->first->invert(*mIJac);
 
     tmp->first  = mIJac;
     tmp->second = (*jac)[i]->second;
@@ -133,7 +133,7 @@ void Jacobian::computeInvertFromJac(void){
   }
 }
 
-void Jacobian::computeInvertFromScratch(const Basis& basis){
+void Jacobian::computeInvertFromScratch(void){
   // Init InvJac //
   const size_t nPoint = point->size1();
   invJac = new jac_t(nPoint) ;
@@ -148,13 +148,12 @@ void Jacobian::computeInvertFromScratch(const Basis& basis){
     mIJac = new fullMatrix<double>(3, 3);
 
     tmp->second =
-      basis.getReferenceSpace().getJacobian(*element,
-                                            (*point)(i, 0),
-                                            (*point)(i, 1),
-                                            (*point)(i, 2),
-                                            jac);
+      ReferenceSpaceManager::getJacobian(*element,
+                                         (*point)(i, 0),
+                                         (*point)(i, 1),
+                                         (*point)(i, 2),
+                                         jac);
     naiveInvert(jac, tmp->second, *mIJac);
-    //mIJac->invertInPlace();
 
     tmp->first   = mIJac;
     (*invJac)[i] = tmp;

@@ -7,20 +7,17 @@
 #include "MElement.h"
 #include "Exception.h"
 #include "fullMatrix.h"
-#include "Basis.h"
 
 /**
    @class Jacobian
    @brief Handels Jacobians of an Element
 
    This class handels the Jacobians of an Element (MElement).
-   The reference spaces used are given by a Basis.
 
    The Jacobian%s will be computed at a given set of points,
    for the same Element.
 
    For this class the jacobian matrix is defined as:
-
 
    @f$J~=~\left(
    \begin{array}{ccc}
@@ -57,7 +54,6 @@ class Jacobian{
 
  public:
   Jacobian(const MElement& element,
-           const Basis& basis,
            const fullMatrix<double>& point,
            const std::string type);
 
@@ -79,9 +75,9 @@ class Jacobian{
   void deleteJac(void);
   void deleteInvertJac(void);
 
-  void computeJacobians(const Basis& basis);
+  void computeJacobians(void);
   void computeInvertFromJac(void);
-  void computeInvertFromScratch(const Basis& basis);
+  void computeInvertFromScratch(void);
 
   static void naiveInvert(const fullMatrix<double>& A,
                           double detA,
@@ -91,7 +87,6 @@ class Jacobian{
 /**
    @fn Jacobian::Jacobian
    @param element An Element (MElement)
-   @param basis The Basis that must be used for the ReferenceSpace
    @param point A [ N x 3 ] matrix (a set of N points and their coordinates)
    @param type A string
 
