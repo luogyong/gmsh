@@ -15,7 +15,7 @@ System<scalar>::System(const Formulation<scalar>& formulation){
 
   // Get Dof Manager //
   this->dofM = new DofManager<scalar>();
-  this->dofM->addToDofManager(this->fs->getAllGroups());
+  this->dofM->addToDofManager(this->fs->getAllDofs());
 
   // Init //
   A = NULL;
@@ -47,8 +47,8 @@ void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
   const FunctionSpace& fs = formulation.fs();
 
   // Get GroupOfDofs //
-  const size_t                        E = fs.getSupport().getNumber();
-  const std::vector<GroupOfDof*>& group = fs.getAllGroups();
+  const size_t E = fs.getSupport().getNumber();
+  const std::vector<std::vector<Dof> >& group = fs.getAllGroups();
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
@@ -58,7 +58,7 @@ void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::
-      assemble(*A, *b, i, *group[i], term, formulation);
+      assemble(*A, *b, i, group[i], term, formulation);
 }
 
 template<typename scalar>
@@ -67,8 +67,8 @@ void System<scalar>::assemble(void){
   this->dofM->generateGlobalIdSpace();
 
   // Get GroupOfDofs //
-  const size_t                        E = this->fs->getSupport().getNumber();
-  const std::vector<GroupOfDof*>& group = this->fs->getAllGroups();
+  const size_t E = this->fs->getSupport().getNumber();
+  const std::vector<std::vector<Dof> >& group = this->fs->getAllGroups();
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
@@ -84,7 +84,7 @@ void System<scalar>::assemble(void){
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::
-      assemble(*A, *b, i, *group[i], term, *this->formulation);
+      assemble(*A, *b, i, group[i], term, *this->formulation);
 
   // The system is assembled //
   this->assembled = true;

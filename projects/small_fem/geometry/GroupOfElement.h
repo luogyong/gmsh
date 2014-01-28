@@ -36,8 +36,7 @@ class GroupOfElement{
   size_t    getNumber(void)     const;
   const MElement& get(size_t i) const;
 
-  const std::vector<const MElement*>&
-    getAll(void) const;
+  const std::vector<const MElement*>& getAll(void) const;
 
   const Mesh& getMesh(void) const;
 
@@ -47,6 +46,7 @@ class GroupOfElement{
   void getAllVertexCoordinate(fullMatrix<double>& coord) const;
 
   std::string toString(void) const;
+
  private:
   void orientAllElements(void);
   static bool sortPredicate(const MElement* a, const MElement* b);

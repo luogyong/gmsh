@@ -7,7 +7,6 @@
 
 #include <sstream>
 #include "Exception.h"
-#include "GroupOfDof.h"
 
 template<typename scalar>
 const size_t DofManager<scalar>::isFixed = 0 - 1; // Largest size_t
@@ -21,27 +20,20 @@ DofManager<scalar>::~DofManager(void){
 }
 
 template<typename scalar>
-void DofManager<scalar>::addToDofManager(const std::vector<GroupOfDof*>& god){
+void DofManager<scalar>::addToDofManager(const std::set<Dof>& dof){
   // Check if map is still their //
   if(!globalIdM.empty())
     throw
       Exception
       ("DofManager: global id space generated -> can't add Dof");
 
-  // Number Dof //
-  const size_t nGoD = god.size();
+  // Iterators //
+  std::set<Dof>::const_iterator it  = dof.begin();
+  std::set<Dof>::const_iterator end = dof.end();
 
   // Add to DofManager //
-  for(size_t i = 0; i < nGoD; i++){
-    // Dof from god[i]
-    const std::vector<Dof>& dof = god[i]->getDof();
-
-    // Init map entry
-    const size_t nDof = dof.size();
-
-    for(size_t j = 0; j < nDof; j++)
-      globalIdM.insert(std::pair<Dof, size_t>(dof[j], 0));
-  }
+  for(; it != end; it++)
+    globalIdM.insert(std::pair<Dof, size_t>(*it, 0));
 }
 
 template<typename scalar>

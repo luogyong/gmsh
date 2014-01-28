@@ -68,10 +68,7 @@ void Interpolator<double>::interpolate(const FunctionSpace& fs,
 
     else{
       // Get GroupOfDof related to this Element
-      const GroupOfDof& god = fs.getGoDFromElement(*element);
-
-      // Get Dof
-      const vector<Dof>& dof  = god.getDof();
+      const vector<Dof>& dof  = fs.getGoDFromElement(*element);
       const size_t       size = dof.size();
 
       // Get Coef
@@ -160,10 +157,7 @@ interpolate(const FunctionSpace& fs,
     else{
       // Get GroupOfDof related to this Element
       try{
-        const GroupOfDof& god = fs.getGoDFromElement(*element);
-
-        // Get Dof
-        const vector<Dof>& dof  = god.getDof();
+        const vector<Dof>& dof  = fs.getGoDFromElement(*element);
         const size_t       size = dof.size();
 
         // Get Coef

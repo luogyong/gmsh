@@ -56,7 +56,7 @@ void compute(const Options& option){
 
   // Enumerate Dofs //
   DofManager<double> dofM;
-  dofM.addToDofManager(fSpace->getAllGroups());
+  dofM.addToDofManager(fSpace->getAllDofs());
   dofM.generateGlobalIdSpace();
 
   // FunctionSpace is solution of FEM problem                   //
@@ -64,7 +64,7 @@ void compute(const Options& option){
   // (associated to the basis) can be created                   //
 
   // Do this with FEMSolution //
-  const size_t nCoef = fSpace->dofNumber();
+  const size_t nCoef = fSpace->getAllDofs().size();
   fullVector<double> coef(nCoef);
   FEMSolution<double> sol;
 

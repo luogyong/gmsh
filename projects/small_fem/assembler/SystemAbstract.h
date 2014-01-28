@@ -65,7 +65,7 @@ class SystemAbstract{
   void assemble(SolverMatrix<scalar>& A,
                 SolverVector<scalar>& b,
                 size_t elementId,
-                const GroupOfDof& group,
+                const std::vector<Dof>& dof,
                 formulationPtr& term,
                 const Formulation<scalar>& formulation);
 };

@@ -10,7 +10,7 @@ SystemEigen::SystemEigen(const Formulation<std::complex<double> >& formulation){
 
   // Get Dof Manager //
   dofM = new DofManager<std::complex<double> >();
-  dofM->addToDofManager(fs->getAllGroups());
+  dofM->addToDofManager(fs->getAllDofs());
 
   // Is the Problem a General EigenValue Problem ? //
   general = formulation.isGeneral();
@@ -103,7 +103,7 @@ void SystemEigen::assemble(void){
 
   // Get GroupOfDofs //
   const size_t E = fs->getSupport().getNumber();
-  const vector<GroupOfDof*>& group = fs->getAllGroups();
+  const vector<vector<Dof> >& group = fs->getAllGroups();
 
   // Get Formulation Terms //
   formulationPtr termA = &Formulation<std::complex<double> >::weak;
@@ -119,12 +119,12 @@ void SystemEigen::assemble(void){
   // Assemble Systems (tmpA and tmpB) //
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
-    SystemAbstract::assemble(tmpA, tmpRHS, i, *group[i], termA, *formulation);
+    SystemAbstract::assemble(tmpA, tmpRHS, i, group[i], termA, *formulation);
 
   if(general)
     #pragma omp parallel for
     for(size_t i = 0; i < E; i++)
-      SystemAbstract::assemble(tmpB, tmpRHS, i, *group[i], termB, *formulation);
+      SystemAbstract::assemble(tmpB, tmpRHS, i, group[i], termB, *formulation);
 
   // Copy tmpA into Assembled PETSc matrix //
   // Data

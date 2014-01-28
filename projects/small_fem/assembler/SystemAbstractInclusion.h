@@ -60,12 +60,11 @@ void SystemAbstract<scalar>::
 assemble(SolverMatrix<scalar>& A,
          SolverVector<scalar>& b,
          size_t elementId,
-         const GroupOfDof& group,
+         const std::vector<Dof>& dof,
          formulationPtr& term,
          const Formulation<scalar>& formulation){
 
-  const std::vector<Dof>& dof = group.getDof();
-  const size_t N = group.size();
+  const size_t N = dof.size();
 
   size_t dofI;
   size_t dofJ;

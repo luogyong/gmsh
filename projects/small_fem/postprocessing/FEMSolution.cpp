@@ -55,10 +55,7 @@ addCoefficients(size_t step,
   // Iterate on Element //
   for(size_t i = 0; i < nElement; i++){
     // Get Element GoD
-    const GroupOfDof& god = fs.getGoDFromElement(*element[i]);
-
-    // Get Dof
-    const vector<Dof>& dof  = god.getDof();
+    const vector<Dof>& dof  = fs.getGoDFromElement(*element[i]);
     const size_t       size = dof.size();
 
     // Get Coef In FS Basis
@@ -143,10 +140,7 @@ addCoefficients(size_t step,
   // Iterate on Element //
   for(size_t i = 0; i < nElement; i++){
     // Get Element GoD
-    const GroupOfDof& god = fs.getGoDFromElement(*element[i]);
-
-    // Get Dof
-    const vector<Dof>& dof  = god.getDof();
+    const vector<Dof>& dof  = fs.getGoDFromElement(*element[i]);
     const size_t       size = dof.size();
 
     // Get Coef In FS Basis

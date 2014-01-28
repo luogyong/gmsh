@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
-#include "GroupOfDof.h"
+#include "Dof.h"
 
 /**
    @class DofManager
@@ -44,7 +45,7 @@ class DofManager{
    DofManager(void);
   ~DofManager(void);
 
-  void addToDofManager(const std::vector<GroupOfDof*>& god);
+  void addToDofManager(const std::set<Dof>& dof);
   void generateGlobalIdSpace(void);
 
   size_t getGlobalId(const Dof& dof)     const;
@@ -87,7 +88,7 @@ class DofManager{
    **
 
    @fn DofManager::addToDofManager
-   @param god A vector of GroupOfDof
+   @param dof A set of Dof%s
 
    Adds the given Dof%s in this DofManager.
    The same Dof may be insterd multiple time,
