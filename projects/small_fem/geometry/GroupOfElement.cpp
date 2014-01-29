@@ -6,70 +6,46 @@
 
 using namespace std;
 
-GroupOfElement::GroupOfElement
-(std::multimap<int, const MElement*>::iterator begin,
- std::multimap<int, const MElement*>::iterator end,
- const Mesh& mesh){
+GroupOfElement::GroupOfElement(std::list<const MElement*>& elementList,
+                               const Mesh& mesh){
+  // Get Elements //
+  this->mesh    = &mesh;
+  this->element.assign(elementList.begin(), elementList.end());
 
-  // Get Element //
-  list<const MElement*> lst;
-
-  for(; begin != end; begin++)
-    lst.push_back(begin->second);
-
-  // Alloc //
-  this->mesh = &mesh;
-  element = new vector<const MElement*>(lst.begin(), lst.end());
-
-  orientationStat = NULL;
-  orientAllElements();
-}
-
-GroupOfElement::~GroupOfElement(void){
-  delete element;
-
-  if(orientationStat)
-    delete orientationStat;
-}
-
-void GroupOfElement::
-orientAllElements(void){
-  // If already oriented, delete old orientation //
-  if(orientationStat)
-    throw Exception
-      ("GroupOfElement already oriented");
-
-  // Sort //
-  sort(element->begin(), element->end(), sortPredicate);
+  // Sort Elements //
+  sort(element.begin(), element.end(), sortPredicate);
 
   // Get Orientation Stats //
   // Get some Data
-  const size_t nElement = element->size();
+  const size_t nElement = element.size();
   const size_t nOrient  =
-    ReferenceSpaceManager::getNOrientation((*element)[0]->getType());
+    ReferenceSpaceManager::getNOrientation(element[0]->getType());
 
   // Init
-  orientationStat = new vector<size_t>(nOrient);
+  orientationStat.resize(nOrient);
 
   for(size_t i = 0; i < nOrient; i++)
-    (*orientationStat)[i] = 0;
+    orientationStat[i] = 0;
 
   // Compute
   for(size_t i = 0; i < nElement; i++)
-    (*orientationStat)[ReferenceSpaceManager::getOrientation(*(*element)[i])]++;
+    orientationStat[ReferenceSpaceManager::getOrientation(*element[i])]++;
+}
+
+GroupOfElement::~GroupOfElement(void){
 }
 
 void GroupOfElement::
 getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const{
-  const size_t nElement = element->size();
+  const size_t nElement = element.size();
 
   // Loop On element
   for(size_t i = 0; i < nElement; i++){
     // Get Vertex
-    const size_t nVertex = (*element)[i]->getNumVertices();
+    const size_t nVertex = element[i]->getNumVertices();
 
     for(size_t j = 0; j < nVertex; j++)
-      vertex.insert((*element)[i]->getVertex(j));
+      vertex.insert(element[i]->getVertex(j));
   }
 }
 
@@ -105,9 +81,9 @@ string GroupOfElement::toString(void) const{
          << "* This group contains the following Elements: *"
          << endl;
 
-  for(size_t i = 0; i < element->size(); i++)
+  for(size_t i = 0; i < element.size(); i++)
     stream << "*   -- Element #"
-           << mesh->getGlobalId(*(*element)[i])
+           << mesh->getGlobalId(*element[i])
            << endl;
 
   stream << "*                                             *"
@@ -115,18 +91,14 @@ string GroupOfElement::toString(void) const{
          << "***********************************************"
          << endl;
 
-  if(!orientationStat)
-    return stream.str();
-
-
   stream << "*                                             *"
          << endl
          << "* This group has the following Orientations:  *"
          << endl;
 
-  for(size_t i = 0; i < orientationStat->size(); i++)
+  for(size_t i = 0; i < orientationStat.size(); i++)
     stream << "*   -- Elements with Orientation " << i << " - "
-           << (*orientationStat)[i] << endl;
+           << orientationStat[i] << endl;
 
   stream << "*                                             *"
          << endl

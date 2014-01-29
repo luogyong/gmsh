@@ -224,11 +224,16 @@ void Mesh::number(void){
 }
 
 GroupOfElement Mesh::getFromPhysical(int physicalId) const{
-  const std::pair<std::multimap<int, const MElement*>::iterator,
-                  std::multimap<int, const MElement*>::iterator> p =
+  std::pair<std::multimap<int, const MElement*>::iterator,
+            std::multimap<int, const MElement*>::iterator> p =
     physical->equal_range(physicalId);
 
-  return GroupOfElement(p.first, p.second, *this);
+  std::list<const MElement*> lst;
+
+  for(; p.first != p.second; p.first++)
+    lst.push_back(p.first->second);
+
+  return GroupOfElement(lst, *this);
 }
 
 string Mesh::toString(void) const{

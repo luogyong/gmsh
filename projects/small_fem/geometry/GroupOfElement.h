@@ -3,11 +3,10 @@
 
 #include <string>
 #include <vector>
-#include <map>
+#include <list>
 
 #include "Mesh.h"
 #include "MElement.h"
-#include "Exception.h"
 #include "ReferenceSpaceManager.h"
 
 /**
@@ -23,14 +22,11 @@ class GroupOfElement{
  private:
   const Mesh* mesh;
 
-  std::vector<const MElement*>* element;
-  std::vector<size_t>*          orientationStat;
+  std::vector<const MElement*> element;
+  std::vector<size_t>          orientationStat;
 
  public:
-   GroupOfElement(std::multimap<int, const MElement*>::iterator begin,
-                  std::multimap<int, const MElement*>::iterator end,
-                  const Mesh& mesh);
-
+   GroupOfElement(std::list<const MElement*>& element, const Mesh& mesh);
   ~GroupOfElement(void);
 
   size_t    getNumber(void)     const;
@@ -48,18 +44,17 @@ class GroupOfElement{
   std::string toString(void) const;
 
  private:
-  void orientAllElements(void);
   static bool sortPredicate(const MElement* a, const MElement* b);
 };
 
 
 /**
    @fn GroupOfElement::GroupOfElement
-   @param begin An std::multimap Iterator
-   @param end   An other std::mutltimap Iterator
-   @param mesh  A Mesh
+   @param element An list of element
+   @param mesh A Mesh
 
-   Instantiates a new GroupOfElement, associated to the given Mesh
+   Instantiates a new GroupOfElement,
+   with the given elements and associated to the given Mesh
    **
 
    @fn GroupOfElement::~GroupOfElement
@@ -84,32 +79,15 @@ class GroupOfElement{
    @return Returns the associated Mesh
    **
 
-   @fn GroupOfElement::orientAllElements
-   @param basis A Basis
-
-   Sort the Element of this GroupOfElement,
-   with respect to the given Basis orientations
-
-   @see Basis::getOrientation()
-   **
-
    @fn GroupOfElement::getOrientationStats
    @return A vector where the i-th entry is the number
    of element in GroupOfElement::getAll()
-   with a Basis::getOrientation() equal to i
+   with a ReferenceSpaceManager::getOrientation() equal to i
 
    GroupOfElement::orientAllElement must be called
    before for this method to have a meaning
 
    If not, an Exception is thrown
-   **
-
-   @fn GroupOfElement::unoriented
-
-   The elements of this GroupOfElement
-   are unoriented
-
-   @see Basis::getOrientation()
    **
 
    @fn GroupOfElement::toString
@@ -130,16 +108,15 @@ inline bool GroupOfElement::sortPredicate(const MElement* a, const MElement* b){
 }
 
 inline size_t GroupOfElement::getNumber(void) const{
-  return element->size();
+  return element.size();
 }
 
 inline const MElement& GroupOfElement::get(size_t i) const{
-  return *(*element)[i];
+  return *element[i];
 }
 
-inline const std::vector<const MElement*>&
-GroupOfElement::getAll(void) const{
-  return *element;
+inline const std::vector<const MElement*>& GroupOfElement::getAll(void) const{
+  return element;
 }
 
 inline const Mesh& GroupOfElement::getMesh(void) const{
@@ -148,11 +125,7 @@ inline const Mesh& GroupOfElement::getMesh(void) const{
 
 inline const std::vector<size_t>&
 GroupOfElement::getOrientationStats(void) const{
-  if(orientationStat)
-    return *orientationStat;
-
-  else
-    throw Exception("Orientation of GroupOfElement not computed");
+  return orientationStat;
 }
 
 #endif
