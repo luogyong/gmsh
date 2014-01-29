@@ -54,9 +54,9 @@ addCoefficients(size_t step,
 
   // Iterate on Element //
   for(size_t i = 0; i < nElement; i++){
-    // Get Element GoD
-    const vector<Dof>& dof  = fs.getGoDFromElement(*element[i]);
-    const size_t       size = dof.size();
+    // Get Element Dofs
+    const vector<Dof> dof  = fs.getKeys(*element[i]);
+    const size_t      size = dof.size();
 
     // Get Coef In FS Basis
     vector<double> fsCoef(size);
@@ -139,9 +139,9 @@ addCoefficients(size_t step,
 
   // Iterate on Element //
   for(size_t i = 0; i < nElement; i++){
-    // Get Element GoD
-    const vector<Dof>& dof  = fs.getGoDFromElement(*element[i]);
-    const size_t       size = dof.size();
+    // Get Element Dofs
+    const vector<Dof> dof  = fs.getKeys(*element[i]);
+    const size_t      size = dof.size();
 
     // Get Coef In FS Basis
     vector<complex<double> > fsCoef(size);

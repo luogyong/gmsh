@@ -46,7 +46,7 @@ void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
   // Get the FunctionSpace of the given formulation
   const FunctionSpace& fs = formulation.fs();
 
-  // Get GroupOfDofs //
+  // Get All Dofs per Element //
   const size_t E = fs.getSupport().getNumber();
   const std::vector<std::vector<Dof> >& group = fs.getAllGroups();
 
@@ -66,7 +66,7 @@ void System<scalar>::assemble(void){
   // Enumerate //
   this->dofM->generateGlobalIdSpace();
 
-  // Get GroupOfDofs //
+  // Get All Dofs per Element //
   const size_t E = this->fs->getSupport().getNumber();
   const std::vector<std::vector<Dof> >& group = this->fs->getAllGroups();
 

@@ -101,7 +101,7 @@ void SystemEigen::assemble(void){
   // Enumerate //
   dofM->generateGlobalIdSpace();
 
-  // Get GroupOfDofs //
+  // Get All Dofs per Element //
   const size_t E = fs->getSupport().getNumber();
   const vector<vector<Dof> >& group = fs->getAllGroups();
 

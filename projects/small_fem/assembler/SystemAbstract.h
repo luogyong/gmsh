@@ -151,7 +151,7 @@ class SystemAbstract{
    @param A The matrix to assemble
    @param b The right hand side to assemble
    @param elementId The mesh Element ID to assemble
-   @param group The GroupOfDof to assemble
+   @param dof The Dof%s to assemble
    @param term The Formulation to use in the assembly
 
    Assembles the given values

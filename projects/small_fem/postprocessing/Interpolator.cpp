@@ -67,9 +67,9 @@ void Interpolator<double>::interpolate(const FunctionSpace& fs,
     }
 
     else{
-      // Get GroupOfDof related to this Element
-      const vector<Dof>& dof  = fs.getGoDFromElement(*element);
-      const size_t       size = dof.size();
+      // Get Dofs related to this Element
+      const vector<Dof> dof  = fs.getKeys(*element);
+      const size_t      size = dof.size();
 
       // Get Coef
       vector<double> thisCoef(size);
@@ -155,16 +155,16 @@ interpolate(const FunctionSpace& fs,
     }
 
     else{
-      // Get GroupOfDof related to this Element
+      // Get Dofs related to this Element
       try{
-        const vector<Dof>& dof  = fs.getGoDFromElement(*element);
+        const vector<Dof>& dof  = fs.getKeys(*element);
         const size_t       size = dof.size();
 
         // Get Coef
         vector<complex<double> > thisCoef(size);
         for(size_t k = 0; k < size; k++){
           // Dof Global ID
-          const size_t globalId = dofM.getGlobalId(dof[k]);
+          const size_t globalId = dofM.getGlobalIdSafe(dof[k]);
 
           // If non fixed Dof: look in Solution
           if(globalId != DofManager<complex<double> >::isFixedId())
