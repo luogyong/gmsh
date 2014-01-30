@@ -22,8 +22,7 @@ class FormulationSteadyWaveScalar: public Formulation<scalar>{
   double kSquare;
 
   // Function Space & Basis //
-  FunctionSpaceScalar* fspace;
-  Basis*               basis;
+  const FunctionSpaceScalar* fspace;
 
   // Local Terms //
   TermGradGrad*   localTerms1;
@@ -31,8 +30,8 @@ class FormulationSteadyWaveScalar: public Formulation<scalar>{
 
  public:
   FormulationSteadyWaveScalar(GroupOfElement& goe,
-                              double k,
-                              size_t order);
+                              const FunctionSpaceScalar& fs,
+                              double k);
 
   virtual ~FormulationSteadyWaveScalar(void);
 

@@ -9,7 +9,6 @@
 #include "fullMatrix.h"
 #include "FEMSolution.h"
 #include "Interpolator.h"
-#include "BasisGenerator.h"
 #include "FunctionSpaceScalar.h"
 #include "FunctionSpaceVector.h"
 #include "FormulationProjectionScalar.h"
@@ -216,12 +215,10 @@ void fem(double (*f)(fullVector<double>& xyz),
          const fullMatrix<double>& point,
          fullMatrix<double>& sol,
          bool nopos){
-  // Basis//
-  stringstream stream;
-  Basis* basis  = BasisGenerator::generate(domain.get(0).getType(),
-                                           0, order, "hierarchical");
   // Projection //
-  FunctionSpaceScalar fSpace(domain, *basis);
+  stringstream stream;
+
+  FunctionSpaceScalar fSpace(domain, order);
   FormulationProjectionScalar<double> projection(f, fSpace);
   System<double> sysProj(projection);
 
@@ -246,9 +243,6 @@ void fem(double (*f)(fullVector<double>& xyz),
     sysProj.getSolution(feSol);
     feSol.write(stream.str());
   }
-
-  // Free //
-  delete basis;
 }
 
 void fem(fullVector<double> (*f)(fullVector<double>& xyz),
@@ -257,12 +251,10 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
          const fullMatrix<double>& point,
          fullMatrix<double>& sol,
          bool nopos){
-  // Basis//
-  stringstream stream;
-  Basis* basis  = BasisGenerator::generate(domain.get(0).getType(),
-                                           1, order, "hierarchical");
   // Projection //
-  FunctionSpaceVector fSpace(domain, *basis);
+  stringstream stream;
+
+  FunctionSpaceVector fSpace(domain, order);
   FormulationProjectionVector<double> projection(f, fSpace);
   System<double> sysProj(projection);
 
@@ -287,9 +279,6 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
     sysProj.getSolution(feSol);
     feSol.write(stream.str());
   }
-
-  // Free //
-  delete basis;
 }
 
 double l2Norm(const fullMatrix<double>& val){

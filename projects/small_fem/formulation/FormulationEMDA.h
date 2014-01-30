@@ -20,8 +20,8 @@ class FormulationEMDA: public Formulation<std::complex<double> >{
   double chi;
 
   // Function Space & Basis //
-  FunctionSpaceScalar* fspace;
-  Basis*                basis;
+  const FunctionSpaceScalar* fspace;
+  const Basis*                basis;
 
   // Domain //
   GroupOfElement* goe;
@@ -39,9 +39,9 @@ class FormulationEMDA: public Formulation<std::complex<double> >{
 
  public:
   FormulationEMDA(GroupOfElement& goe,
+                  const FunctionSpaceScalar& fs,
                   double k,
                   double chi,
-                  size_t order,
                   const std::map<Dof, std::complex<double> >& ddmDof);
 
   virtual ~FormulationEMDA(void);

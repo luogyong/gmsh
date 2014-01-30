@@ -34,8 +34,11 @@ void compute(const Options& option){
 
   // Formulation //
   assemble.start();
-  FormulationSteadyWaveScalar<complex<double> > wave(domain, k, order);
-  FormulationNeumann neumann(freeSpace, k, order);
+  FunctionSpaceScalar fsVol(domain,    order);
+  FunctionSpaceScalar fsInf(freeSpace, order);
+
+  FormulationSteadyWaveScalar<complex<double> > wave(domain, fsVol, k);
+  FormulationNeumann neumann(freeSpace, fsInf, order);
 
   // System //
   System<complex<double> > sys(wave);

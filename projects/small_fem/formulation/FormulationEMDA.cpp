@@ -3,37 +3,41 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "Exception.h"
 #include "FormulationEMDA.h"
 
 using namespace std;
 
 FormulationEMDA::
 FormulationEMDA(GroupOfElement& goe,
+                const FunctionSpaceScalar& fs,
                 double k,
                 double chi,
-                size_t order,
                 const std::map<Dof, std::complex<double> >& ddmDof){
-  // Can't have 0th order //
-  if(order == 0)
-    throw
-      Exception("Can't have a Scalar SteadyWave formulation of order 0");
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationEMDA needs a uniform mesh");
 
   // Wavenumber & Chi //
   this->k   = k;
   this->chi = chi;
 
-  // Function Space & Basis//
-  basis  = BasisGenerator::generate(goe.get(0).getType(),
-                                    0, order, "hierarchical");
-
-  fspace = new FunctionSpaceScalar(goe, *basis);
-
   // Domain //
   this->goe = &goe;
 
+  // Save FunctionSpace & Get Basis //
+  fspace = &fs;
+  basis  = &fs.getBasis(eType);
+
   // Gaussian Quadrature //
-  Quadrature gauss(goe.get(0).getType(), basis->getOrder(), 2);
+  Quadrature gauss(eType, basis->getOrder(), 2);
 
   gC = new fullMatrix<double>(gauss.getPoints());
   gW = new fullVector<double>(gauss.getWeights());
@@ -51,8 +55,6 @@ FormulationEMDA(GroupOfElement& goe,
 
 FormulationEMDA::~FormulationEMDA(void){
   delete localTerms;
-  delete basis;
-  delete fspace;
 
   delete gC;
   delete gW;

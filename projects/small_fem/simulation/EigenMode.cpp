@@ -37,11 +37,15 @@ void compute(const Options& option){
   const size_t nWave = atoi(option.getValue("-n")[1].c_str());
 
   // Chose write formulation for Eigenvalues and boundary condition //
+  FunctionSpace* fs = NULL;
   Formulation<complex<double> >* eig = NULL;
   SystemEigen* sys = NULL;
 
   if(option.getValue("-type")[1].compare("vector") == 0){
-    eig = new FormulationEigenFrequencyVector(domain, order);
+    fs  = new FunctionSpaceVector(domain, order);
+    eig = new FormulationEigenFrequencyVector
+      (domain, static_cast<FunctionSpaceVector&>(*fs));
+
     sys = new SystemEigen(*eig);
 
     SystemHelper<complex<double> >::dirichlet(*sys, border, fDirichletVec);
@@ -49,7 +53,10 @@ void compute(const Options& option){
   }
 
   else if(option.getValue("-type")[1].compare("scalar") == 0){
-    eig = new FormulationEigenFrequencyScalar(domain, order);
+    fs  = new FunctionSpaceScalar(domain, order);
+    eig = new FormulationEigenFrequencyScalar
+      (domain, static_cast<FunctionSpaceScalar&>(*fs));
+
     sys = new SystemEigen(*eig);
 
     SystemHelper<complex<double> >::dirichlet(*sys, border, fDirichletScal);
@@ -97,6 +104,7 @@ void compute(const Options& option){
   // Clean //
   delete sys;
   delete eig;
+  delete fs;
 }
 
 int main(int argc, char** argv){

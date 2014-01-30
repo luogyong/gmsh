@@ -3,43 +3,47 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "Exception.h"
 #include "FormulationOO2.h"
 
 using namespace std;
 
 FormulationOO2::
 FormulationOO2(GroupOfElement& goe,
+               const FunctionSpaceScalar& fs,
                std::complex<double> a,
                std::complex<double> b,
-               size_t order,
                const std::map<Dof, std::complex<double> >& ddmDof){
-  // Can't have 0th order //
-  if(order == 0)
-    throw
-      Exception("Can't have a Scalar SteadyWave formulation of order 0");
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationOO2 needs a uniform mesh");
 
   // a & b //
   this->a = a;
   this->b = b;
 
-  // Function Space & Basis//
-  basis  = BasisGenerator::generate(goe.get(0).getType(),
-                                    0, order, "hierarchical");
-
-  fspace = new FunctionSpaceScalar(goe, *basis);
-
   // Domain //
   this->goe = &goe;
 
+  // Save FunctionSpace & Get Basis //
+  fspace = &fs;
+  basis  = &fs.getBasis(eType);
+
   // Gaussian Quadrature (Field - Field) //
-  Quadrature gauss(goe.get(0).getType(), basis->getOrder(), 2);
+  Quadrature gauss(eType, basis->getOrder(), 2);
 
   gC = new fullMatrix<double>(gauss.getPoints());
   gW = new fullVector<double>(gauss.getWeights());
 
   // Gaussian Quadrature (Grad - Grad) -- Do not need to be saved //
-  Quadrature gaussGG(goe.get(0).getType(), basis->getOrder() - 1, 2);
+  Quadrature gaussGG(eType, basis->getOrder() - 1, 2);
 
   const fullMatrix<double>& gCGG = gaussGG.getPoints();
   const fullVector<double>& gWGG = gaussGG.getWeights();
@@ -62,8 +66,6 @@ FormulationOO2(GroupOfElement& goe,
 FormulationOO2::~FormulationOO2(void){
   delete localTermsUU;
   delete localTermsGG;
-  delete basis;
-  delete fspace;
 
   delete gC;
   delete gW;

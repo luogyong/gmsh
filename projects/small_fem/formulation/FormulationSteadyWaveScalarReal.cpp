@@ -2,31 +2,38 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "Exception.h"
 #include "FormulationSteadyWaveScalar.h"
 
 using namespace std;
 
 template<>
 FormulationSteadyWaveScalar<double>::
-FormulationSteadyWaveScalar(GroupOfElement& goe, double k, size_t order){
-  // Can't have 0th order //
-  if(order == 0)
-    throw
-      Exception("Can't have a Scalar SteadyWave formulation of order 0");
+FormulationSteadyWaveScalar(GroupOfElement& goe,
+                            const FunctionSpaceScalar& fs,
+                            double k){
 
-  // Wavenumber Squared //
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationSteadyWaveScalar needs a uniform mesh");
+
+  // Wave Squared //
   kSquare = k * k;
 
-  // Function Space & Basis//
-  basis  = BasisGenerator::generate(goe.get(0).getType(),
-                                    0, order, "hierarchical");
-
-  fspace = new FunctionSpaceScalar(goe, *basis);
+  // Save FunctionSpace & Get Basis //
+  const Basis& basis = fs.getBasis(eType);
+  const size_t order = basis.getOrder();
+  fspace             = &fs;
 
   // Gaussian Quadrature //
-  Quadrature gaussGradGrad(goe.get(0).getType(), order - 1, 2);
-  Quadrature gaussFF(goe.get(0).getType(), order, 2);
+  Quadrature gaussGradGrad(eType, order - 1, 2);
+  Quadrature gaussFF(eType, order, 2);
 
   const fullMatrix<double>& gC1 = gaussGradGrad.getPoints();
   const fullVector<double>& gW1 = gaussGradGrad.getWeights();
@@ -35,21 +42,18 @@ FormulationSteadyWaveScalar(GroupOfElement& goe, double k, size_t order){
   const fullVector<double>& gW2 = gaussFF.getWeights();
 
   // Local Terms //
-  basis->preEvaluateDerivatives(gC1);
-  basis->preEvaluateFunctions(gC2);
+  basis.preEvaluateDerivatives(gC1);
+  basis.preEvaluateFunctions(gC2);
 
   GroupOfJacobian jac1(goe, gC1, "invert");
   GroupOfJacobian jac2(goe, gC2, "jacobian");
 
-  localTerms1 = new TermGradGrad(jac1, *basis, gW1);
-  localTerms2 = new TermFieldField(jac2, *basis, gW2);
+  localTerms1 = new TermGradGrad(jac1, basis, gW1);
+  localTerms2 = new TermFieldField(jac2, basis, gW2);
 }
 
 template<>
 FormulationSteadyWaveScalar<double>::~FormulationSteadyWaveScalar(void){
-  delete basis;
-  delete fspace;
-
   delete localTerms1;
   delete localTerms2;
 }

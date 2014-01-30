@@ -12,7 +12,7 @@
    @class FormulationSteadyWaveVector
    @brief Vectorial Formulation for the Steady Wave problem
 
-   Vectorial Formulation for the @em Steady @em Wave problem
+   Vectorial Formulation for the steady wave problem
  */
 
 class FormulationSteadyWaveVector: public Formulation<double>{
@@ -21,8 +21,7 @@ class FormulationSteadyWaveVector: public Formulation<double>{
   double kSquare;
 
   // Function Space & Basis //
-  FunctionSpaceVector* fspace;
-  Basis*               basis;
+  const FunctionSpaceVector* fspace;
 
   // Local Terms //
   TermCurlCurl* localTerms1;
@@ -30,21 +29,16 @@ class FormulationSteadyWaveVector: public Formulation<double>{
 
  public:
   FormulationSteadyWaveVector(GroupOfElement& goe,
-                              double k,
-                              size_t order);
+                              const FunctionSpaceVector& fs,
+                              double k);
 
   virtual ~FormulationSteadyWaveVector(void);
 
   virtual bool isGeneral(void) const;
 
-  virtual double weak(size_t dofI, size_t dofJ,
-                      size_t elementId) const;
-
-  virtual double weakB(size_t dofI, size_t dofJ,
-                       size_t elementId) const;
-
-  virtual double rhs(size_t equationI,
-                     size_t elementId) const;
+  virtual double weak(size_t dofI, size_t dofJ, size_t elementId)  const;
+  virtual double weakB(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual double rhs(size_t equationI, size_t elementId)           const;
 
   virtual const FunctionSpace& fs(void) const;
 };

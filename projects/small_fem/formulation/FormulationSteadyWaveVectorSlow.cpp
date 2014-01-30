@@ -10,23 +10,35 @@ using namespace std;
 
 FormulationSteadyWaveVectorSlow::
 FormulationSteadyWaveVectorSlow(GroupOfElement& goe,
-                                double k,
-                                size_t order){
-  // Wavenumber Squared //
+                                const FunctionSpaceVector& fs,
+                                double k){
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationSteadyWaveVectorSlow needs a uniform mesh");
+
+  // Wave Squared //
   kSquare = k * k;
 
   // Domain //
   this->goe = &goe;
 
-  // Function Space & Basis //
-  basis  = BasisGenerator::generate(goe.get(0).getType(),
-                                    1, order, "hierarchical");
-
-  fspace = new FunctionSpaceVector(goe, *basis);
+  // Save FunctionSpace & Get Basis //
+  fspace = &fs;
+  basis  = &fs.getBasis(eType);
 
   // Gaussian Quadrature //
-  Quadrature gaussCurlCurl(goe.get(0).getType(), order - 1, 2);
-  Quadrature gaussFF(goe.get(0).getType(), order, 2);
+  const size_t order = basis->getOrder();
+
+  Quadrature gaussCurlCurl(eType, order - 1, 2);
+  Quadrature gaussFF(eType, order, 2);
 
   gC1 = new fullMatrix<double>(gaussCurlCurl.getPoints());
   gW1 = new fullVector<double>(gaussCurlCurl.getWeights());
@@ -52,12 +64,9 @@ FormulationSteadyWaveVectorSlow::~FormulationSteadyWaveVectorSlow(void){
   delete gW2;
   delete jac1;
   delete jac2;
-  delete basis;
-  delete fspace;
 }
 
-double FormulationSteadyWaveVectorSlow::weak(size_t dofI,
-                                             size_t dofJ,
+double FormulationSteadyWaveVectorSlow::weak(size_t dofI, size_t dofJ,
                                              size_t elementId) const{
   // Init Some Stuff //
   fullVector<double> phiI(3);
@@ -123,8 +132,7 @@ bool FormulationSteadyWaveVectorSlow::isGeneral(void) const{
   return false;
 }
 
-double FormulationSteadyWaveVectorSlow::weakB(size_t dofI,
-                                              size_t dofJ,
+double FormulationSteadyWaveVectorSlow::weakB(size_t dofI, size_t dofJ,
                                               size_t elementId) const{
   return 0;
 }

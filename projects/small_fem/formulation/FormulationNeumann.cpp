@@ -2,44 +2,47 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "Exception.h"
 #include "FormulationNeumann.h"
 
 using namespace std;
 
-FormulationNeumann::
-FormulationNeumann(GroupOfElement& goe, double k, size_t order){
-  // Can't have 0th order //
-  if(order == 0)
-    throw
-      Exception("Can't have a Scalar SteadyWave formulation of order 0");
+FormulationNeumann::FormulationNeumann(GroupOfElement& goe,
+                                       const FunctionSpaceScalar& fs,
+                                       double k){
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationNeumann needs a uniform mesh");
 
   // Wavenumber //
   this->k = k;
 
-  // Function Space & Basis//
-  basis  = BasisGenerator::generate(goe.get(0).getType(),
-                                    0, order, "hierarchical");
-
-  fspace = new FunctionSpaceScalar(goe, *basis);
+  // Save FunctionSpace & Get Basis //
+  const Basis& basis = fs.getBasis(eType);
+  const size_t order = basis.getOrder();
+  fspace             = &fs;
 
   // Gaussian Quadrature //
-  Quadrature gaussFF(goe.get(0).getType(), order, 2);
+  Quadrature gaussFF(eType, order, 2);
   const fullMatrix<double>& gC = gaussFF.getPoints();
   const fullVector<double>& gW = gaussFF.getWeights();
 
   // Local Terms //
-  basis->preEvaluateFunctions(gC);
+  basis.preEvaluateFunctions(gC);
 
   GroupOfJacobian jac(goe, gC, "jacobian");
 
-  localTerms = new TermFieldField(jac, *basis, gW);
+  localTerms = new TermFieldField(jac, basis, gW);
 }
 
 FormulationNeumann::~FormulationNeumann(void){
-  delete basis;
-  delete fspace;
-
   delete localTerms;
 }
 

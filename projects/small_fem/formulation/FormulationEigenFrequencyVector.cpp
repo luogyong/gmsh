@@ -6,20 +6,29 @@
 
 using namespace std;
 
-const double FormulationEigenFrequencyVector::cSquare = 1;
-
 FormulationEigenFrequencyVector::
 FormulationEigenFrequencyVector(GroupOfElement& goe,
-                                size_t order){
-  // Function Space & Basis //
-  basis  = BasisGenerator::generate(goe.get(0).getType(),
-                                    1, order, "hierarchical");
+                                const FunctionSpaceVector& fs){
 
-  fspace = new FunctionSpaceVector(goe, *basis);
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationEigenFrequencyVector needs a uniform mesh");
+
+  // Save FunctionSpace & Get Basis //
+  const Basis& basis = fs.getBasis(eType);
+  const size_t order = basis.getOrder();
+  fspace             = &fs;
 
   // Gaussian Quadrature //
-  Quadrature gaussCurlCurl(goe.get(0).getType(), order - 1, 2);
-  Quadrature gaussFF(goe.get(0).getType(), order, 2);
+  Quadrature gaussCurlCurl(eType, order - 1, 2);
+  Quadrature gaussFF(eType, order, 2);
 
   const fullMatrix<double>& gC1 = gaussCurlCurl.getPoints();
   const fullVector<double>& gW1 = gaussCurlCurl.getWeights();
@@ -28,20 +37,17 @@ FormulationEigenFrequencyVector(GroupOfElement& goe,
   const fullVector<double>& gW2 = gaussFF.getWeights();
 
   // Local Terms //
-  basis->preEvaluateDerivatives(gC1);
-  basis->preEvaluateFunctions(gC2);
+  basis.preEvaluateDerivatives(gC1);
+  basis.preEvaluateFunctions(gC2);
 
   GroupOfJacobian jac1(goe, gC1, "jacobian");
   GroupOfJacobian jac2(goe, gC2, "invert");
 
-  localTerms1 = new TermCurlCurl(jac1, *basis, gW1);
-  localTerms2 = new TermGradGrad(jac2, *basis, gW2);
+  localTerms1 = new TermCurlCurl(jac1, basis, gW1);
+  localTerms2 = new TermGradGrad(jac2, basis, gW2);
 }
 
 FormulationEigenFrequencyVector::~FormulationEigenFrequencyVector(void){
-  delete basis;
-  delete fspace;
-
   delete localTerms1;
   delete localTerms2;
 }
@@ -50,21 +56,18 @@ std::complex<double>
 FormulationEigenFrequencyVector::weak(size_t dofI, size_t dofJ,
                                       size_t elementId) const{
 
-  return std::complex<double>
-    (localTerms1->getTerm(dofI, dofJ, elementId), 0);
+  return std::complex<double>(localTerms1->getTerm(dofI, dofJ, elementId), 0);
 }
 
 std::complex<double>
 FormulationEigenFrequencyVector::weakB(size_t dofI, size_t dofJ,
                                        size_t elementId) const{
 
-  return std::complex<double>
-    (localTerms2->getTerm(dofI, dofJ, elementId) / cSquare, 0);
+  return std::complex<double>(localTerms2->getTerm(dofI, dofJ, elementId), 0);
 }
 
 std::complex<double>
-FormulationEigenFrequencyVector::rhs(size_t dofI,
-                                     size_t elementId) const{
+FormulationEigenFrequencyVector::rhs(size_t dofI, size_t elementId) const{
   return std::complex<double>(0, 0);
 }
 

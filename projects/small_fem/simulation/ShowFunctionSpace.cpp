@@ -1,4 +1,3 @@
-#include "BasisGenerator.h"
 #include "FunctionSpaceScalar.h"
 #include "FunctionSpaceVector.h"
 
@@ -20,32 +19,16 @@ void compute(const Options& option){
 
   // Get FunctionSpace //
   const size_t   order = atoi(option.getValue("-o")[1].c_str());
-  Basis*         basis;
   FunctionSpace* fSpace;
 
-  if(option.getValue("-type")[1].compare("lagrange") == 0){
-    // If Lagrange
-    basis =
-      BasisGenerator::generate(domain.get(0).getType(),
-                               0, order, "lagrange");
+  if(option.getValue("-type")[1].compare("lagrange") == 0)
+    fSpace = new FunctionSpaceScalar(domain, order, "lagrange");
 
-    fSpace = new FunctionSpaceScalar(domain, *basis);
-  }
-
-  else if(option.getValue("-type")[1].compare("scalar") == 0){
-    // If Scalar
-    basis = NULL;
+  else if(option.getValue("-type")[1].compare("scalar") == 0)
     fSpace = new FunctionSpaceScalar(domain, order);
-  }
 
-  else if(option.getValue("-type")[1].compare("vector") == 0){
-    // If Vector
-    basis =
-      BasisGenerator::generate(domain.get(0).getType(),
-                               1, order, "hierarchical");
-
-    fSpace = new FunctionSpaceVector(domain, *basis);
-  }
+  else if(option.getValue("-type")[1].compare("vector") == 0)
+    fSpace = new FunctionSpaceVector(domain, order);
 
   else
     throw Exception("Unknown FunctionSpace type: %s",
@@ -99,9 +82,6 @@ void compute(const Options& option){
 
   // Clean //
   delete fSpace;
-
-  if(basis)
-    delete basis;
 }
 
 int main(int argc, char** argv){

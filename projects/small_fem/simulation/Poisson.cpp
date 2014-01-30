@@ -36,8 +36,11 @@ void compute(const Options& option){
   // Get Order //
   size_t order = atoi(option.getValue("-o")[1].c_str());
 
+  // Function Space //
+  FunctionSpaceScalar fs(domain, order);
+
   // Compute //
-  FormulationPoisson poisson(domain, fSource, order);
+  FormulationPoisson poisson(domain, fs, fSource);
   System<double> sysPoisson(poisson);
 
   SystemHelper<double>::dirichlet(sysPoisson, boundary0, fDirichlet0);

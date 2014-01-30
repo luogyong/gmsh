@@ -6,7 +6,6 @@
 /////////////////////////////////////////////////
 
 #include "System.h"
-#include "BasisGenerator.h"
 #include "FunctionSpaceScalar.h"
 #include "FunctionSpaceVector.h"
 #include "FormulationProjectionScalar.h"
@@ -49,12 +48,7 @@ dirichlet(SystemAbstract<scalar>& sys,
       fsType = i;
 
   // Get Function Space for Projection (formFS) //
-  Basis* basis = BasisGenerator::generate(eType,
-                                          fs.getBasis(fsType).getForm(),
-                                          fs.getBasis(fsType).getOrder(),
-                                          "hierarchical");
-
-  FunctionSpaceScalar formFS(goe, *basis);
+  FunctionSpaceScalar formFS(goe, fs.getBasis(fsType).getOrder());
 
   // Solve Projection //
   FormulationProjectionScalar<scalar> form(f, formFS);
@@ -75,8 +69,6 @@ dirichlet(SystemAbstract<scalar>& sys,
   // Get Solution and Dirichlet Constraint //
   projection.getSolution(constr, 0);
   sys.constraint(constr);
-
-  delete basis;
 }
 
 template<typename scalar>
@@ -107,12 +99,7 @@ dirichlet(SystemAbstract<scalar>& sys,
       fsType = i;
 
   // Get Function Space for Projection (formFS) //
-  Basis* basis = BasisGenerator::generate(eType,
-                                          fs.getBasis(fsType).getForm(),
-                                          fs.getBasis(fsType).getOrder(),
-                                          "hierarchical");
-
-  FunctionSpaceVector formFS(goe, *basis);
+  FunctionSpaceVector formFS(goe, fs.getBasis(fsType).getOrder());
 
   // Solve Projection //
   FormulationProjectionVector<scalar> form(f, formFS);
@@ -133,6 +120,4 @@ dirichlet(SystemAbstract<scalar>& sys,
   // Get Solution and Dirichlet Constraint //
   projection.getSolution(constr, 0);
   sys.constraint(constr);
-
-  delete basis;
 }

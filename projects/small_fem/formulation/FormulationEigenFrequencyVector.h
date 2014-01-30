@@ -19,12 +19,8 @@
 class FormulationEigenFrequencyVector:
 public Formulation<std::complex<double> >{
  private:
-  // Speed of medium squared //
-  static const double cSquare;
-
   // Function Space & Basis //
-  FunctionSpaceVector* fspace;
-  Basis*               basis;
+  const FunctionSpaceVector* fspace;
 
   // Local Terms //
   TermCurlCurl* localTerms1;
@@ -32,7 +28,7 @@ public Formulation<std::complex<double> >{
 
  public:
   FormulationEigenFrequencyVector(GroupOfElement& goe,
-                            size_t order);
+                                  const FunctionSpaceVector& fs);
 
   virtual ~FormulationEigenFrequencyVector(void);
 

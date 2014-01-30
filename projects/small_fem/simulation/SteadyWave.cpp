@@ -57,12 +57,16 @@ void compute(const Options& option){
   const size_t order = atoi(option.getValue("-o")[1].c_str());
 
   // Chose write formulation for Steady Wave and boundary condition //
+  FunctionSpace*       fs   = NULL;
   Formulation<double>* wave = NULL;
   System<double>*      sys  = NULL;
 
   if(option.getValue("-type")[1].compare("vector") == 0){
     assemble.start();
-    wave = new FormulationSteadyWaveVector(domain, k, order);
+    fs   = new FunctionSpaceVector(domain, order);
+    wave = new FormulationSteadyWaveVector
+      (domain, static_cast<FunctionSpaceVector&>(*fs), k);
+
     sys  = new System<double>(*wave);
 
     SystemHelper<double>::dirichlet(*sys, source, fSourceVec);
@@ -72,7 +76,10 @@ void compute(const Options& option){
 
   else if(option.getValue("-type")[1].compare("slow") == 0){
     assemble.start();
-    wave = new FormulationSteadyWaveVectorSlow(domain, k, order);
+    fs   = new FunctionSpaceVector(domain, order);
+    wave = new FormulationSteadyWaveVectorSlow
+      (domain, static_cast<FunctionSpaceVector&>(*fs), k);
+
     sys  = new System<double>(*wave);
 
     SystemHelper<double>::dirichlet(*sys, source, fSourceVec);
@@ -82,7 +89,10 @@ void compute(const Options& option){
 
   else if(option.getValue("-type")[1].compare("scalar") == 0){
     assemble.start();
-    wave = new FormulationSteadyWaveScalar<double>(domain, k, order);
+    fs   = new FunctionSpaceScalar(domain, order);
+    wave = new FormulationSteadyWaveScalar<double>
+      (domain, static_cast<FunctionSpaceScalar&>(*fs), k);
+
     sys  = new System<double>(*wave);
 
     SystemHelper<double>::dirichlet(*sys, source, fSourceScal);
@@ -122,6 +132,7 @@ void compute(const Options& option){
   // Clean //
   delete sys;
   delete wave;
+  delete fs;
 
   // Timer -- Finalize -- Return //
   timer.stop();

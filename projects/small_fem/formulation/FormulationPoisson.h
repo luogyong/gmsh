@@ -18,9 +18,8 @@
 
 class FormulationPoisson: public Formulation<double>{
  private:
-  // Function Space & Basis //
-  FunctionSpaceScalar* fspace;
-  Basis*               basis;
+  // Function Space //
+  const FunctionSpaceScalar* fspace;
 
   // Local Terms //
   TermGradGrad*        localTermsL;
@@ -29,17 +28,10 @@ class FormulationPoisson: public Formulation<double>{
   // Source Term //
   double (*fSource)(fullVector<double>& xyz);
 
-  // Self
-  bool self;
-
  public:
   FormulationPoisson(GroupOfElement& goe,
-                     FunctionSpaceScalar& fs,
+                     const FunctionSpaceScalar& fs,
                      double (*f)(fullVector<double>& xyz));
-
-  FormulationPoisson(GroupOfElement& goe,
-                     double (*f)(fullVector<double>& xyz),
-                     size_t order);
 
   virtual ~FormulationPoisson(void);
 

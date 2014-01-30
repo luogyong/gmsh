@@ -199,6 +199,11 @@ void compute(const Options& option){
     ddmBorder = new GroupOfElement(msh.getFromPhysical(4));
   }
 
+  // Function Space //
+  FunctionSpaceScalar* fsVol = NULL;
+  FunctionSpaceScalar* fsDdm = NULL;
+  FunctionSpaceScalar* fsInf = NULL;
+
   // Formulation Pointers //
   Formulation<Complex>* wave;
   Formulation<Complex>* ddm;
@@ -223,8 +228,11 @@ void compute(const Options& option){
   vector<Complex>* inValue   = NULL;
 
   for(size_t step = 0; step < maxIt; step++){
+    // Function Space //
+    fsVol = new FunctionSpaceScalar(*domain, order);
+
     // Formulations //
-    wave = new FormulationSteadyWaveScalar<Complex>(*domain, k, order);
+    wave = new FormulationSteadyWaveScalar<Complex>(*domain, *fsVol, k);
 
     // System //
     system = new System<Complex>(*wave);
@@ -258,14 +266,17 @@ void compute(const Options& option){
     system->assemble();
 
     // Neumann terms
-    neumann = new FormulationNeumann(*infinity, k, order);
+    fsInf   = new FunctionSpaceScalar(*infinity, order);
+    neumann = new FormulationNeumann(*infinity, *fsInf, k);
     system->addBorderTerm(*neumann);
 
     // DDM terms
+    fsDdm = new FunctionSpaceScalar(*ddmBorder, order);
+
     if(ddmType == emdaType)
-      ddm = new FormulationEMDA(*ddmBorder, k, chi, order, *ddmG);
+      ddm = new FormulationEMDA(*ddmBorder, *fsDdm, k, chi, *ddmG);
     else if(ddmType == oo2Type)
-      ddm = new FormulationOO2(*ddmBorder, ooA, ooB, order, *ddmG);
+      ddm = new FormulationOO2(*ddmBorder, *fsDdm, ooA, ooB, *ddmG);
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -286,13 +297,10 @@ void compute(const Options& option){
     }
 
     // Update G //
-    const FunctionSpaceScalar& ddmFSpace =
-      static_cast<const FunctionSpaceScalar&>(ddm->fs());
-
     if(ddmType == emdaType)
-      upDdm  = new FormulationUpdateEMDA(ddmFSpace, k, chi, *solution, *ddmG);
+      upDdm  = new FormulationUpdateEMDA(*fsDdm, k, chi, *solution, *ddmG);
     else if(ddmType == oo2Type)
-      upDdm  = new FormulationUpdateOO2(ddmFSpace, ooA, ooB, *solution, *ddmG);
+      upDdm  = new FormulationUpdateOO2(*fsDdm, ooA, ooB, *solution, *ddmG);
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -332,6 +340,10 @@ void compute(const Options& option){
 
     delete wave;
     delete system;
+
+    delete fsVol;
+    delete fsDdm;
+    delete fsInf;
   }
 
   // Finalize //

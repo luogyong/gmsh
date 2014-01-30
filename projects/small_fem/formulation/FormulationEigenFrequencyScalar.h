@@ -19,12 +19,8 @@
 class FormulationEigenFrequencyScalar:
 public Formulation<std::complex<double> >{
  private:
-  // Speed of medium squared //
-  static const double cSquare;
-
   // Function Space & Basis //
-  FunctionSpaceScalar* fspace;
-  Basis*               basis;
+  const FunctionSpaceScalar* fspace;
 
   // Local Terms //
   TermGradGrad*   localTerms1;
@@ -32,7 +28,7 @@ public Formulation<std::complex<double> >{
 
  public:
   FormulationEigenFrequencyScalar(GroupOfElement& goe,
-                       size_t order);
+                                  const FunctionSpaceScalar& fs);
 
   virtual ~FormulationEigenFrequencyScalar(void);
 
