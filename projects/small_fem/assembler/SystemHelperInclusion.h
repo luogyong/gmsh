@@ -37,18 +37,11 @@ dirichlet(SystemAbstract<scalar>& sys,
     else if((eType != (size_t)(-1)) && (gType[i] != 0))
       throw Exception("SystemHelper::dirichlet needs a uniform mesh");
 
-  // Get this SystemAbstract FunctionSpace & its Basis type //
+  // Get this SystemAbstract FunctionSpace //
   const FunctionSpace& fs = sys.getFunctionSpace();
 
-  const std::vector<size_t>& fsGType = fs.getSupport().getTypeStats();
-  size_t fsType = (size_t)(-1);
-
-  for(size_t i = 0; i < nGType; i++)
-    if((fsType == (size_t)(-1)) && (fsGType[i] != 0))
-      fsType = i;
-
   // Get Function Space for Projection (formFS) //
-  FunctionSpaceScalar formFS(goe, fs.getBasis(fsType).getOrder());
+  FunctionSpaceScalar formFS(goe, fs.getOrder());
 
   // Solve Projection //
   FormulationProjectionScalar<scalar> form(f, formFS);
@@ -88,18 +81,11 @@ dirichlet(SystemAbstract<scalar>& sys,
     else if((eType != (size_t)(-1)) && (gType[i] != 0))
       throw Exception("SystemHelper::dirichlet needs a uniform mesh");
 
-  // Get this SystemAbstract FunctionSpace & its Basis type //
+  // Get this SystemAbstract FunctionSpace //
   const FunctionSpace& fs = sys.getFunctionSpace();
 
-  const std::vector<size_t>& fsGType = fs.getSupport().getTypeStats();
-  size_t fsType = (size_t)(-1);
-
-  for(size_t i = 0; i < nGType; i++)
-    if((fsType == (size_t)(-1)) && (fsGType[i] != 0))
-      fsType = i;
-
   // Get Function Space for Projection (formFS) //
-  FunctionSpaceVector formFS(goe, fs.getBasis(fsType).getOrder());
+  FunctionSpaceVector formFS(goe, fs.getOrder());
 
   // Solve Projection //
   FormulationProjectionVector<scalar> form(f, formFS);
