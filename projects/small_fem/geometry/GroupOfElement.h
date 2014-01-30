@@ -20,10 +20,14 @@ class Mesh;
 
 class GroupOfElement{
  private:
+  static const size_t nGeoType;
+
+ private:
   const Mesh* mesh;
 
   std::vector<const MElement*> element;
   std::vector<size_t>          orientationStat;
+  std::vector<size_t>          typeStat;
 
  public:
    GroupOfElement(std::list<const MElement*>& element, const Mesh& mesh);
@@ -37,6 +41,7 @@ class GroupOfElement{
   const Mesh& getMesh(void) const;
 
   const std::vector<size_t>& getOrientationStats(void) const;
+  const std::vector<size_t>& getTypeStats(void) const;
 
   void getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const;
   void getAllVertexCoordinate(fullMatrix<double>& coord) const;
@@ -123,9 +128,15 @@ inline const Mesh& GroupOfElement::getMesh(void) const{
   return *mesh;
 }
 
+//#include "Exception.h"
 inline const std::vector<size_t>&
 GroupOfElement::getOrientationStats(void) const{
+  //throw Exception("42");
   return orientationStat;
+}
+
+inline const std::vector<size_t>& GroupOfElement::getTypeStats(void) const{
+  return typeStat;
 }
 
 #endif

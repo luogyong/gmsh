@@ -14,19 +14,30 @@ FormulationUpdateEMDA(const FunctionSpaceScalar& fs,
                       double chi,
                       const std::map<Dof, std::complex<double> >& solution,
                       const std::map<Dof, std::complex<double> >& oldG){
+  // Domain //
+  this->goe = &fs.getSupport();
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe->getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationUpdateEMDA needs a uniform mesh");
+
   // Save fspace //
   fspace = &fs;
-  basis  = &fs.getBasis(0);
+  basis  = &fs.getBasis(eType);
 
   // Wavenumber & Chi //
   this->k   = k;
   this->chi = chi;
 
-  // Domain //
-  this->goe = &fs.getSupport();
-
   // Gaussian Quadrature //
-  Quadrature gauss(goe->get(0).getType(), basis->getOrder(), 2);
+  Quadrature gauss(eType, basis->getOrder(), 2);
 
   gC = new fullMatrix<double>(gauss.getPoints());
   gW = new fullVector<double>(gauss.getWeights());

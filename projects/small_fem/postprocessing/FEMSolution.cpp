@@ -22,17 +22,24 @@ addCoefficients(size_t step,
   const size_t                  nElement = element.size();
   GModel&                          model = fs.getSupport().getMesh().getModel();
 
-
   // Lagrange Basis & Interpolation matrices //
-  BasisLagrange* lagrange = static_cast<BasisLagrange*>
-    (BasisGenerator::generate(element[0]->getType(),
-                              0,
-                              fs.getBasis(0).getOrder(),
-                              "lagrange"));
+  // One lagrange basis per geo type //
+  const vector<size_t> typeStat = fs.getSupport().getTypeStats();
+  const size_t nGeoType = typeStat.size();
 
-  pView->setInterpolationMatrices(element[0]->getType(),
-                                  lagrange->getCoefficient(),
-                                  lagrange->getMonomial());
+  vector<BasisLagrange*> lagrange(nGeoType, NULL);
+
+  for(size_t i = 0; i < nGeoType; i++){
+    if(typeStat[i]){
+
+      lagrange[i] = static_cast<BasisLagrange*>
+        (BasisGenerator::generate(i, 0, fs.getBasis(i).getOrder(), "lagrange"));
+
+      pView->setInterpolationMatrices(i,
+                                      lagrange[i]->getCoefficient(),
+                                      lagrange[i]->getMonomial());
+    }
+  }
 
   // Map with (Element Id, Lagrange coefficients) //
   map<int, vector<double> > data;
@@ -54,6 +61,9 @@ addCoefficients(size_t step,
 
   // Iterate on Element //
   for(size_t i = 0; i < nElement; i++){
+    // Element type
+    const int eType = element[i]->getType();
+
     // Get Element Dofs
     const vector<Dof> dof  = fs.getKeys(*element[i]);
     const size_t      size = dof.size();
@@ -76,10 +86,10 @@ addCoefficients(size_t step,
     // Get Coef In Lagrange Basis
     vector<double> lCoef;
     if(fsScalar)
-      lCoef = lagrange->project(*element[i], fsCoef, *fsScalar);
+      lCoef = lagrange[eType]->project(*element[i], fsCoef, *fsScalar);
 
     else
-      lCoef = lagrange->project(*element[i], fsCoef, *fsVector);
+      lCoef = lagrange[eType]->project(*element[i], fsCoef, *fsVector);
 
     // Add in map
     data.insert(pair<int, vector<double> >(element[i]->getNum(), lCoef));
@@ -89,7 +99,9 @@ addCoefficients(size_t step,
   pView->addData(&model, data, step, time, 0, nComp);
 
   // Clean //
-  delete lagrange;
+  for(size_t i = 0; i < nGeoType; i++)
+    if(typeStat[i])
+      delete lagrange[i];
 }
 
 template<>
@@ -105,17 +117,24 @@ addCoefficients(size_t step,
   const size_t                  nElement = element.size();
   GModel&                          model = fs.getSupport().getMesh().getModel();
 
-
   // Lagrange Basis & Interpolation matrices //
-  BasisLagrange* lagrange = static_cast<BasisLagrange*>
-    (BasisGenerator::generate(element[0]->getType(),
-                              0,
-                              fs.getBasis(0).getOrder(),
-                              "lagrange"));
+  // One lagrange basis per geo type //
+  const vector<size_t> typeStat = fs.getSupport().getTypeStats();
+  const size_t nGeoType = typeStat.size();
 
-  pView->setInterpolationMatrices(element[0]->getType(),
-                                  lagrange->getCoefficient(),
-                                  lagrange->getMonomial());
+  vector<BasisLagrange*> lagrange(nGeoType, NULL);
+
+  for(size_t i = 0; i < nGeoType; i++){
+    if(typeStat[i]){
+
+      lagrange[i] = static_cast<BasisLagrange*>
+        (BasisGenerator::generate(i, 0, fs.getBasis(i).getOrder(), "lagrange"));
+
+      pView->setInterpolationMatrices(i,
+                                      lagrange[i]->getCoefficient(),
+                                      lagrange[i]->getMonomial());
+    }
+  }
 
   // Map with (Element Id, Lagrange coefficients) //
   // Real And Imaginary parts
@@ -139,6 +158,9 @@ addCoefficients(size_t step,
 
   // Iterate on Element //
   for(size_t i = 0; i < nElement; i++){
+    // Element type
+    const int eType = element[i]->getType();
+
     // Get Element Dofs
     const vector<Dof> dof  = fs.getKeys(*element[i]);
     const size_t      size = dof.size();
@@ -173,13 +195,13 @@ addCoefficients(size_t step,
     vector<double> lCoefImag;
 
     if(fsScalar){
-      lCoefReal = lagrange->project(*element[i], fsCoefReal, *fsScalar);
-      lCoefImag = lagrange->project(*element[i], fsCoefImag, *fsScalar);
+      lCoefReal = lagrange[eType]->project(*element[i], fsCoefReal, *fsScalar);
+      lCoefImag = lagrange[eType]->project(*element[i], fsCoefImag, *fsScalar);
     }
 
     else{
-      lCoefReal = lagrange->project(*element[i], fsCoefReal, *fsVector);
-      lCoefImag = lagrange->project(*element[i], fsCoefImag, *fsVector);
+      lCoefReal = lagrange[eType]->project(*element[i], fsCoefReal, *fsVector);
+      lCoefImag = lagrange[eType]->project(*element[i], fsCoefImag, *fsVector);
     }
 
     // Add in map
@@ -192,5 +214,7 @@ addCoefficients(size_t step,
   pView->addData(&model, imag, 2 * step + 1, time, 0, nComp);
 
   // Clean //
-  delete lagrange;
+  for(size_t i = 0; i < nGeoType; i++)
+    if(typeStat[i])
+      delete lagrange[i];
 }

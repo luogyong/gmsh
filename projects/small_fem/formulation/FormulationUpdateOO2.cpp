@@ -15,25 +15,36 @@ FormulationUpdateOO2(const FunctionSpaceScalar& fs,
                      std::complex<double> b,
                      const std::map<Dof, std::complex<double> >& solution,
                      const std::map<Dof, std::complex<double> >& oldG){
+  // Domain //
+  this->goe = &fs.getSupport();
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe->getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationUpdateEMDA needs a uniform mesh");
+
   // Save fspace //
   fspace = &fs;
-  basis  = &fs.getBasis(0);
+  basis  = &fs.getBasis(eType);
 
   // a & b //
   this->a = a;
   this->b = b;
 
-  // Domain //
-  this->goe = &fs.getSupport();
-
   // Gaussian Quadrature (Field - Field) //
-  Quadrature gaussFF(goe->get(0).getType(), basis->getOrder(), 2);
+  Quadrature gaussFF(eType, basis->getOrder(), 2);
 
   gCFF = new fullMatrix<double>(gaussFF.getPoints());
   gWFF = new fullVector<double>(gaussFF.getWeights());
 
   // Gaussian Quadrature (Grad - Grad) //
-  Quadrature gaussGG(goe->get(0).getType(), basis->getOrder() - 1, 2);
+  Quadrature gaussGG(eType, basis->getOrder() - 1, 2);
 
   gCGG = new fullMatrix<double>(gaussGG.getPoints());
   gWGG = new fullVector<double>(gaussGG.getWeights());

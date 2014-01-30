@@ -9,6 +9,51 @@ using namespace std;
 
 // Poisson //
 FormulationPoisson::FormulationPoisson(GroupOfElement& goe,
+                                       FunctionSpaceScalar& fs,
+                                       double (*f)(fullVector<double>& xyz)){
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception("FormulationPoisson needs a uniform mesh");
+
+  // Save FunctionSpace (TO BE REMOVED) & Get Basis //
+  const Basis& basis = fs.getBasis(eType);
+  const size_t order = basis.getOrder();
+  self               = false;
+  fspace             = &fs;
+
+  // Source Term //
+  fSource = f;
+
+  // Gaussian Quadrature //
+  Quadrature gaussGradGrad(eType, order - 1, 2);
+  Quadrature gaussFF(eType, order, 2);
+
+  const fullMatrix<double>& gCL = gaussGradGrad.getPoints();
+  const fullVector<double>& gWL = gaussGradGrad.getWeights();
+
+  const fullMatrix<double>& gCR = gaussFF.getPoints();
+  const fullVector<double>& gWR = gaussFF.getWeights();
+
+  // Local Terms //
+  basis.preEvaluateDerivatives(gCL);
+  basis.preEvaluateFunctions(gCR);
+
+  GroupOfJacobian jacL(goe, gCL, "invert");
+  GroupOfJacobian jacR(goe, gCR, "jacobian");
+
+  localTermsL = new TermGradGrad(jacL, basis, gWL);
+  localTermsR = new TermProjectionField(jacR, basis, gWR, gCR, fSource);
+}
+
+FormulationPoisson::FormulationPoisson(GroupOfElement& goe,
                                        double (*f)(fullVector<double>& xyz),
                                        size_t order){
   // Can't have 0th order //
@@ -17,6 +62,7 @@ FormulationPoisson::FormulationPoisson(GroupOfElement& goe,
       Exception("Can't have a Poisson formulation of order 0");
 
   // Function Space & Basis //
+  self   = true;
   basis  = BasisGenerator::generate(goe.get(0).getType(),
                                     0, order, "hierarchical");
 
@@ -47,8 +93,10 @@ FormulationPoisson::FormulationPoisson(GroupOfElement& goe,
 }
 
 FormulationPoisson::~FormulationPoisson(void){
-  delete basis;
-  delete fspace;
+  if(self){
+    delete basis;
+    delete fspace;
+  }
 
   delete localTermsL;
   delete localTermsR;

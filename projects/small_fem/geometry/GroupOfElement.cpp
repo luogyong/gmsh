@@ -6,18 +6,28 @@
 
 using namespace std;
 
+const size_t GroupOfElement::nGeoType = 9;
+
 GroupOfElement::GroupOfElement(std::list<const MElement*>& elementList,
                                const Mesh& mesh){
+  // Size //
+  const size_t nElement = elementList.size();
+
   // Get Elements //
   this->mesh    = &mesh;
   this->element.assign(elementList.begin(), elementList.end());
+
+  // Elements Type //
+  typeStat.resize(nGeoType, 0);
+
+  for(size_t i = 0; i < nElement; i++)
+    typeStat[element[i]->getType()]++;
 
   // Sort Elements //
   sort(element.begin(), element.end(), sortPredicate);
 
   // Get Orientation Stats //
   // Get some Data
-  const size_t nElement = element.size();
   const size_t nOrient  =
     ReferenceSpaceManager::getNOrientation(element[0]->getType());
 

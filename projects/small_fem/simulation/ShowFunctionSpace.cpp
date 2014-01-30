@@ -34,11 +34,8 @@ void compute(const Options& option){
 
   else if(option.getValue("-type")[1].compare("scalar") == 0){
     // If Scalar
-    basis =
-      BasisGenerator::generate(domain.get(0).getType(),
-                               0, order, "hierarchical");
-
-    fSpace = new FunctionSpaceScalar(domain, *basis);
+    basis = NULL;
+    fSpace = new FunctionSpaceScalar(domain, order);
   }
 
   else if(option.getValue("-type")[1].compare("vector") == 0){
@@ -102,7 +99,9 @@ void compute(const Options& option){
 
   // Clean //
   delete fSpace;
-  delete basis;
+
+  if(basis)
+    delete basis;
 }
 
 int main(int argc, char** argv){

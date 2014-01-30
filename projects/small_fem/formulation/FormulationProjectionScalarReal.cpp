@@ -11,15 +11,27 @@ template<>
 FormulationProjectionScalar<double>::
 FormulationProjectionScalar(double (*f)(fullVector<double>& xyz),
                             FunctionSpaceScalar& fs){
-  // Save fspace //
-  fspace = &fs;
-  basis  = &fs.getBasis(0);
-
   // Domain //
   GroupOfElement& goe = fs.getSupport();
 
+  // Check GroupOfElement Stats: Uniform Mesh //
+  const vector<size_t>& gType = goe.getTypeStats();
+  const size_t nGType = gType.size();
+  size_t eType = (size_t)(-1);
+
+  for(size_t i = 0; i < nGType; i++)
+    if((eType == (size_t)(-1)) && (gType[i] != 0))
+      eType = i;
+    else if((eType != (size_t)(-1)) && (gType[i] != 0))
+      throw Exception
+        ("FormulationProjectionVector<real> needs a uniform mesh");
+
+  // Save fspace //
+  fspace = &fs;
+  basis  = &fs.getBasis(eType);
+
   // Gaussian Quadrature //
-  Quadrature gauss(goe.get(0).getType(), basis->getOrder(), 2);
+  Quadrature gauss(eType, basis->getOrder(), 2);
 
   const fullMatrix<double>& gC = gauss.getPoints();
   const fullVector<double>& gW = gauss.getWeights();
