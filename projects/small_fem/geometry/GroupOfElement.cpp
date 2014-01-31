@@ -8,38 +8,40 @@ using namespace std;
 
 const size_t GroupOfElement::nGeoType = 9;
 
-GroupOfElement::GroupOfElement(std::list<const MElement*>& elementList,
+GroupOfElement::GroupOfElement(std::list<const MElement*>& element,
                                const Mesh& mesh){
   // Size //
-  const size_t nElement = elementList.size();
+  const size_t nElement = element.size();
 
   // Get Elements //
-  this->mesh    = &mesh;
-  this->element.assign(elementList.begin(), elementList.end());
+  this->mesh = &mesh;
+  this->element.assign(element.begin(), element.end());
 
   // Elements Type //
   typeStat.resize(nGeoType, 0);
 
   for(size_t i = 0; i < nElement; i++)
-    typeStat[element[i]->getType()]++;
+    typeStat[this->element[i]->getType()]++;
 
   // Sort Elements //
-  sort(element.begin(), element.end(), sortPredicate);
+  sort(this->element.begin(), this->element.end(), sortPredicate);
 
   // Get Orientation Stats //
-  // Get some Data
-  const size_t nOrient  =
-    ReferenceSpaceManager::getNOrientation(element[0]->getType());
+  const MElement* elementI;
 
-  // Init
-  orientationStat.resize(nOrient);
+  orientationStat.resize(nGeoType);
 
-  for(size_t i = 0; i < nOrient; i++)
-    orientationStat[i] = 0;
+  for(size_t i = 0; i < nGeoType; i++)
+    if(typeStat[i])
+      orientationStat[i].resize(ReferenceSpaceManager::getNOrientation(i), 0);
+    else
+      orientationStat[i].clear();
 
-  // Compute
-  for(size_t i = 0; i < nElement; i++)
-    orientationStat[ReferenceSpaceManager::getOrientation(*element[i])]++;
+  for(size_t i = 0; i < nElement; i++){
+    elementI = this->element[i];
+    orientationStat[elementI->getType()]
+                   [ReferenceSpaceManager::getOrientation(*elementI)]++;
+  }
 }
 
 GroupOfElement::~GroupOfElement(void){
@@ -77,6 +79,21 @@ void GroupOfElement::getAllVertexCoordinate(fullMatrix<double>& coord) const{
   }
 }
 
+std::pair<bool, size_t> GroupOfElement::isUniform(void) const{
+  size_t type  = (size_t)(-1);
+  bool uniform = true;
+
+  for(size_t i = 0; i < nGeoType && uniform; i++){
+    if((type == (size_t)(-1)) && (typeStat[i] != 0))
+      type = i;
+
+    else if((type != (size_t)(-1)) && (typeStat[i] != 0))
+      uniform = false;
+  }
+
+  return pair<bool, size_t>(uniform, type);
+}
+
 string GroupOfElement::toString(void) const{
   stringstream stream;
 
@@ -95,20 +112,6 @@ string GroupOfElement::toString(void) const{
     stream << "*   -- Element #"
            << mesh->getGlobalId(*element[i])
            << endl;
-
-  stream << "*                                             *"
-         << endl
-         << "***********************************************"
-         << endl;
-
-  stream << "*                                             *"
-         << endl
-         << "* This group has the following Orientations:  *"
-         << endl;
-
-  for(size_t i = 0; i < orientationStat.size(); i++)
-    stream << "*   -- Elements with Orientation " << i << " - "
-           << orientationStat[i] << endl;
 
   stream << "*                                             *"
          << endl

@@ -22,13 +22,12 @@ TermCurlCurl::TermCurlCurl(const GroupOfJacobian& goj,
     break;
 
   default:
-    throw
-      Exception
-      ("A Curl Curl Term must use a 2form basis, or a (curl of) 1form basis");
+    throw Exception
+      ("A Curl Curl Term takes a 2form basis or the curl of a 1form basis");
   }
 
   // Orientations & Functions //
-  orientationStat = &goj.getAllElements().getOrientationStats();
+  orientationStat = &goj.getAllElements().getOrientationStats(basis.getType());
   nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 

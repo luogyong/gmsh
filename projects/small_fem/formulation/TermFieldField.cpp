@@ -10,12 +10,10 @@ TermFieldField::TermFieldField(const GroupOfJacobian& goj,
                                const fullVector<double>& integrationWeights){
   // Basis Check //
   if(basis.getForm() != 0)
-    throw
-      Exception
-      ("A Field Field Term must use a 0form basis");
+    throw Exception("A Field Field Term must use a 0form basis");
 
   // Orientations & Functions //
-  orientationStat = &goj.getAllElements().getOrientationStats();
+  orientationStat = &goj.getAllElements().getOrientationStats(basis.getType());
   nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 

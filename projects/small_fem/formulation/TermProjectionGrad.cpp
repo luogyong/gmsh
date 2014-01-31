@@ -26,11 +26,11 @@ TermProjectionGrad(const GroupOfJacobian& goj,
   default:
     throw
       Exception
-      ("A Grad Term must use a 1form basis, or a (gradient of) 0form basis");
+      ("A Grad Term must use a 1form basis or the gradient of a 0form basis");
   }
 
   // Orientations & Functions //
-  orientationStat = &goj.getAllElements().getOrientationStats();
+  orientationStat = &goj.getAllElements().getOrientationStats(basis.getType());
   nOrientation    = ReferenceSpaceManager::getNOrientation(basis.getType());
   nFunction       = basis.getNFunction();
 

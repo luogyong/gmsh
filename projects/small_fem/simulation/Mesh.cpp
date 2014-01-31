@@ -3,11 +3,8 @@
 #include <sstream>
 #include <vector>
 
-#include "Mesh.h"
-#include "Basis.h"
-#include "BasisGenerator.h"
-
 #include "ElementSolution.h"
+#include "Mesh.h"
 #include "SmallFem.h"
 
 using namespace std;
@@ -16,50 +13,36 @@ void compute(const Options& option){
   // Get Mesh //
   cout << "## Reading Mesh" << endl << flush;
 
-  Mesh msh(option.getValue("-msh")[1]);
-  size_t       physical = atoi(option.getValue("-phys")[1].c_str());
-  GroupOfElement domain = msh.getFromPhysical(physical);
+  Mesh   msh(option.getValue("-msh")[1]);
+  size_t physical = atoi(option.getValue("-phys")[1].c_str());
 
-  // Select Basis //
-  cout << "## Generate Basis" << endl << flush;
-  Basis* basis =
-    BasisGenerator::generate(domain.get(0).getType(),
-                             0, 1, "hierarchical");
-  // Get Reference Space //
-  const ReferenceSpace& refSpace =
-    ReferenceSpaceManager::getReferenceSpace(basis->getType());
-
-  // Alloc Orientations //
-  const size_t size = domain.getNumber();
-  vector<double> orientation(size);
-
-  // Analyze //
-  cout << "## Analyzing" << endl << flush;
-
-  for(size_t i = 0; i < size; i++)
-    orientation[i] = (double)(refSpace.getOrientation(domain.get(i)));
+  GroupOfElement           domain  = msh.getFromPhysical(physical);
+  vector<const MElement*>  element = domain.getAll();
+  size_t                  nElement = element.size();
 
   // Full Mesh //
   cout << "## Full Mesh data" << endl << flush
        << msh.toString()      << endl << flush;
 
+  // Orientations //
+  vector<double> orientation(nElement);
+  for(size_t i = 0; i < nElement; i++)
+    orientation[i] = ReferenceSpaceManager::getOrientation(*element[i]);
+
   // Mesh //
+  size_t nVertex;
   cout << "## Mesh" << endl << flush;
-  for(size_t i = 0; i < domain.getNumber(); i++){
-    const MElement& e = domain.get(i);
-    const size_t    N = e.getNumPrimaryVertices();
 
-    vector<int> v(N);
-    for(size_t j = 0; j < N; j++)
-      v[j] = e.getVertex(j)->getNum();
+  for(size_t i = 0; i < nElement; i++){
+    nVertex = element[i]->getNumPrimaryVertices();
 
-    cout << "  -- " << "Element " << e.getNum()
+    cout << "  -- " << "Element " << element[i]->getNum()
          << ": "    << "[";
 
-    for(size_t j = 0; j < N - 1; j++)
-      cout << v[j] << ", ";
+    for(size_t j = 0; j < nVertex - 1; j++)
+      cout << element[i]->getVertex(j)->getNum() << ", ";
 
-    cout << v[N - 1] << "]"
+    cout << element[i]->getVertex(nVertex - 1)->getNum() << "]"
          << ": #" << orientation[i]
          << endl;
   }
@@ -75,7 +58,6 @@ void compute(const Options& option){
   sol.write(name.str());
 
   // Done //
-  delete basis;
   cout << "## Done" << endl << flush;
 }
 

@@ -25,26 +25,27 @@ class GroupOfElement{
  private:
   const Mesh* mesh;
 
-  std::vector<const MElement*> element;
-  std::vector<size_t>          orientationStat;
-  std::vector<size_t>          typeStat;
+  std::vector<const MElement*>      element;
+  std::vector<std::vector<size_t> > orientationStat;
+  std::vector<size_t>               typeStat;
 
  public:
    GroupOfElement(std::list<const MElement*>& element, const Mesh& mesh);
   ~GroupOfElement(void);
 
-  size_t    getNumber(void)     const;
-  const MElement& get(size_t i) const;
+  size_t          getNumber(void) const;
+  const MElement& get(size_t i)   const;
 
   const std::vector<const MElement*>& getAll(void) const;
-
   const Mesh& getMesh(void) const;
-
-  const std::vector<size_t>& getOrientationStats(void) const;
-  const std::vector<size_t>& getTypeStats(void) const;
 
   void getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const;
   void getAllVertexCoordinate(fullMatrix<double>& coord) const;
+
+  const std::vector<size_t>& getOrientationStats(size_t elementType) const;
+  const std::vector<size_t>& getTypeStats(void) const;
+
+  std::pair<bool, size_t> isUniform(void) const;
 
   std::string toString(void) const;
 
@@ -128,11 +129,9 @@ inline const Mesh& GroupOfElement::getMesh(void) const{
   return *mesh;
 }
 
-//#include "Exception.h"
 inline const std::vector<size_t>&
-GroupOfElement::getOrientationStats(void) const{
-  //throw Exception("42");
-  return orientationStat;
+GroupOfElement::getOrientationStats(size_t elementType) const{
+  return orientationStat[elementType];
 }
 
 inline const std::vector<size_t>& GroupOfElement::getTypeStats(void) const{
