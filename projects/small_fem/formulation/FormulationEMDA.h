@@ -24,7 +24,7 @@ class FormulationEMDA: public Formulation<std::complex<double> >{
   const Basis*                basis;
 
   // Domain //
-  GroupOfElement* goe;
+  const GroupOfElement* goe;
 
   // Local Terms (Projection u_i*u_j) //
   TermFieldField* localTerms;
@@ -38,7 +38,7 @@ class FormulationEMDA: public Formulation<std::complex<double> >{
   const std::map<Dof, std::complex<double> >* ddmDof;
 
  public:
-  FormulationEMDA(GroupOfElement& goe,
+  FormulationEMDA(const GroupOfElement& goe,
                   const FunctionSpaceScalar& fs,
                   double k,
                   double chi,
@@ -57,7 +57,8 @@ class FormulationEMDA: public Formulation<std::complex<double> >{
   virtual std::complex<double>
     rhs(size_t equationI, size_t elementId)           const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 
  private:
   std::complex<double>

@@ -19,15 +19,16 @@
 class FormulationEigenFrequencyScalar:
 public Formulation<std::complex<double> >{
  private:
-  // Function Space & Basis //
+  // Function Space & Domain //
   const FunctionSpaceScalar* fspace;
+  const GroupOfElement*      goe;
 
   // Local Terms //
   TermGradGrad*   localTerms1;
   TermFieldField* localTerms2;
 
  public:
-  FormulationEigenFrequencyScalar(GroupOfElement& goe,
+  FormulationEigenFrequencyScalar(const GroupOfElement& goe,
                                   const FunctionSpaceScalar& fs);
 
   virtual ~FormulationEigenFrequencyScalar(void);
@@ -43,7 +44,8 @@ public Formulation<std::complex<double> >{
   virtual std::complex<double> rhs(size_t equationI,
                                    size_t elementId) const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

@@ -8,20 +8,18 @@ using namespace std;
 
 template<>
 FormulationSteadyWaveScalar<double>::
-FormulationSteadyWaveScalar(GroupOfElement& goe,
+FormulationSteadyWaveScalar(const GroupOfElement& goe,
                             const FunctionSpaceScalar& fs,
                             double k){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationSteadyWaveScalar needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationSteadyWaveScalar needs a uniform mesh");
 
   // Wave Squared //
   kSquare = k * k;
@@ -78,8 +76,7 @@ bool FormulationSteadyWaveScalar<double>::isGeneral(void) const{
 }
 
 template<>
-double FormulationSteadyWaveScalar<double>::weakB(size_t dofI,
-                                                  size_t dofJ,
+double FormulationSteadyWaveScalar<double>::weakB(size_t dofI, size_t dofJ,
                                                   size_t elementId) const{
   return 0;
 }
@@ -87,4 +84,9 @@ double FormulationSteadyWaveScalar<double>::weakB(size_t dofI,
 template<>
 const FunctionSpace& FormulationSteadyWaveScalar<double>::fs(void) const{
   return *fspace;
+}
+
+template<>
+const GroupOfElement& FormulationSteadyWaveScalar<double>::domain(void) const{
+  return *goe;
 }

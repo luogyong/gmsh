@@ -9,22 +9,18 @@ using namespace std;
 
 template<>
 FormulationProjectionVector<double>::
-FormulationProjectionVector(fullVector<double> (*f)(fullVector<double>& xyz),
-                            FunctionSpaceVector& fs){
-  // Domain //
-  GroupOfElement& goe = fs.getSupport();
+FormulationProjectionVector(const GroupOfElement& goe,
+                            const FunctionSpaceVector& fs,
+                            fullVector<double> (*f)(fullVector<double>& xyz)){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception
-        ("FormulationProjectionVector<real> needs a uniform mesh");
+  if(!uniform.first)
+    throw ("FormulationProjectionVector<real> needs a uniform mesh");
 
   // Save fspace //
   fspace = &fs;
@@ -80,8 +76,11 @@ weakB(size_t dofI, size_t dofJ, size_t elementId) const{
 }
 
 template<>
-const FunctionSpace& FormulationProjectionVector<double>::
-fs(void) const{
-
+const FunctionSpace& FormulationProjectionVector<double>::fs(void) const{
   return *fspace;
+}
+
+template<>
+const GroupOfElement& FormulationProjectionVector<double>::domain(void) const{
+  return *goe;
 }

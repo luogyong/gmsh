@@ -18,14 +18,15 @@ class FormulationNeumann: public Formulation<std::complex<double> >{
   // Wavenumber //
   double k;
 
-  // Function Space & Basis //
+  // Function Space & Domain //
   const FunctionSpaceScalar* fspace;
+  const GroupOfElement*      goe;
 
   // Local Terms //
   TermFieldField* localTerms;
 
  public:
-  FormulationNeumann(GroupOfElement& goe,
+  FormulationNeumann(const GroupOfElement& goe,
                      const FunctionSpaceScalar& fs,
                      double k);
 
@@ -42,7 +43,8 @@ class FormulationNeumann: public Formulation<std::complex<double> >{
   virtual std::complex<double>
     rhs(size_t equationI, size_t elementId)           const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

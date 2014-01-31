@@ -7,20 +7,18 @@
 using namespace std;
 
 // Poisson //
-FormulationPoisson::FormulationPoisson(GroupOfElement& goe,
+FormulationPoisson::FormulationPoisson(const GroupOfElement& goe,
                                        const FunctionSpaceScalar& fs,
                                        double (*f)(fullVector<double>& xyz)){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationPoisson needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationPoisson needs a uniform mesh");
 
   // Save FunctionSpace & Get Basis //
   const Basis& basis = fs.getBasis(eType);
@@ -72,12 +70,15 @@ bool FormulationPoisson::isGeneral(void) const{
   return false;
 }
 
-double FormulationPoisson::weakB(size_t dofI,
-                                 size_t dofJ,
+double FormulationPoisson::weakB(size_t dofI, size_t dofJ,
                                  size_t elementId) const{
   return 0;
 }
 
 const FunctionSpace& FormulationPoisson::fs(void) const{
   return *fspace;
+}
+
+const GroupOfElement& FormulationPoisson::domain(void) const{
+  return *goe;
 }

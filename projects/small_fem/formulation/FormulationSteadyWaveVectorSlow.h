@@ -31,7 +31,7 @@ class FormulationSteadyWaveVectorSlow: public Formulation<double>{
   fullVector<double>* gW2;
 
   // Domain //
-  GroupOfElement* goe;
+  const GroupOfElement* goe;
 
   // Jacobians //
   GroupOfJacobian* jac1;
@@ -42,9 +42,9 @@ class FormulationSteadyWaveVectorSlow: public Formulation<double>{
   const Basis*               basis;
 
  public:
-  FormulationSteadyWaveVectorSlow(GroupOfElement& goe,
-                              const FunctionSpaceVector& fs,
-                              double k);
+  FormulationSteadyWaveVectorSlow(const GroupOfElement& goe,
+                                  const FunctionSpaceVector& fs,
+                                  double k);
 
   virtual ~FormulationSteadyWaveVectorSlow(void);
 
@@ -55,7 +55,8 @@ class FormulationSteadyWaveVectorSlow: public Formulation<double>{
   virtual double weakB(size_t dofI, size_t dofJ, size_t elementId) const;
   virtual double rhs(size_t equationI, size_t elementId)           const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

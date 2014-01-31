@@ -7,20 +7,18 @@
 using namespace std;
 
 FormulationSteadyWaveVector::
-FormulationSteadyWaveVector(GroupOfElement& goe,
+FormulationSteadyWaveVector(const GroupOfElement& goe,
                             const FunctionSpaceVector& fs,
                             double k){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationSteadyWaveVector needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationSteadyWaveVector needs a uniform mesh");
 
   // Wave Squared //
   kSquare = k * k;
@@ -80,4 +78,8 @@ double FormulationSteadyWaveVector::weakB(size_t dofI, size_t dofJ,
 
 const FunctionSpace& FormulationSteadyWaveVector::fs(void) const{
   return *fspace;
+}
+
+const GroupOfElement& FormulationSteadyWaveVector::domain(void) const{
+  return *goe;
 }

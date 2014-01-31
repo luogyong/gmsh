@@ -8,22 +8,18 @@
 using namespace std;
 
 FormulationEMDA::
-FormulationEMDA(GroupOfElement& goe,
+FormulationEMDA(const GroupOfElement& goe,
                 const FunctionSpaceScalar& fs,
                 double k,
                 double chi,
                 const std::map<Dof, std::complex<double> >& ddmDof){
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationEMDA needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationEMDA needs a uniform mesh");
 
   // Wavenumber & Chi //
   this->k   = k;
@@ -155,4 +151,8 @@ complex<double>  FormulationEMDA::weakB(size_t dofI, size_t dofJ,
 
 const FunctionSpace& FormulationEMDA::fs(void) const{
   return *fspace;
+}
+
+const GroupOfElement& FormulationEMDA::domain(void) const{
+  return *goe;
 }

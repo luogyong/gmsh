@@ -6,8 +6,6 @@
 /////////////////////////////////////////////////
 
 #include "System.h"
-#include "FunctionSpaceScalar.h"
-#include "FunctionSpaceVector.h"
 #include "FormulationProjectionScalar.h"
 #include "FormulationProjectionVector.h"
 
@@ -23,19 +21,12 @@ SystemHelper<scalar>::~SystemHelper(void){
 template<typename scalar>
 void SystemHelper<scalar>::
 dirichlet(SystemAbstract<scalar>& sys,
-          GroupOfElement& goe,
+          const GroupOfElement& goe,
           scalar (*f)(fullVector<double>& xyz)){
 
   // Check if homogene GoE and get geo type //
-  const std::vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
-
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("SystemHelper::dirichlet needs a uniform mesh");
+  if(!goe.isUniform().first)
+    throw Exception("SystemHelper::dirichlet needs a uniform mesh");
 
   // Get this SystemAbstract FunctionSpace //
   const FunctionSpace& fs = sys.getFunctionSpace();
@@ -44,7 +35,7 @@ dirichlet(SystemAbstract<scalar>& sys,
   FunctionSpaceScalar formFS(goe, fs.getOrder());
 
   // Solve Projection //
-  FormulationProjectionScalar<scalar> form(f, formFS);
+  FormulationProjectionScalar<scalar> form(goe, formFS, f);
 
   System<scalar> projection(form);
   projection.assemble();
@@ -67,19 +58,46 @@ dirichlet(SystemAbstract<scalar>& sys,
 template<typename scalar>
 void SystemHelper<scalar>::
 dirichlet(SystemAbstract<scalar>& sys,
-          GroupOfElement& goe,
+          const FunctionSpaceScalar& fs,
+          const GroupOfElement& goe,
+          scalar (*f)(fullVector<double>& xyz)){
+
+  throw Exception("SystemHelper::dirichlet(FS) to be done");
+  /*
+  // Get Function Space for Projection (formFS) //
+  FunctionSpaceScalar formFS(goe, fs.getOrder());
+
+  // Solve Projection //
+  FormulationProjectionScalar<scalar> form(goe, formFS, f);
+
+  System<scalar> projection(form);
+  projection.assemble();
+  projection.solve();
+
+  // Map of Dofs //
+  const std::set<Dof>& dof = formFS.getAllDofs();
+  std::set<Dof>::iterator it  = dof.begin();
+  std::set<Dof>::iterator end = dof.end();
+
+  std::map<Dof, scalar> constr;
+  for(; it != end; it++)
+    constr.insert(std::pair<Dof, scalar>(*it, 0));
+
+  // Get Solution and Dirichlet Constraint //
+  projection.getSolution(constr, 0);
+  sys.constraint(constr);
+  */
+}
+
+template<typename scalar>
+void SystemHelper<scalar>::
+dirichlet(SystemAbstract<scalar>& sys,
+          const GroupOfElement& goe,
           fullVector<scalar> (*f)(fullVector<double>& xyz)){
 
   // Check if homogene GoE and get geo type //
-  const std::vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
-
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("SystemHelper::dirichlet needs a uniform mesh");
+  if(!goe.isUniform().first)
+    throw Exception("SystemHelper::dirichlet needs a uniform mesh");
 
   // Get this SystemAbstract FunctionSpace //
   const FunctionSpace& fs = sys.getFunctionSpace();
@@ -88,7 +106,7 @@ dirichlet(SystemAbstract<scalar>& sys,
   FunctionSpaceVector formFS(goe, fs.getOrder());
 
   // Solve Projection //
-  FormulationProjectionVector<scalar> form(f, formFS);
+  FormulationProjectionVector<scalar> form(goe, formFS, f);
 
   System<scalar> projection(form);
   projection.assemble();

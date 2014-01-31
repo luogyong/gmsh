@@ -31,8 +31,9 @@ class Formulation{
   virtual scalar weakB(size_t dofI, size_t dofJ, size_t elementId) const = 0;
   virtual scalar rhs(size_t equationI, size_t elementId)           const = 0;
 
-  virtual bool          isGeneral(void) const = 0;
-  virtual const FunctionSpace& fs(void) const = 0;
+  virtual bool  isGeneral(void)              const = 0;
+  virtual const FunctionSpace&  fs(void)     const = 0;
+  virtual const GroupOfElement& domain(void) const = 0;
 };
 
 /**

@@ -10,25 +10,41 @@ const size_t GroupOfElement::nGeoType = 9;
 
 GroupOfElement::GroupOfElement(std::list<const MElement*>& element,
                                const Mesh& mesh){
-  // Size //
-  const size_t nElement = element.size();
-
   // Get Elements //
   this->mesh = &mesh;
   this->element.assign(element.begin(), element.end());
+
+  // Init //
+  init();
+}
+
+GroupOfElement::GroupOfElement(const Mesh& mesh){
+  // Get Elements //
+  this->mesh = &mesh;
+  this->element.clear();
+
+  // Init //
+  init();
+}
+
+void GroupOfElement::init(void){
+  // Size //
+  const size_t nElement = element.size();
+
+  // Clear //
+  orientationStat.clear();
+  typeStat.clear();
 
   // Elements Type //
   typeStat.resize(nGeoType, 0);
 
   for(size_t i = 0; i < nElement; i++)
-    typeStat[this->element[i]->getType()]++;
+    typeStat[element[i]->getType()]++;
 
   // Sort Elements //
-  sort(this->element.begin(), this->element.end(), sortPredicate);
+  sort(element.begin(), element.end(), sortPredicate);
 
   // Get Orientation Stats //
-  const MElement* elementI;
-
   orientationStat.resize(nGeoType);
 
   for(size_t i = 0; i < nGeoType; i++)
@@ -37,14 +53,32 @@ GroupOfElement::GroupOfElement(std::list<const MElement*>& element,
     else
       orientationStat[i].clear();
 
-  for(size_t i = 0; i < nElement; i++){
-    elementI = this->element[i];
-    orientationStat[elementI->getType()]
-                   [ReferenceSpaceManager::getOrientation(*elementI)]++;
-  }
+  for(size_t i = 0; i < nElement; i++)
+    orientationStat[element[i]->getType()]
+                   [ReferenceSpaceManager::getOrientation(*element[i])]++;
 }
 
 GroupOfElement::~GroupOfElement(void){
+}
+
+void GroupOfElement::add(const GroupOfElement& other){
+  // Save this GoE Elements and clear //
+  vector<const MElement*> old(element);
+  element.clear();
+
+  // Resize and populate //
+  const size_t oldSize = old.size();
+  const size_t newSize = old.size() + other.element.size();
+  element.resize(newSize);
+
+  for(size_t i = 0; i < oldSize; i++)
+    element[i] = old[i];
+
+  for(size_t i = oldSize; i < newSize; i++)
+    element[i] = other.element[i - oldSize];
+
+  // Init //
+  init();
 }
 
 void GroupOfElement::

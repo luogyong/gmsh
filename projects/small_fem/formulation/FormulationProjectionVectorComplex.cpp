@@ -11,23 +11,20 @@ using namespace std;
 
 template<>
 FormulationProjectionVector<complex<double> >::
-FormulationProjectionVector(fullVector<complex<double> >
-                                      (*f)(fullVector<double>& xyz),
-                            FunctionSpaceVector& fs){
-  // Domain //
-  goe = &fs.getSupport();
+FormulationProjectionVector(const GroupOfElement& goe,
+                            const FunctionSpaceVector& fs,
+                            fullVector<complex<double> >
+                                                 (*f)(fullVector<double>& xyz)){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe->getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception
-        ("FormulationProjectionVector<complex> needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception
+      ("FormulationProjectionVector<complex> needs a uniform mesh");
 
   // Save fspace //
   fspace = &fs;
@@ -42,7 +39,7 @@ FormulationProjectionVector(fullVector<complex<double> >
 
   // Pre-evalution //
   basis->preEvaluateFunctions(*gC);
-  jac = new GroupOfJacobian(*goe, *gC, "invert");
+  jac = new GroupOfJacobian(goe, *gC, "invert");
 
   // f //
   this->f = f;
@@ -173,4 +170,10 @@ const FunctionSpace& FormulationProjectionVector<complex<double> >::
 fs(void) const{
 
   return *fspace;
+}
+
+template<>
+const GroupOfElement& FormulationProjectionVector<complex<double> >::
+domain(void) const{
+  return *goe;
 }

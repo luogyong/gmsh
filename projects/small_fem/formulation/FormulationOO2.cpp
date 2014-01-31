@@ -8,22 +8,18 @@
 using namespace std;
 
 FormulationOO2::
-FormulationOO2(GroupOfElement& goe,
+FormulationOO2(const GroupOfElement& goe,
                const FunctionSpaceScalar& fs,
                std::complex<double> a,
                std::complex<double> b,
                const std::map<Dof, std::complex<double> >& ddmDof){
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationOO2 needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationOO2 needs a uniform mesh");
 
   // a & b //
   this->a = a;
@@ -167,4 +163,8 @@ complex<double>  FormulationOO2::weakB(size_t dofI, size_t dofJ,
 
 const FunctionSpace& FormulationOO2::fs(void) const{
   return *fspace;
+}
+
+const GroupOfElement& FormulationOO2::domain(void) const{
+  return *goe;
 }

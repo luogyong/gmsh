@@ -25,7 +25,7 @@ class FormulationOO2: public Formulation<std::complex<double> >{
   const Basis*                basis;
 
   // Domain //
-  GroupOfElement* goe;
+  const GroupOfElement* goe;
 
   // Local Terms //
   TermFieldField* localTermsUU;
@@ -40,7 +40,7 @@ class FormulationOO2: public Formulation<std::complex<double> >{
   const std::map<Dof, std::complex<double> >* ddmDof;
 
  public:
-  FormulationOO2(GroupOfElement& goe,
+  FormulationOO2(const GroupOfElement& goe,
                  const FunctionSpaceScalar& fs,
                  std::complex<double> a,
                  std::complex<double> b,
@@ -59,7 +59,8 @@ class FormulationOO2: public Formulation<std::complex<double> >{
   virtual std::complex<double>
     rhs(size_t equationI, size_t elementId)           const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 
  private:
   std::complex<double>

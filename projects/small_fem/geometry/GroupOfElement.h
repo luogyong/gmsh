@@ -31,7 +31,10 @@ class GroupOfElement{
 
  public:
    GroupOfElement(std::list<const MElement*>& element, const Mesh& mesh);
+   GroupOfElement(const Mesh& mesh);
   ~GroupOfElement(void);
+
+  void add(const GroupOfElement& other);
 
   size_t          getNumber(void) const;
   const MElement& get(size_t i)   const;
@@ -50,6 +53,7 @@ class GroupOfElement{
   std::string toString(void) const;
 
  private:
+  void init(void);
   static bool sortPredicate(const MElement* a, const MElement* b);
 };
 

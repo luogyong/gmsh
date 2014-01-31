@@ -6,20 +6,18 @@
 
 using namespace std;
 
-FormulationNeumann::FormulationNeumann(GroupOfElement& goe,
+FormulationNeumann::FormulationNeumann(const GroupOfElement& goe,
                                        const FunctionSpaceScalar& fs,
                                        double k){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationNeumann needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationNeumann needs a uniform mesh");
 
   // Wavenumber //
   this->k = k;
@@ -66,7 +64,10 @@ complex<double> FormulationNeumann::weakB(size_t dofI, size_t dofJ,
   return complex<double>(0, 0);
 }
 
-
 const FunctionSpace& FormulationNeumann::fs(void) const{
   return *fspace;
+}
+
+const GroupOfElement& FormulationNeumann::domain(void) const{
+  return *goe;
 }

@@ -19,15 +19,16 @@
 class FormulationEigenFrequencyVector:
 public Formulation<std::complex<double> >{
  private:
-  // Function Space & Basis //
+  // Function Space & Domain //
   const FunctionSpaceVector* fspace;
+  const GroupOfElement*      goe;
 
   // Local Terms //
   TermCurlCurl* localTerms1;
   TermGradGrad* localTerms2;
 
  public:
-  FormulationEigenFrequencyVector(GroupOfElement& goe,
+  FormulationEigenFrequencyVector(const GroupOfElement& goe,
                                   const FunctionSpaceVector& fs);
 
   virtual ~FormulationEigenFrequencyVector(void);
@@ -43,7 +44,8 @@ public Formulation<std::complex<double> >{
   virtual std::complex<double> rhs(size_t equationI,
                                    size_t elementId) const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

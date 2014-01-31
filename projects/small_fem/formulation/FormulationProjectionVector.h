@@ -20,9 +20,10 @@
 template<typename scalar>
 class FormulationProjectionVector: public Formulation<scalar>{
  private:
-  // Function Space & Basis //
-  FunctionSpaceVector* fspace;
-  const Basis*         basis;
+  // Function Space & Basis & Domain //
+  const FunctionSpaceVector* fspace;
+  const GroupOfElement*      goe;
+  const Basis*               basis;
 
   // For real version (Local Terms) //
   TermGradGrad*       localTerms1;
@@ -30,14 +31,14 @@ class FormulationProjectionVector: public Formulation<scalar>{
 
   // For complex version //
   fullVector<std::complex<double> > (*f)(fullVector<double>& xyz);
-  GroupOfElement*     goe;
-  fullMatrix<double>* gC;
-  fullVector<double>* gW;
-  GroupOfJacobian*    jac;
+  fullMatrix<double>*   gC;
+  fullVector<double>*   gW;
+  GroupOfJacobian*      jac;
 
  public:
-  FormulationProjectionVector(fullVector<scalar> (*f)(fullVector<double>& xyz),
-                              FunctionSpaceVector& fs);
+  FormulationProjectionVector(const GroupOfElement& goe,
+                              const FunctionSpaceVector& fs,
+                              fullVector<scalar> (*f)(fullVector<double>& xyz));
 
   virtual ~FormulationProjectionVector(void);
 
@@ -47,7 +48,8 @@ class FormulationProjectionVector: public Formulation<scalar>{
   virtual scalar weakB(size_t dofI, size_t dofJ, size_t elementId) const;
   virtual scalar rhs(size_t equationI, size_t elementId)           const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

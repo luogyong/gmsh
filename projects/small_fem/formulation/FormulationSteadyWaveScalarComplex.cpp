@@ -10,20 +10,18 @@ using namespace std;
 
 template<>
 FormulationSteadyWaveScalar<complex<double> >::
-FormulationSteadyWaveScalar(GroupOfElement& goe,
+FormulationSteadyWaveScalar(const GroupOfElement& goe,
                             const FunctionSpaceScalar& fs,
                             double k){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationEigenFrequencyScalar needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationSteadyWaveScalar needs a uniform mesh");
 
   // Wave Squared //
   kSquare = k * k;
@@ -90,4 +88,10 @@ template<>
 const FunctionSpace& FormulationSteadyWaveScalar<complex<double> >::
 fs(void) const{
   return *fspace;
+}
+
+template<>
+const GroupOfElement& FormulationSteadyWaveScalar<complex<double> >::
+domain(void) const{
+  return *goe;
 }

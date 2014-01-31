@@ -219,7 +219,7 @@ void fem(double (*f)(fullVector<double>& xyz),
   stringstream stream;
 
   FunctionSpaceScalar fSpace(domain, order);
-  FormulationProjectionScalar<double> projection(f, fSpace);
+  FormulationProjectionScalar<double> projection(domain, fSpace, f);
   System<double> sysProj(projection);
 
   // Assemble and Solve //
@@ -255,7 +255,7 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
   stringstream stream;
 
   FunctionSpaceVector fSpace(domain, order);
-  FormulationProjectionVector<double> projection(f, fSpace);
+  FormulationProjectionVector<double> projection(domain, fSpace, f);
   System<double> sysProj(projection);
 
   // Assemble and Solve //

@@ -21,15 +21,16 @@ class FormulationSteadyWaveScalar: public Formulation<scalar>{
   // Wavenumber squared //
   double kSquare;
 
-  // Function Space & Basis //
+  // Function Space & Domain //
   const FunctionSpaceScalar* fspace;
+  const GroupOfElement*      goe;
 
   // Local Terms //
   TermGradGrad*   localTerms1;
   TermFieldField* localTerms2;
 
  public:
-  FormulationSteadyWaveScalar(GroupOfElement& goe,
+  FormulationSteadyWaveScalar(const GroupOfElement& goe,
                               const FunctionSpaceScalar& fs,
                               double k);
 
@@ -41,7 +42,8 @@ class FormulationSteadyWaveScalar: public Formulation<scalar>{
   virtual scalar weakB(size_t dofI, size_t dofJ, size_t elementId) const;
   virtual scalar rhs(size_t equationI, size_t elementId)           const;
 
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

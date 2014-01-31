@@ -9,22 +9,18 @@ using namespace std;
 
 template<>
 FormulationProjectionScalar<double>::
-FormulationProjectionScalar(double (*f)(fullVector<double>& xyz),
-                            FunctionSpaceScalar& fs){
-  // Domain //
-  GroupOfElement& goe = fs.getSupport();
+FormulationProjectionScalar(const GroupOfElement& goe,
+                            const FunctionSpaceScalar& fs,
+                            double (*f)(fullVector<double>& xyz)){
+  // Save Domain //
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe.getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe.isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception
-        ("FormulationProjectionVector<real> needs a uniform mesh");
+  if(!uniform.first)
+    throw ("FormulationProjectionScalar<real> needs a uniform mesh");
 
   // Save fspace //
   fspace = &fs;
@@ -78,4 +74,9 @@ double FormulationProjectionScalar<double>::weakB(size_t dofI, size_t dofJ,
 template<>
 const FunctionSpace& FormulationProjectionScalar<double>::fs(void) const{
   return *fspace;
+}
+
+template<>
+const GroupOfElement& FormulationProjectionScalar<double>::domain(void) const{
+  return *goe;
 }

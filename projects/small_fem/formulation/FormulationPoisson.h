@@ -18,8 +18,9 @@
 
 class FormulationPoisson: public Formulation<double>{
  private:
-  // Function Space //
+  // Function Space & Domain //
   const FunctionSpaceScalar* fspace;
+  const GroupOfElement*      goe;
 
   // Local Terms //
   TermGradGrad*        localTermsL;
@@ -29,7 +30,7 @@ class FormulationPoisson: public Formulation<double>{
   double (*fSource)(fullVector<double>& xyz);
 
  public:
-  FormulationPoisson(GroupOfElement& goe,
+  FormulationPoisson(const GroupOfElement& goe,
                      const FunctionSpaceScalar& fs,
                      double (*f)(fullVector<double>& xyz));
 
@@ -37,16 +38,12 @@ class FormulationPoisson: public Formulation<double>{
 
   virtual bool isGeneral(void) const;
 
-  virtual double weak(size_t dofI, size_t dofJ,
-                      size_t elementId) const;
+  virtual double weak(size_t dofI, size_t dofJ, size_t elementId)  const;
+  virtual double weakB(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual double rhs(size_t equationI, size_t elementId)           const;
 
-  virtual double weakB(size_t dofI, size_t dofJ,
-                       size_t elementId) const;
-
-  virtual double rhs(size_t equationI,
-                     size_t elementId) const;
-
-  virtual const FunctionSpace& fs(void) const;
+  virtual const FunctionSpace&  fs(void)     const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

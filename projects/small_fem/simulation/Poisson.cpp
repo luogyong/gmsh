@@ -26,21 +26,24 @@ double fSource(fullVector<double>& xyz){
 void compute(const Options& option){
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement    domain = msh.getFromPhysical(7);
+  GroupOfElement    volume = msh.getFromPhysical(7);
   GroupOfElement boundary0 = msh.getFromPhysical(6);
   GroupOfElement boundary1 = msh.getFromPhysical(5);
 
-  cout << "Number of Element: " << domain.getNumber()
-       << endl << flush;
+  // Full Domain //
+  GroupOfElement domain(msh);
+  domain.add(volume);
+  domain.add(boundary0);
+  domain.add(boundary1);
 
   // Get Order //
   size_t order = atoi(option.getValue("-o")[1].c_str());
 
   // Function Space //
-  FunctionSpaceScalar fs(domain, order);
+  FunctionSpaceScalar fs(volume, order);
 
   // Compute //
-  FormulationPoisson poisson(domain, fs, fSource);
+  FormulationPoisson poisson(volume, fs, fSource);
   System<double> sysPoisson(poisson);
 
   SystemHelper<double>::dirichlet(sysPoisson, boundary0, fDirichlet0);

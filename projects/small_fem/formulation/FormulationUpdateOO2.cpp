@@ -19,15 +19,11 @@ FormulationUpdateOO2(const FunctionSpaceScalar& fs,
   this->goe = &fs.getSupport();
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  const vector<size_t>& gType = goe->getTypeStats();
-  const size_t nGType = gType.size();
-  size_t eType = (size_t)(-1);
+  pair<bool, size_t> uniform = goe->isUniform();
+  size_t               eType = uniform.second;
 
-  for(size_t i = 0; i < nGType; i++)
-    if((eType == (size_t)(-1)) && (gType[i] != 0))
-      eType = i;
-    else if((eType != (size_t)(-1)) && (gType[i] != 0))
-      throw Exception("FormulationUpdateEMDA needs a uniform mesh");
+  if(!uniform.first)
+    throw Exception("FormulationUpdateOO2 needs a uniform mesh");
 
   // Save fspace //
   fspace = &fs;
@@ -289,4 +285,8 @@ complex<double>  FormulationUpdateOO2::weakB(size_t dofI, size_t dofJ,
 
 const FunctionSpace& FormulationUpdateOO2::fs(void) const{
   return *fspace;
+}
+
+const GroupOfElement& FormulationUpdateOO2::domain(void) const{
+  return *goe;
 }
