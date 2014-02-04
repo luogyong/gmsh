@@ -40,14 +40,14 @@ void compute(const Options& option){
   size_t order = atoi(option.getValue("-o")[1].c_str());
 
   // Function Space //
-  FunctionSpaceScalar fs(volume, order);
+  FunctionSpaceScalar fs(domain, order);
 
   // Compute //
   FormulationPoisson poisson(volume, fs, fSource);
   System<double> sysPoisson(poisson);
 
-  SystemHelper<double>::dirichlet(sysPoisson, boundary0, fDirichlet0);
-  SystemHelper<double>::dirichlet(sysPoisson, boundary1, fDirichlet1);
+  SystemHelper<double>::dirichlet(sysPoisson, fs, boundary0, fDirichlet0);
+  SystemHelper<double>::dirichlet(sysPoisson, fs, boundary1, fDirichlet1);
 
   cout << "Poisson -- Order " << order
        << ": " << sysPoisson.getSize()

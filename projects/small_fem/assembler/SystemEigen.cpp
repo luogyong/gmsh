@@ -8,9 +8,13 @@ SystemEigen::SystemEigen(const Formulation<std::complex<double> >& formulation){
   this->formulation = &formulation;
   this->fs          = &(formulation.fs());
 
+  // Get Formulation Dofs //
+  set<Dof> dof;
+  this->fs->getKeys(formulation.domain(), dof);
+
   // Get Dof Manager //
   dofM = new DofManager<std::complex<double> >();
-  dofM->addToDofManager(fs->getAllDofs());
+  dofM->addToDofManager(dof);
 
   // Is the Problem a General EigenValue Problem ? //
   general = formulation.isGeneral();

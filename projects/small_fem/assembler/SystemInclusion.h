@@ -13,9 +13,13 @@ System<scalar>::System(const Formulation<scalar>& formulation){
   this->formulation = &formulation;
   this->fs          = &(formulation.fs());
 
+  // Get Formulation Dofs //
+  std::set<Dof> dof;
+  this->fs->getKeys(formulation.domain(), dof);
+
   // Get Dof Manager //
   this->dofM = new DofManager<scalar>();
-  this->dofM->addToDofManager(this->fs->getAllDofs());
+  this->dofM->addToDofManager(dof);
 
   // Init //
   A = NULL;
@@ -47,8 +51,12 @@ void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
   const FunctionSpace& fs = formulation.fs();
 
   // Get All Dofs per Element //
-  const size_t E = fs.getSupport().getNumber();
-  const std::vector<std::vector<Dof> >& group = fs.getAllGroups();
+  std::vector<std::vector<Dof> > dof;
+  fs.getKeys(formulation.domain(), dof);
+  const size_t E = dof.size();
+
+  //const size_t E = fs.getSupport().getNumber();
+  //const std::vector<std::vector<Dof> >& group = fs.getAllGroups();
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
@@ -58,7 +66,7 @@ void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::
-      assemble(*A, *b, i, group[i], term, formulation);
+      assemble(*A, *b, i, dof[i], term, formulation);
 }
 
 template<typename scalar>
@@ -67,8 +75,12 @@ void System<scalar>::assemble(void){
   this->dofM->generateGlobalIdSpace();
 
   // Get All Dofs per Element //
-  const size_t E = this->fs->getSupport().getNumber();
-  const std::vector<std::vector<Dof> >& group = this->fs->getAllGroups();
+  std::vector<std::vector<Dof> > dof;
+  this->fs->getKeys(this->formulation->domain(), dof);
+  const size_t E = dof.size();
+
+  //const size_t E = this->fs->getSupport().getNumber();
+  //const std::vector<std::vector<Dof> >& group = this->fs->getAllGroups();
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
@@ -84,7 +96,7 @@ void System<scalar>::assemble(void){
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::
-      assemble(*A, *b, i, group[i], term, *this->formulation);
+      assemble(*A, *b, i, dof[i], term, *this->formulation);
 
   // The system is assembled //
   this->assembled = true;

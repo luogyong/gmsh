@@ -62,31 +62,27 @@ dirichlet(SystemAbstract<scalar>& sys,
           const GroupOfElement& goe,
           scalar (*f)(fullVector<double>& xyz)){
 
-  throw Exception("SystemHelper::dirichlet(FS) to be done");
-  /*
-  // Get Function Space for Projection (formFS) //
-  FunctionSpaceScalar formFS(goe, fs.getOrder());
-
   // Solve Projection //
-  FormulationProjectionScalar<scalar> form(goe, formFS, f);
+  FormulationProjectionScalar<scalar> formulation(goe, fs, f);
 
-  System<scalar> projection(form);
+  System<scalar> projection(formulation);
   projection.assemble();
   projection.solve();
 
   // Map of Dofs //
-  const std::set<Dof>& dof = formFS.getAllDofs();
+  std::set<Dof> dof;
+  std::map<Dof, scalar> constraint;
+
+  fs.getKeys(goe, dof);
   std::set<Dof>::iterator it  = dof.begin();
   std::set<Dof>::iterator end = dof.end();
 
-  std::map<Dof, scalar> constr;
   for(; it != end; it++)
-    constr.insert(std::pair<Dof, scalar>(*it, 0));
+    constraint.insert(std::pair<Dof, scalar>(*it, 0));
 
   // Get Solution and Dirichlet Constraint //
-  projection.getSolution(constr, 0);
-  sys.constraint(constr);
-  */
+  projection.getSolution(constraint, 0);
+  sys.constraint(constraint);
 }
 
 template<typename scalar>
