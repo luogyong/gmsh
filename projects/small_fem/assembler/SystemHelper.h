@@ -32,6 +32,11 @@ class SystemHelper{
   static void dirichlet(SystemAbstract<scalar>& sys,
                         const GroupOfElement& goe,
                         fullVector<scalar> (*f)(fullVector<double>& xyz));
+
+  static void dirichlet(SystemAbstract<scalar>& sys,
+                        const FunctionSpaceVector& fs,
+                        const GroupOfElement& goe,
+                        fullVector<scalar> (*f)(fullVector<double>& xyz));
 };
 
 /**

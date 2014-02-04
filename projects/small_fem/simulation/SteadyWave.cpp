@@ -48,9 +48,15 @@ void compute(const Options& option){
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement domain = msh.getFromPhysical(7);
+  GroupOfElement volume = msh.getFromPhysical(7);
   GroupOfElement source = msh.getFromPhysical(5);
   GroupOfElement wall   = msh.getFromPhysical(6);
+
+  // Full Domain //
+  GroupOfElement domain(msh);
+  domain.add(volume);
+  domain.add(source);
+  domain.add(wall);
 
   // Get Parameters //
   const double k     = atof(option.getValue("-k")[1].c_str());
@@ -58,45 +64,43 @@ void compute(const Options& option){
 
   // Chose write formulation for Steady Wave and boundary condition //
   FunctionSpace*       fs   = NULL;
+  FunctionSpaceScalar* fsS = NULL;
+  FunctionSpaceVector* fsV = NULL;
   Formulation<double>* wave = NULL;
   System<double>*      sys  = NULL;
 
-  if(option.getValue("-type")[1].compare("vector") == 0){
-    assemble.start();
-    fs   = new FunctionSpaceVector(domain, order);
-    wave = new FormulationSteadyWaveVector
-      (domain, static_cast<FunctionSpaceVector&>(*fs), k);
+  assemble.start();
 
+  if(option.getValue("-type")[1].compare("vector") == 0){
+    fs   = new FunctionSpaceVector(domain, order);
+    fsV  = static_cast<FunctionSpaceVector*>(fs);
+    wave = new FormulationSteadyWaveVector(volume, *fsV, k);
     sys  = new System<double>(*wave);
 
-    SystemHelper<double>::dirichlet(*sys, source, fSourceVec);
-    SystemHelper<double>::dirichlet(*sys, wall,   fWallVec);
+    SystemHelper<double>::dirichlet(*sys, *fsV, source, fSourceVec);
+    SystemHelper<double>::dirichlet(*sys, *fsV, wall,   fWallVec);
     cout << "Vectorial ";
   }
 
   else if(option.getValue("-type")[1].compare("slow") == 0){
-    assemble.start();
     fs   = new FunctionSpaceVector(domain, order);
-    wave = new FormulationSteadyWaveVectorSlow
-      (domain, static_cast<FunctionSpaceVector&>(*fs), k);
-
+    fsV  = static_cast<FunctionSpaceVector*>(fs);
+    wave = new FormulationSteadyWaveVectorSlow(volume, *fsV, k);
     sys  = new System<double>(*wave);
 
-    SystemHelper<double>::dirichlet(*sys, source, fSourceVec);
-    SystemHelper<double>::dirichlet(*sys, wall,   fWallVec);
+    SystemHelper<double>::dirichlet(*sys, *fsV, source, fSourceVec);
+    SystemHelper<double>::dirichlet(*sys, *fsV, wall,   fWallVec);
     cout << "Slow Vectorial ";
   }
 
   else if(option.getValue("-type")[1].compare("scalar") == 0){
-    assemble.start();
     fs   = new FunctionSpaceScalar(domain, order);
-    wave = new FormulationSteadyWaveScalar<double>
-      (domain, static_cast<FunctionSpaceScalar&>(*fs), k);
-
+    fsS  = static_cast<FunctionSpaceScalar*>(fs);
+    wave = new FormulationSteadyWaveScalar<double>(volume, *fsS, k);
     sys  = new System<double>(*wave);
 
-    SystemHelper<double>::dirichlet(*sys, source, fSourceScal);
-    SystemHelper<double>::dirichlet(*sys, wall,   fWallScal);
+    SystemHelper<double>::dirichlet(*sys, *fsS, source, fSourceScal);
+    SystemHelper<double>::dirichlet(*sys, *fsS, wall,   fWallScal);
     cout << "Scalar ";
   }
 

@@ -53,16 +53,14 @@ void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
   // Get All Dofs per Element //
   std::vector<std::vector<Dof> > dof;
   fs.getKeys(formulation.domain(), dof);
-  const size_t E = dof.size();
-
-  //const size_t E = fs.getSupport().getNumber();
-  //const std::vector<std::vector<Dof> >& group = fs.getAllGroups();
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
     &Formulation<scalar>::weak;
 
   // Assemble //
+  const size_t E = dof.size();
+
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::
@@ -77,10 +75,6 @@ void System<scalar>::assemble(void){
   // Get All Dofs per Element //
   std::vector<std::vector<Dof> > dof;
   this->fs->getKeys(this->formulation->domain(), dof);
-  const size_t E = dof.size();
-
-  //const size_t E = this->fs->getSupport().getNumber();
-  //const std::vector<std::vector<Dof> >& group = this->fs->getAllGroups();
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
@@ -93,6 +87,8 @@ void System<scalar>::assemble(void){
   b = new SolverVector<scalar>(size);
 
   // Assemble //
+  const size_t E = dof.size();
+
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::

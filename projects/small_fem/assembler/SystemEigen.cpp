@@ -106,8 +106,8 @@ void SystemEigen::assemble(void){
   dofM->generateGlobalIdSpace();
 
   // Get All Dofs per Element //
-  const size_t E = fs->getSupport().getNumber();
-  const vector<vector<Dof> >& group = fs->getAllGroups();
+  std::vector<std::vector<Dof> > dof;
+  fs->getKeys(formulation->domain(), dof);
 
   // Get Formulation Terms //
   formulationPtr termA = &Formulation<std::complex<double> >::weak;
@@ -121,14 +121,16 @@ void SystemEigen::assemble(void){
   SolverMatrix<std::complex<double> > tmpB(size, size);
 
   // Assemble Systems (tmpA and tmpB) //
+  const size_t E = dof.size();
+
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
-    SystemAbstract::assemble(tmpA, tmpRHS, i, group[i], termA, *formulation);
+    SystemAbstract::assemble(tmpA, tmpRHS, i, dof[i], termA, *formulation);
 
   if(general)
     #pragma omp parallel for
     for(size_t i = 0; i < E; i++)
-      SystemAbstract::assemble(tmpB, tmpRHS, i, group[i], termB, *formulation);
+      SystemAbstract::assemble(tmpB, tmpRHS, i, dof[i], termB, *formulation);
 
   // Copy tmpA into Assembled PETSc matrix //
   // Data

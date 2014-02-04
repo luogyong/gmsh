@@ -24,9 +24,15 @@ void compute(const Options& option){
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement domain     = msh.getFromPhysical(7);
+  GroupOfElement volume     = msh.getFromPhysical(7);
   GroupOfElement source     = msh.getFromPhysical(5);
   GroupOfElement freeSpace  = msh.getFromPhysical(6);
+
+  // Full Domain //
+  GroupOfElement domain(msh);
+  domain.add(volume);
+  domain.add(source);
+  domain.add(freeSpace);
 
   // Get Parameters //
   const double k     = atof(option.getValue("-k")[1].c_str());
@@ -34,15 +40,14 @@ void compute(const Options& option){
 
   // Formulation //
   assemble.start();
-  FunctionSpaceScalar fsVol(domain,    order);
-  FunctionSpaceScalar fsInf(freeSpace, order);
+  FunctionSpaceScalar fs(domain, order);
 
-  FormulationSteadyWaveScalar<complex<double> > wave(domain, fsVol, k);
-  FormulationNeumann neumann(freeSpace, fsInf, order);
+  FormulationSteadyWaveScalar<complex<double> > wave(volume, fs, k);
+  FormulationNeumann neumann(freeSpace, fs, k);
 
   // System //
   System<complex<double> > sys(wave);
-  SystemHelper<complex<double> >::dirichlet(sys, source, fSourceScal);
+  SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
 
   cout << "Free Space (Order: "  << order
        << " --- Wavenumber: "    << k

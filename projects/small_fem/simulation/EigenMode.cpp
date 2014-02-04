@@ -12,7 +12,7 @@
 
 using namespace std;
 
-fullVector<complex<double> > fDirichletVec(fullVector<double>& xyz){
+fullVector<complex<double> > fVect(fullVector<double>& xyz){
   fullVector<complex<double> > f(3);
 
   f(0) = complex<double>(0, 0);
@@ -22,44 +22,49 @@ fullVector<complex<double> > fDirichletVec(fullVector<double>& xyz){
   return f;
 }
 
-complex<double> fDirichletScal(fullVector<double>& xyz){
+complex<double> fScal(fullVector<double>& xyz){
   return complex<double>(0, 0);
 }
 
 void compute(const Options& option){
   // Get Domain //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement domain = msh.getFromPhysical(7);
+  GroupOfElement volume = msh.getFromPhysical(7);
   GroupOfElement border = msh.getFromPhysical(5);
+
+  // Full Domain //
+  GroupOfElement domain(msh);
+  domain.add(volume);
+  domain.add(border);
 
   // Get Parameters //
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   const size_t nWave = atoi(option.getValue("-n")[1].c_str());
 
   // Chose write formulation for Eigenvalues and boundary condition //
-  FunctionSpace* fs = NULL;
+  FunctionSpace*                  fs = NULL;
+  FunctionSpaceScalar*           fsS = NULL;
+  FunctionSpaceVector*           fsV = NULL;
   Formulation<complex<double> >* eig = NULL;
-  SystemEigen* sys = NULL;
+  SystemEigen*                   sys = NULL;
 
   if(option.getValue("-type")[1].compare("vector") == 0){
     fs  = new FunctionSpaceVector(domain, order);
-    eig = new FormulationEigenFrequencyVector
-      (domain, static_cast<FunctionSpaceVector&>(*fs));
-
+    fsV = static_cast<FunctionSpaceVector*>(fs);
+    eig = new FormulationEigenFrequencyVector(volume, *fsV);
     sys = new SystemEigen(*eig);
 
-    SystemHelper<complex<double> >::dirichlet(*sys, border, fDirichletVec);
+    SystemHelper<complex<double> >::dirichlet(*sys, *fsV, border, fVect);
     cout << "Vectorial ";
   }
 
   else if(option.getValue("-type")[1].compare("scalar") == 0){
     fs  = new FunctionSpaceScalar(domain, order);
-    eig = new FormulationEigenFrequencyScalar
-      (domain, static_cast<FunctionSpaceScalar&>(*fs));
-
+    fsS = static_cast<FunctionSpaceScalar*>(fs);
+    eig = new FormulationEigenFrequencyScalar(volume, *fsS);
     sys = new SystemEigen(*eig);
 
-    SystemHelper<complex<double> >::dirichlet(*sys, border, fDirichletScal);
+    SystemHelper<complex<double> >::dirichlet(*sys, *fsS, border, fScal);
     cout << "Scalar ";
   }
 
