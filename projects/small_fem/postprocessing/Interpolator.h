@@ -1,8 +1,10 @@
 #ifndef _INTERPOLATOR_H_
 #define _INTERPOLATOR_H_
 
+#include <map>
+
+#include "GroupOfElement.h"
 #include "FunctionSpace.h"
-#include "DofManager.h"
 #include "fullMatrix.h"
 
 /**
@@ -21,11 +23,17 @@ class Interpolator{
    Interpolator(void);
   ~Interpolator(void);
 
-  static void interpolate(const FunctionSpace& fs,
-                          const DofManager<scalar>& dofM,
-                          const fullVector<scalar>& coef,
+  static void interpolate(const GroupOfElement& goe,
+                          const FunctionSpace& fs,
+                          const std::map<Dof, scalar>& coef,
                           const fullMatrix<double>& point,
                           fullMatrix<scalar>& values);
+ private:
+  static void interpolate(const MElement& element,
+                          const FunctionSpace& fs,
+                          const std::vector<scalar>& coef,
+                          const fullVector<double>& xyz,
+                          fullVector<scalar>& value);
 };
 
 
@@ -58,5 +66,14 @@ class Interpolator{
    @li Each column is a coordinate of the solution
    (1 for scalar problems and 3 for vectorial ones)
  */
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "InterpolatorInclusion.h"
 
 #endif

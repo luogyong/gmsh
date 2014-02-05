@@ -226,15 +226,23 @@ void fem(double (*f)(fullVector<double>& xyz),
   sysProj.assemble();
   sysProj.solve();
 
-  // Interpolate on Ref Points //
-  fullVector<double> sysSol;
+  // Get Dofs //
+  set<Dof> dof;
+  fSpace.getKeys(domain, dof);
+
+  set<Dof>::iterator    end = dof.end();
+  set<Dof>::iterator     it = dof.begin();
+  map<Dof, double>   sysSol;
+
+  for(; it != end; it++)
+    sysSol.insert(pair<Dof, double>(*it, 0));
+
+  // Get Solution //
   sysProj.getSolution(sysSol, 0);
 
-  Interpolator<double>::interpolate(sysProj.getFunctionSpace(),
-                                    sysProj.getDofManager(),
-                                    sysSol,
-                                    point,
-                                    sol);
+  // Interpolate on Ref Points //
+  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol);
+
   // Post-processing //
   if(!nopos){
     FEMSolution<double> feSol;
@@ -262,15 +270,23 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
   sysProj.assemble();
   sysProj.solve();
 
-  // Interpolate on Ref Points //
-  fullVector<double> sysSol;
+  // Get Dofs //
+  set<Dof> dof;
+  fSpace.getKeys(domain, dof);
+
+  set<Dof>::iterator    end = dof.end();
+  set<Dof>::iterator     it = dof.begin();
+  map<Dof, double>   sysSol;
+
+  for(; it != end; it++)
+    sysSol.insert(pair<Dof, double>(*it, 0));
+
+  // Get Solution //
   sysProj.getSolution(sysSol, 0);
 
-  Interpolator<double>::interpolate(sysProj.getFunctionSpace(),
-                                    sysProj.getDofManager(),
-                                    sysSol,
-                                    point,
-                                    sol);
+  // Interpolate on Ref Points //
+  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol);
+
   // Post-processing //
   if(!nopos){
     FEMSolution<double> feSol;

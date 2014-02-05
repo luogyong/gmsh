@@ -35,7 +35,7 @@ void FEMSolution<scalar>::addCoefficients(size_t step,
                                           double time,
                                           const GroupOfElement& goe,
                                           const FunctionSpace& fs,
-                                          const std::map<Dof, scalar>& sol){
+                                          const std::map<Dof, scalar>& coef){
   // Get Support and GModel //
   const std::vector<const MElement*>& element = goe.getAll();
   const size_t                       nElement = element.size();
@@ -72,7 +72,7 @@ void FEMSolution<scalar>::addCoefficients(size_t step,
     nComp = 3;
 
   // Iterate on Element //
-  const typename std::map<Dof, scalar>::const_iterator end = sol.end();
+  const typename std::map<Dof, scalar>::const_iterator end = coef.end();
   typename std::map<Dof, scalar>::const_iterator it;
 
   for(size_t i = 0; i < nElement; i++){
@@ -84,7 +84,7 @@ void FEMSolution<scalar>::addCoefficients(size_t step,
     std::vector<scalar> fsCoef(size);
     for(size_t j = 0; j < size; j++){
       // Get Value of Dof 'j'
-      it = sol.find(dof[j]);
+      it = coef.find(dof[j]);
 
       // If found in map
       if(it != end)

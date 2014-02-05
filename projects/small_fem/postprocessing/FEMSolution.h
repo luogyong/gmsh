@@ -43,7 +43,7 @@ class FEMSolution{
                        double time,
                        const GroupOfElement& goe,
                        const FunctionSpace& fs,
-                       const std::map<Dof, scalar>& sol);
+                       const std::map<Dof, scalar>& coef);
 
   void write(std::string fileName) const;
 
