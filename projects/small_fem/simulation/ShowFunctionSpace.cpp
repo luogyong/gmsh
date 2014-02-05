@@ -34,47 +34,35 @@ void compute(const Options& option){
     throw Exception("Unknown FunctionSpace type: %s",
                     option.getValue("-type")[1].c_str());
 
+  // Get Dofs //
+  set<Dof> dof;
+  fSpace->getKeys(domain, dof);
+
   // Enumerate Dofs //
   DofManager<double> dofM;
-  dofM.addToDofManager(fSpace->getAllDofs());
+  dofM.addToDofManager(dof);
   dofM.generateGlobalIdSpace();
 
-  // FunctionSpace is solution of FEM problem                   //
-  // For every global basis, a vector with all zero excepte one //
-  // (associated to the basis) can be created                   //
+  // FunctionSpace is solution of FEM problem                         //
+  // For every global basis, every dofs are equal to zero excepte one //
 
-  // Do this with FEMSolution //
-  const size_t nCoef = fSpace->getAllDofs().size();
-  fullVector<double> coef(nCoef);
-  FEMSolution<double> sol;
+  // Dof - Coef Map
+  set<Dof>::iterator dEnd = dof.end();
+  set<Dof>::iterator  dIt = dof.begin();
+  map<Dof, double>  coef;
 
-  // Init coefs to 0
-  for(size_t i = 0; i < nCoef; i++)
-    coef(i) = 0;
+  for(; dIt != dEnd; dIt++)
+    coef.insert(pair<Dof, double>(*dIt, 0));
 
-  // Set each coef to one (one at a time)
-  size_t startCoef = 0;
-  size_t stopCoef  = nCoef;
+  // FEM Solutions
+  FEMSolution<double>        sol;
+  map<Dof, double>::iterator cEnd = coef.end();
+  map<Dof, double>::iterator  cIt = coef.begin();
 
-  try{
-    if(option.getValue("-start").size() > 1)
-      startCoef = atoi(option.getValue("-start")[1].c_str());
-  }
-  catch(...){
-  }
-
-  try{
-    if(option.getValue("-stop").size() > 1)
-      stopCoef = atoi(option.getValue("-stop")[1].c_str());
-  }
-  catch(...){
-  }
-
-  for(size_t i = startCoef; i < stopCoef; i++){
-    cout << "# Dof: " << i << "/" << nCoef  << endl;
-    coef(i) = 1;
-    sol.addCoefficients(i - startCoef, i - startCoef, *fSpace, dofM, coef);
-    coef(i) = 0;
+  for(size_t i = 0; cIt != cEnd; cIt++, i++){
+    cIt->second = 1;
+    sol.addCoefficients(i, i, domain, *fSpace, coef);
+    cIt->second = 0;
   }
 
   // Write //
@@ -86,7 +74,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-type,-start,-stop,-phys");
+  SmallFem::Keywords("-msh,-o,-type,-phys");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

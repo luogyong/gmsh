@@ -144,10 +144,32 @@ void System<scalar>::getSolution(std::map<Dof, scalar>& sol, size_t nSol) const{
 
 template<typename scalar>
 void System<scalar>::getSolution(FEMSolution<scalar>& feSol) const{
+  // Solved ?
   if(!this->solved)
     throw Exception("System: addSolution -- System not solved");
 
-  feSol.addCoefficients(0, 0, *this->fs, *this->dofM, *x);
+  // Coefficients //
+  // FunctionSpace & Domain
+  const FunctionSpace&  fs  = this->formulation->fs();
+  const GroupOfElement& goe = this->formulation->domain();
+
+  // Get Dofs
+  std::set<Dof> dof;
+  fs.getKeys(goe, dof);
+
+  // Get Coefficient
+  const std::set<Dof>::iterator  end = dof.end();
+  std::set<Dof>::iterator        it  = dof.begin();
+  typename std::map<Dof, scalar> coef;
+
+  for(; it != end; it++)
+    coef.insert(std::pair<Dof, scalar>(*it, 0));
+
+  // Populate Map
+  getSolution(coef, 0);
+
+  // FEMSolution //
+  feSol.addCoefficients(0, 0, goe, fs, coef);
 }
 
 template<typename scalar>

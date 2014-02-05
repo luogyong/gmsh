@@ -76,11 +76,35 @@ void SystemEigen::getSolution(std::map<Dof, std::complex<double> >& sol,
 }
 
 void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol) const{
+  // Solved ?
   if(!solved)
     throw Exception("System: addSolution -- System not solved");
 
-  for(int i = 0; i < nEigenValues; i++)
-    feSol.addCoefficients(i, 0, *fs, *dofM, (*eigenVector)[i]);
+  // Coefficients //
+  // FunctionSpace & Domain
+  const FunctionSpace&  fs  = formulation->fs();
+  const GroupOfElement& goe = formulation->domain();
+
+  // Get Dofs
+  set<Dof> dof;
+  fs.getKeys(goe, dof);
+
+  // Get Coefficient
+  const set<Dof>::iterator   end = dof.end();
+  set<Dof>::iterator         it  = dof.begin();
+  map<Dof, complex<double> > coef;
+
+  for(; it != end; it++)
+    coef.insert(pair<Dof, complex<double> >(*it, 0));
+
+  // Iterate on Solutions //
+  for(int i = 0; i < nEigenValues; i++){
+    // Populate Map
+    getSolution(coef, i);
+
+    // FEMSolution
+    feSol.addCoefficients(i, 0, goe, fs, coef);
+  }
 }
 
 void SystemEigen::getEigenValues(fullVector<std::complex<double> >& eig) const{

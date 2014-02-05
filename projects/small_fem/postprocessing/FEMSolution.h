@@ -2,12 +2,10 @@
 #define _FEMSOLUTION_H_
 
 #include <string>
-#include <complex>
+#include <map>
 
 #include "FunctionSpace.h"
-#include "DofManager.h"
-#include "fullMatrix.h"
-
+#include "BasisLagrange.h"
 #include "PViewDataGModel.h"
 
 /**
@@ -43,11 +41,21 @@ class FEMSolution{
   void clear(void);
   void addCoefficients(size_t step,
                        double time,
+                       const GroupOfElement& goe,
                        const FunctionSpace& fs,
-                       const DofManager<scalar>& dofM,
-                       const fullVector<scalar>& coef);
+                       const std::map<Dof, scalar>& sol);
 
   void write(std::string fileName) const;
+
+ private:
+  void toLagrange(const MElement& element,
+                  const std::vector<BasisLagrange*>& lagrange,
+                  const std::vector<scalar>& fsCoef,
+                  const FunctionSpace& fs,
+                  std::vector<scalar>& lCoef);
+
+  void toPView(GModel& model, std::map<int, std::vector<scalar> >& data,
+               size_t step, double time, int partition, int nComp);
 };
 
 

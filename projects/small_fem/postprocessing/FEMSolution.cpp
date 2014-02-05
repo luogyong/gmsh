@@ -1,220 +1,133 @@
+#include <complex>
 #include "FEMSolution.h"
-
-#include "FunctionSpaceScalar.h"
-#include "FunctionSpaceVector.h"
-#include "BasisLagrange.h"
-#include "BasisGenerator.h"
-
-#include "Exception.h"
 
 using namespace std;
 
+// Real Implementation //
+// ------------------- //
+
 template<>
 void FEMSolution<double>::
-addCoefficients(size_t step,
-                double time,
-                const FunctionSpace& fs,
-                const DofManager<double>& dofM,
-                const fullVector<double>& coef){
+toLagrange(const MElement& element,
+           const vector<BasisLagrange*>& lagrange,
+           const vector<double>& fsCoef,
+           const FunctionSpace& fs,
+           vector<double>& lCoef){
 
-  // Get Support and GModel //
-  const vector<const MElement*>& element = fs.getSupport().getAll();
-  const size_t                  nElement = element.size();
-  GModel&                          model = fs.getSupport().getMesh().getModel();
+  // Element Type //
+  const int eType = element.getType();
 
-  // Lagrange Basis & Interpolation matrices //
-  // One lagrange basis per geo type //
-  const vector<size_t> typeStat = fs.getSupport().getTypeStats();
-  const size_t nGeoType = typeStat.size();
+  // Projection //
+  if(fs.isScalar())
+    lCoef =
+      lagrange[eType]->project(element, fsCoef,
+                               static_cast<const FunctionSpaceScalar&>(fs));
+  else
+    lCoef =
+      lagrange[eType]->project(element, fsCoef,
+                               static_cast<const FunctionSpaceVector&>(fs));
+}
 
-  vector<BasisLagrange*> lagrange(nGeoType, NULL);
+template<>
+void FEMSolution<double>::
+toPView(GModel& model, map<int, vector<double> >& data,
+        size_t step, double time, int partition, int nComp){
 
-  for(size_t i = 0; i < nGeoType; i++){
-    if(typeStat[i]){
+  pView->addData(&model, data, step, time, partition, nComp);
+}
 
-      lagrange[i] = static_cast<BasisLagrange*>
-        (BasisGenerator::generate(i, 0, fs.getBasis(i).getOrder(), "lagrange"));
+// Complex Implementation //
+// ---------------------- //
 
-      pView->setInterpolationMatrices(i,
-                                      lagrange[i]->getCoefficient(),
-                                      lagrange[i]->getMonomial());
-    }
-  }
+template<>
+void FEMSolution<complex<double> >::
+toLagrange(const MElement& element,
+           const vector<BasisLagrange*>& lagrange,
+           const vector<complex<double> >& fsCoef,
+           const FunctionSpace& fs,
+           vector<complex<double> >& lCoef){
 
-  // Map with (Element Id, Lagrange coefficients) //
-  map<int, vector<double> > data;
+  // Element Type //
+  const int eType = element.getType();
 
-  // Scalar of Vectorial Field ? //
-  const FunctionSpaceScalar* fsScalar = NULL;
-  const FunctionSpaceVector* fsVector = NULL;
-  size_t nComp;
+  // Real & Imaginary //
+  const size_t fsSize = fsCoef.size();
 
+  vector<double> fsCoefReal(fsSize);
+  vector<double> fsCoefImag(fsSize);
+
+  vector<double> lCoefReal;
+  vector<double> lCoefImag;
+
+  for(size_t i = 0; i < fsSize; i++)
+    fsCoefReal[i] = fsCoef[i].real();
+
+  for(size_t i = 0; i < fsSize; i++)
+    fsCoefImag[i] = fsCoef[i].imag();
+
+  // Projection //
   if(fs.isScalar()){
-    fsScalar = static_cast<const FunctionSpaceScalar*>(&fs);
-    nComp = 1;
+    lCoefReal =
+      lagrange[eType]->project(element, fsCoefReal,
+                               static_cast<const FunctionSpaceScalar&>(fs));
+    lCoefImag =
+      lagrange[eType]->project(element, fsCoefImag,
+                               static_cast<const FunctionSpaceScalar&>(fs));
   }
 
   else{
-    fsVector = static_cast<const FunctionSpaceVector*>(&fs);
-    nComp = 3;
+    lCoefReal =
+      lagrange[eType]->project(element, fsCoefReal,
+                               static_cast<const FunctionSpaceVector&>(fs));
+    lCoefImag =
+      lagrange[eType]->project(element, fsCoefImag,
+                               static_cast<const FunctionSpaceVector&>(fs));
   }
 
-  // Iterate on Element //
-  for(size_t i = 0; i < nElement; i++){
-    // Element type
-    const int eType = element[i]->getType();
+  // Complex Number //
+  const size_t lSize = lCoefReal.size();
+  lCoef.resize(lSize);
 
-    // Get Element Dofs
-    const vector<Dof> dof  = fs.getKeys(*element[i]);
-    const size_t      size = dof.size();
-
-    // Get Coef In FS Basis
-    vector<double> fsCoef(size);
-    for(size_t j = 0; j < size; j++){
-      // Dof Global ID
-      size_t globalId = dofM.getGlobalId(dof[j]);
-
-      // If non fixed Dof: look in Solution
-      if(globalId != DofManager<double>::isFixedId())
-        fsCoef[j] = coef(globalId);
-
-      // If Dof is fixed: get fixed value
-      else
-        fsCoef[j] = dofM.getValue(dof[j]);
-    }
-
-    // Get Coef In Lagrange Basis
-    vector<double> lCoef;
-    if(fsScalar)
-      lCoef = lagrange[eType]->project(*element[i], fsCoef, *fsScalar);
-
-    else
-      lCoef = lagrange[eType]->project(*element[i], fsCoef, *fsVector);
-
-    // Add in map
-    data.insert(pair<int, vector<double> >(element[i]->getNum(), lCoef));
-  }
-
-  // Add map to PView //
-  pView->addData(&model, data, step, time, 0, nComp);
-
-  // Clean //
-  for(size_t i = 0; i < nGeoType; i++)
-    if(typeStat[i])
-      delete lagrange[i];
+  for(size_t i = 0; i < lSize; i++)
+    lCoef[i] = complex<double>(lCoefReal[i], lCoefImag[i]);
 }
 
 template<>
 void FEMSolution<complex<double> >::
-addCoefficients(size_t step,
-                double time,
-                const FunctionSpace& fs,
-                const DofManager<complex<double> >& dofM,
-                const fullVector<complex<double> >& coef){
+toPView(GModel& model, map<int, vector<complex<double> > >& data,
+        size_t step, double time, int partition, int nComp){
 
-  // Get Support and GModel //
-  const vector<const MElement*>& element = fs.getSupport().getAll();
-  const size_t                  nElement = element.size();
-  GModel&                          model = fs.getSupport().getMesh().getModel();
-
-  // Lagrange Basis & Interpolation matrices //
-  // One lagrange basis per geo type //
-  const vector<size_t> typeStat = fs.getSupport().getTypeStats();
-  const size_t nGeoType = typeStat.size();
-
-  vector<BasisLagrange*> lagrange(nGeoType, NULL);
-
-  for(size_t i = 0; i < nGeoType; i++){
-    if(typeStat[i]){
-
-      lagrange[i] = static_cast<BasisLagrange*>
-        (BasisGenerator::generate(i, 0, fs.getBasis(i).getOrder(), "lagrange"));
-
-      pView->setInterpolationMatrices(i,
-                                      lagrange[i]->getCoefficient(),
-                                      lagrange[i]->getMonomial());
-    }
-  }
-
-  // Map with (Element Id, Lagrange coefficients) //
-  // Real And Imaginary parts
+  // Split Data //
+  // New Real / Imag
   map<int, vector<double> > real;
   map<int, vector<double> > imag;
 
-  // Scalar of Vectorial Field ? //
-  const FunctionSpaceScalar* fsScalar = NULL;
-  const FunctionSpaceVector* fsVector = NULL;
-  size_t nComp;
+  // Iterate on Data
+  const map<int, vector<complex<double> > >::iterator end = data.end();
+  map<int, vector<complex<double> > >::iterator        it = data.begin();
 
-  if(fs.isScalar()){
-    fsScalar = static_cast<const FunctionSpaceScalar*>(&fs);
-    nComp = 1;
+  for(; it != end; it++){
+    // Element
+    int eNum = it->first;
+
+    // Number of coefficients
+    size_t nCoef = it->second.size();
+
+    // New vectors
+    vector<double> vReal(nCoef);
+    vector<double> vImag(nCoef);
+
+    for(size_t i = 0; i < nCoef; i++)
+      vReal[i] = it->second[i].real();
+
+    for(size_t i = 0; i < nCoef; i++)
+      vImag[i] = it->second[i].imag();
+
+    real.insert(pair<int, vector<double> >(eNum, vReal));
+    imag.insert(pair<int, vector<double> >(eNum, vImag));
   }
 
-  else{
-    fsVector = static_cast<const FunctionSpaceVector*>(&fs);
-    nComp = 3;
-  }
-
-  // Iterate on Element //
-  for(size_t i = 0; i < nElement; i++){
-    // Element type
-    const int eType = element[i]->getType();
-
-    // Get Element Dofs
-    const vector<Dof> dof  = fs.getKeys(*element[i]);
-    const size_t      size = dof.size();
-
-    // Get Coef In FS Basis
-    vector<complex<double> > fsCoef(size);
-    for(size_t j = 0; j < size; j++){
-      // Dof Global ID
-      size_t globalId = dofM.getGlobalId(dof[j]);
-
-      // If non fixed Dof: look in Solution
-      if(globalId != DofManager<complex<double> >::isFixedId())
-        fsCoef[j] = coef(globalId);
-
-      // If Dof is fixed: get fixed value
-      else
-        fsCoef[j] = dofM.getValue(dof[j]);
-    }
-
-    // Split fsCoef
-    vector<double> fsCoefReal(size);
-    vector<double> fsCoefImag(size);
-
-    for(size_t j = 0; j < size; j++)
-      fsCoefReal[j] = fsCoef[j].real();
-
-    for(size_t j = 0; j < size; j++)
-      fsCoefImag[j] = fsCoef[j].imag();
-
-    // Get Coef In Lagrange Basis
-    vector<double> lCoefReal;
-    vector<double> lCoefImag;
-
-    if(fsScalar){
-      lCoefReal = lagrange[eType]->project(*element[i], fsCoefReal, *fsScalar);
-      lCoefImag = lagrange[eType]->project(*element[i], fsCoefImag, *fsScalar);
-    }
-
-    else{
-      lCoefReal = lagrange[eType]->project(*element[i], fsCoefReal, *fsVector);
-      lCoefImag = lagrange[eType]->project(*element[i], fsCoefImag, *fsVector);
-    }
-
-    // Add in map
-    real.insert(pair<int, vector<double> >(element[i]->getNum(), lCoefReal));
-    imag.insert(pair<int, vector<double> >(element[i]->getNum(), lCoefImag));
-  }
-
-  // Add map to PView //
-  pView->addData(&model, real, 2 * step + 0, time, 0, nComp);
-  pView->addData(&model, imag, 2 * step + 1, time, 0, nComp);
-
-  // Clean //
-  for(size_t i = 0; i < nGeoType; i++)
-    if(typeStat[i])
-      delete lagrange[i];
+  // Add to PView //
+  pView->addData(&model, real, 2 * step + 0, time, partition, nComp);
+  pView->addData(&model, imag, 2 * step + 1, time, partition, nComp);
 }
