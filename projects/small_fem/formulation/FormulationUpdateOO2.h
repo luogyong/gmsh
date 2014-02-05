@@ -42,7 +42,8 @@ class FormulationUpdateOO2: public Formulation<std::complex<double> >{
   const std::map<Dof, std::complex<double> >* oldG;
 
  public:
-  FormulationUpdateOO2(const FunctionSpaceScalar& fs,
+  FormulationUpdateOO2(const GroupOfElement& goe,
+                       const FunctionSpaceScalar& fs,
                        std::complex<double> a,
                        std::complex<double> b,
                        const std::map<Dof, std::complex<double> >& solution,

@@ -10,16 +10,17 @@
 using namespace std;
 
 FormulationUpdateOO2::
-FormulationUpdateOO2(const FunctionSpaceScalar& fs,
+FormulationUpdateOO2(const GroupOfElement& goe,
+                     const FunctionSpaceScalar& fs,
                      std::complex<double> a,
                      std::complex<double> b,
                      const std::map<Dof, std::complex<double> >& solution,
                      const std::map<Dof, std::complex<double> >& oldG){
   // Domain //
-  this->goe = &fs.getSupport();
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe->isUniform();
+  pair<bool, size_t> uniform = goe.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -49,8 +50,8 @@ FormulationUpdateOO2(const FunctionSpaceScalar& fs,
   basis->preEvaluateFunctions(*gCFF);
   basis->preEvaluateDerivatives(*gCGG);
 
-  jacFF = new GroupOfJacobian(*goe, *gCFF, "jacobian");
-  jacGG = new GroupOfJacobian(*goe, *gCGG, "invert");
+  jacFF = new GroupOfJacobian(goe, *gCFF, "jacobian");
+  jacGG = new GroupOfJacobian(goe, *gCGG, "invert");
 
   // DDM //
   this->solution = &solution;

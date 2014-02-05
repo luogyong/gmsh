@@ -26,12 +26,10 @@ Complex fSource(fullVector<double>& xyz){
   return Complex(1, 0);
 }
 
-void initMap(System<Complex>& system,
-             GroupOfElement& goe,
-             map<Dof, Complex>& map){
+void initMap(FunctionSpace& fs, GroupOfElement& goe, map<Dof, Complex>& map){
 
   set<Dof> dSet;
-  system.getFunctionSpace().getKeys(goe, dSet);
+  fs.getKeys(goe, dSet);
 
   set<Dof>::iterator it  = dSet.begin();
   set<Dof>::iterator end = dSet.end();
@@ -180,29 +178,43 @@ void compute(const Options& option){
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement* domain;
+  GroupOfElement* volume;
   GroupOfElement* source;
   GroupOfElement* infinity;
   GroupOfElement* ddmBorder;
 
   if(myId == 0){
-    domain    = new GroupOfElement(msh.getFromPhysical(7));
+    volume    = new GroupOfElement(msh.getFromPhysical(7));
     source    = new GroupOfElement(msh.getFromPhysical(5));
     infinity  = new GroupOfElement(msh.getFromPhysical(61));
     ddmBorder = new GroupOfElement(msh.getFromPhysical(4));
   }
 
   else{
-    domain    = new GroupOfElement(msh.getFromPhysical(8));
+    volume    = new GroupOfElement(msh.getFromPhysical(8));
     source    = NULL;
     infinity  = new GroupOfElement(msh.getFromPhysical(62));
     ddmBorder = new GroupOfElement(msh.getFromPhysical(4));
   }
 
+  // Full Domain //
+  GroupOfElement* domain = new GroupOfElement(msh);
+
+  if(myId == 0){
+    domain->add(*volume);
+    domain->add(*source);
+    domain->add(*infinity);
+    domain->add(*ddmBorder);
+  }
+
+  else{
+    domain->add(*volume);
+    domain->add(*infinity);
+    domain->add(*ddmBorder);
+  }
+
   // Function Space //
-  FunctionSpaceScalar* fsVol = NULL;
-  FunctionSpaceScalar* fsDdm = NULL;
-  FunctionSpaceScalar* fsInf = NULL;
+  FunctionSpaceScalar* fs = NULL;
 
   // Formulation Pointers //
   Formulation<Complex>* wave;
@@ -229,10 +241,10 @@ void compute(const Options& option){
 
   for(size_t step = 0; step < maxIt; step++){
     // Function Space //
-    fsVol = new FunctionSpaceScalar(*domain, order);
+    fs = new FunctionSpaceScalar(*domain, order);
 
     // Formulations //
-    wave = new FormulationSteadyWaveScalar<Complex>(*domain, *fsVol, k);
+    wave = new FormulationSteadyWaveScalar<Complex>(*volume, *fs, k);
 
     // System //
     system = new System<Complex>(*wave);
@@ -242,8 +254,8 @@ void compute(const Options& option){
       solution = new map<Dof, Complex>;
       ddmG     = new map<Dof, Complex>;
 
-      initMap(*system, *ddmBorder, *solution);
-      initMap(*system, *ddmBorder, *ddmG);
+      initMap(*fs, *ddmBorder, *solution);
+      initMap(*fs, *ddmBorder, *ddmG);
     }
 
     // Init MPI Buffers
@@ -266,17 +278,14 @@ void compute(const Options& option){
     system->assemble();
 
     // Neumann terms
-    fsInf   = new FunctionSpaceScalar(*infinity, order);
-    neumann = new FormulationNeumann(*infinity, *fsInf, k);
+    neumann = new FormulationNeumann(*infinity, *fs, k);
     system->addBorderTerm(*neumann);
 
     // DDM terms
-    fsDdm = new FunctionSpaceScalar(*ddmBorder, order);
-
     if(ddmType == emdaType)
-      ddm = new FormulationEMDA(*ddmBorder, *fsDdm, k, chi, *ddmG);
+      ddm = new FormulationEMDA(*ddmBorder, *fs, k, chi, *ddmG);
     else if(ddmType == oo2Type)
-      ddm = new FormulationOO2(*ddmBorder, *fsDdm, ooA, ooB, *ddmG);
+      ddm = new FormulationOO2(*ddmBorder, *fs, ooA, ooB, *ddmG);
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -298,9 +307,13 @@ void compute(const Options& option){
 
     // Update G //
     if(ddmType == emdaType)
-      upDdm  = new FormulationUpdateEMDA(*fsDdm, k, chi, *solution, *ddmG);
-    else if(ddmType == oo2Type)
-      upDdm  = new FormulationUpdateOO2(*fsDdm, ooA, ooB, *solution, *ddmG);
+      upDdm  =
+        new FormulationUpdateEMDA(*ddmBorder, *fs, k, chi, *solution, *ddmG);
+
+   else if(ddmType == oo2Type)
+      upDdm  =
+        new FormulationUpdateOO2(*ddmBorder, *fs, ooA, ooB, *solution, *ddmG);
+
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -341,13 +354,12 @@ void compute(const Options& option){
     delete wave;
     delete system;
 
-    delete fsVol;
-    delete fsDdm;
-    delete fsInf;
+    delete fs;
   }
 
   // Finalize //
   delete domain;
+  delete volume;
   if(source)
     delete source;
   delete infinity;

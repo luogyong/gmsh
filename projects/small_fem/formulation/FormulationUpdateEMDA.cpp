@@ -9,16 +9,17 @@
 using namespace std;
 
 FormulationUpdateEMDA::
-FormulationUpdateEMDA(const FunctionSpaceScalar& fs,
+FormulationUpdateEMDA(const GroupOfElement& goe,
+                      const FunctionSpaceScalar& fs,
                       double k,
                       double chi,
                       const std::map<Dof, std::complex<double> >& solution,
                       const std::map<Dof, std::complex<double> >& oldG){
   // Domain //
-  this->goe = &fs.getSupport();
+  this->goe = &goe;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe->isUniform();
+  pair<bool, size_t> uniform = goe.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -40,7 +41,7 @@ FormulationUpdateEMDA(const FunctionSpaceScalar& fs,
 
   // Pre-evalution //
   basis->preEvaluateFunctions(*gC);
-  jac = new GroupOfJacobian(*goe, *gC, "jacobian");
+  jac = new GroupOfJacobian(goe, *gC, "jacobian");
 
   // DDM //
   this->solution = &solution;

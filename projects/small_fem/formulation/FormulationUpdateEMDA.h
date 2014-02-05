@@ -36,7 +36,8 @@ class FormulationUpdateEMDA: public Formulation<std::complex<double> >{
   const std::map<Dof, std::complex<double> >* oldG;
 
  public:
-  FormulationUpdateEMDA(const FunctionSpaceScalar& fs,
+  FormulationUpdateEMDA(const GroupOfElement& goe,
+                        const FunctionSpaceScalar& fs,
                         double k,
                         double chi,
                         const std::map<Dof, std::complex<double> >& solution,
