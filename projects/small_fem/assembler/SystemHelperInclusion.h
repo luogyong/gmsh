@@ -28,7 +28,8 @@ dirichlet(SystemAbstract<scalar>& sys,
   // Solve Projection //
   FormulationProjectionScalar<scalar> formulation(goe, fs, f);
 
-  System<scalar> projection(formulation);
+  System<scalar> projection;
+  projection.addFormulation(formulation);
   projection.assemble();
   projection.solve();
 
@@ -58,7 +59,8 @@ dirichlet(SystemAbstract<scalar>& sys,
   // Solve Projection //
   FormulationProjectionVector<scalar> formulation(goe, fs, f);
 
-  System<scalar> projection(formulation);
+  System<scalar> projection;
+  projection.addFormulation(formulation);
   projection.assemble();
   projection.solve();
 

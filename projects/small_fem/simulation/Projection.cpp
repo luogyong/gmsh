@@ -220,7 +220,9 @@ void fem(double (*f)(fullVector<double>& xyz),
 
   FunctionSpaceScalar fSpace(domain, order);
   FormulationProjectionScalar<double> projection(domain, fSpace, f);
-  System<double> sysProj(projection);
+  System<double> sysProj;
+
+  sysProj.addFormulation(projection);
 
   // Assemble and Solve //
   sysProj.assemble();
@@ -264,7 +266,9 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
 
   FunctionSpaceVector fSpace(domain, order);
   FormulationProjectionVector<double> projection(domain, fSpace, f);
-  System<double> sysProj(projection);
+  System<double> sysProj;
+
+  sysProj.addFormulation(projection);
 
   // Assemble and Solve //
   sysProj.assemble();

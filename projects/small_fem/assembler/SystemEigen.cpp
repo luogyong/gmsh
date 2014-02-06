@@ -3,20 +3,11 @@
 
 using namespace std;
 
-SystemEigen::SystemEigen(const Formulation<std::complex<double> >& formulation){
-  // Get Formulation //
-  this->formulation = &formulation;
-
-  // Get Formulation Dofs //
-  set<Dof> dof;
-  formulation.fsField().getKeys(formulation.domain(), dof);
-
-  // Get Dof Manager //
-  dofM = new DofManager<std::complex<double> >();
-  dofM->addToDofManager(dof);
-
+SystemEigen::SystemEigen(void){
   // Is the Problem a General EigenValue Problem ? //
-  general = formulation.isGeneral();
+  general = true;
+  cout << "WARNING: SystemEigen HACK --> general is set to 'true' "
+       << "--> add 'addFormulationB()'" << endl << flush;
 
   // Init //
   A           = NULL;
@@ -46,125 +37,55 @@ SystemEigen::~SystemEigen(void){
     MatDestroy(B);
     delete B;
   }
-
-  delete dofM;
-}
-
-bool SystemEigen::isGeneral(void) const{
-  return general;
-}
-
-size_t SystemEigen::getNComputedSolution(void) const{
-  return nEigenValues;
-}
-
-void SystemEigen::getSolution(fullVector<std::complex<double> >& sol,
-                              size_t nSol) const{
-  sol.setAsProxy((*eigenVector)[nSol], 0, (*eigenVector)[nSol].size());
-}
-
-void SystemEigen::getSolution(std::map<Dof, std::complex<double> >& sol,
-                              size_t nSol) const{
-  // Get All Dofs
-  std::map<Dof, std::complex<double> >::iterator it  = sol.begin();
-  std::map<Dof, std::complex<double> >::iterator end = sol.end();
-
-  // Loop on Dofs and set Values
-  for(; it != end; it++)
-    it->second = (*eigenVector)[nSol](dofM->getGlobalId(it->first));
-}
-
-void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol) const{
-  // Solved ?
-  if(!solved)
-    throw Exception("System: addSolution -- System not solved");
-
-  // Coefficients //
-  // FunctionSpace & Domain
-  const FunctionSpace&  fs  = formulation->fsField();
-  const GroupOfElement& goe = formulation->domain();
-
-  // Get Dofs
-  set<Dof> dof;
-  fs.getKeys(goe, dof);
-
-  // Get Coefficient
-  const set<Dof>::iterator   end = dof.end();
-  set<Dof>::iterator         it  = dof.begin();
-  map<Dof, complex<double> > coef;
-
-  for(; it != end; it++)
-    coef.insert(pair<Dof, complex<double> >(*it, 0));
-
-  // Iterate on Solutions //
-  for(int i = 0; i < nEigenValues; i++){
-    // Populate Map
-    getSolution(coef, i);
-
-    // FEMSolution
-    feSol.addCoefficients(i, 0, goe, fs, coef);
-  }
-}
-
-void SystemEigen::getEigenValues(fullVector<std::complex<double> >& eig) const{
-  eig.setAsProxy(*eigenValue, 0, eigenValue->size());
-}
-
-void SystemEigen::
-setNumberOfEigenValues(size_t nEigenValues){
-  const size_t nDof = dofM->getUnfixedDofNumber();
-
-  if(nEigenValues > nDof)
-    throw
-      Exception
-      ("I can't compute more Eigenvalues (%d) than the number of unknowns (%d)",
-       nEigenValues, nDof);
-
-  else
-    this->nEigenValues = nEigenValues;
 }
 
 void SystemEigen::assemble(void){
-  // Enumerate //
-  dofM->generateGlobalIdSpace();
-
-  // Get All Field & Test Dofs per Element //
-  vector<vector<Dof> > dofField;
-  vector<vector<Dof> > dofTest;
-  formulation->fsField().getKeys(formulation->domain(), dofField);
-  formulation->fsTest().getKeys(formulation->domain(), dofTest);
-
-  // Get Formulation Terms //
-  formulationPtr termA = &Formulation<std::complex<double> >::weak;
-  formulationPtr termB = &Formulation<std::complex<double> >::weakB;
+  // Enumerate Dofs in DofManager //
+  dofM.generateGlobalIdSpace();
 
   // Alloc Temp Sparse Matrices (not with PETSc) //
-  const size_t size = dofM->getUnfixedDofNumber();
+  const size_t size = dofM.getUnfixedDofNumber();
 
   SolverVector<complex<double> > tmpRHS(size);
   SolverMatrix<complex<double> > tmpA(size, size);
   SolverMatrix<complex<double> > tmpB(size, size);
 
-  // Assemble Systems (tmpA and tmpB) //
-  const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
+  // Get Formulation Terms //
+  formulationPtr termA = &Formulation<std::complex<double> >::weak;
+  formulationPtr termB = &Formulation<std::complex<double> >::weakB;
 
-  #pragma omp parallel for
-  for(size_t i = 0; i < E; i++)
-    SystemAbstract::assemble
-      (tmpA, tmpRHS, i, dofField[i], dofTest[i], termA, *formulation);
+  // Iterate on Formulations //
+  list<const Formulation<complex<double> >*>::iterator it = formulation.begin();
+  list<const Formulation<complex<double> >*>::iterator end = formulation.end();
 
-  if(general)
+  for(; it != end; it++){
+    // Get All Dofs (Field & Test) per Element //
+    vector<vector<Dof> > dofField;
+    vector<vector<Dof> > dofTest;
+    (*it)->fsField().getKeys((*it)->domain(), dofField);
+    (*it)->fsTest().getKeys((*it)->domain(), dofTest);
+
+    // Assemble Systems (tmpA and tmpB) //
+    const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
+
     #pragma omp parallel for
     for(size_t i = 0; i < E; i++)
       SystemAbstract::assemble
-        (tmpB, tmpRHS, i, dofField[i], dofTest[i], termB, *formulation);
+        (tmpA, tmpRHS, i, dofField[i], dofTest[i], termA, **it);
+
+    if(general)
+      #pragma omp parallel for
+      for(size_t i = 0; i < E; i++)
+        SystemAbstract::assemble
+          (tmpB, tmpRHS, i, dofField[i], dofTest[i], termB, **it);
+  }
 
   // Copy tmpA into Assembled PETSc matrix //
   // Data
-  vector<int>                   row;
-  vector<int>                   col;
-  vector<std::complex<double> > value;
-  int                           nNZ;
+  vector<int>              row;
+  vector<int>              col;
+  vector<complex<double> > value;
+  int                      nNZ;
 
   // Serialize (CStyle) tmpA & Copy
   nNZ = tmpA.serializeCStyle(row, col, value);
@@ -245,7 +166,7 @@ void SystemEigen::solve(void){
   EPSSolve(solver);
 
   // Get Solution //
-  const size_t size = dofM->getUnfixedDofNumber();
+  const size_t size = dofM.getUnfixedDofNumber();
 
   PetscScalar  lambda;
   PetscScalar* x;
@@ -275,4 +196,86 @@ void SystemEigen::solve(void){
 
   // System solved ! //
   solved = true;
+}
+
+bool SystemEigen::isGeneral(void) const{
+  return general;
+}
+
+void SystemEigen::getEigenValues(fullVector<std::complex<double> >& eig) const{
+  eig.setAsProxy(*eigenValue, 0, eigenValue->size());
+}
+
+void SystemEigen::
+setNumberOfEigenValues(size_t nEigenValues){
+  const size_t nDof = dofM.getUnfixedDofNumber();
+
+  if(nEigenValues > nDof)
+    throw
+      Exception
+      ("I can't compute more Eigenvalues (%d) than the number of unknowns (%d)",
+       nEigenValues, nDof);
+
+  else
+    this->nEigenValues = nEigenValues;
+}
+
+size_t SystemEigen::getNComputedSolution(void) const{
+  return nEigenValues;
+}
+
+void SystemEigen::getSolution(fullVector<std::complex<double> >& sol,
+                              size_t nSol) const{
+  sol.setAsProxy((*eigenVector)[nSol], 0, (*eigenVector)[nSol].size());
+}
+
+void SystemEigen::getSolution(std::map<Dof, std::complex<double> >& sol,
+                              size_t nSol) const{
+  // Get All Dofs
+  std::map<Dof, std::complex<double> >::iterator it  = sol.begin();
+  std::map<Dof, std::complex<double> >::iterator end = sol.end();
+
+  // Loop on Dofs and set Values
+  for(; it != end; it++)
+    it->second = (*eigenVector)[nSol](dofM.getGlobalId(it->first));
+}
+
+void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol) const{
+  // Solved ?
+  if(!solved)
+    throw Exception("System: addSolution -- System not solved");
+
+  // Coefficients //
+  // FunctionSpace & Domain
+  const FunctionSpace&  fs  = formulation.front()->fsField();
+  const GroupOfElement& goe = formulation.front()->domain();
+
+  std::cout << "WARNING: SystemEigen::getSolution(FEMSolution) "
+            << "uses first formulation stuffs" << std::endl << std::flush;
+
+  // Get Dofs
+  set<Dof> dof;
+  fs.getKeys(goe, dof);
+
+  // Get Coefficient
+  const set<Dof>::iterator   end = dof.end();
+  set<Dof>::iterator         it  = dof.begin();
+  map<Dof, complex<double> > coef;
+
+  for(; it != end; it++)
+    coef.insert(pair<Dof, complex<double> >(*it, 0));
+
+  // Iterate on Solutions //
+  for(int i = 0; i < nEigenValues; i++){
+    // Populate Map
+    getSolution(coef, i);
+
+    // FEMSolution
+    feSol.addCoefficients(i, 0, goe, fs, coef);
+  }
+}
+
+void SystemEigen::writeMatrix(std::string fileName,
+                              std::string matrixName) const{
+  throw Exception("SystemEigen::writeMatrix -- not implemented");
 }

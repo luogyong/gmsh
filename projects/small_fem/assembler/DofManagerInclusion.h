@@ -21,8 +21,8 @@ DofManager<scalar>::~DofManager(void){
 
 template<typename scalar>
 void DofManager<scalar>::addToDofManager(const std::set<Dof>& dof){
-  // Check if map is still their //
-  if(!globalIdM.empty())
+  // Check if vector has been created //
+  if(!globalIdV.empty())
     throw
       Exception
       ("DofManager: global id space generated -> can't add Dof");

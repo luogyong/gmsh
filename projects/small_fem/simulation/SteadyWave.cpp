@@ -75,7 +75,9 @@ void compute(const Options& option){
     fs   = new FunctionSpaceVector(domain, order);
     fsV  = static_cast<FunctionSpaceVector*>(fs);
     wave = new FormulationSteadyWaveVector(volume, *fsV, k);
-    sys  = new System<double>(*wave);
+    sys  = new System<double>;
+
+    sys->addFormulation(*wave);
 
     SystemHelper<double>::dirichlet(*sys, *fsV, source, fSourceVec);
     SystemHelper<double>::dirichlet(*sys, *fsV, wall,   fWallVec);
@@ -86,7 +88,9 @@ void compute(const Options& option){
     fs   = new FunctionSpaceVector(domain, order);
     fsV  = static_cast<FunctionSpaceVector*>(fs);
     wave = new FormulationSteadyWaveVectorSlow(volume, *fsV, k);
-    sys  = new System<double>(*wave);
+    sys  = new System<double>;
+
+    sys->addFormulation(*wave);
 
     SystemHelper<double>::dirichlet(*sys, *fsV, source, fSourceVec);
     SystemHelper<double>::dirichlet(*sys, *fsV, wall,   fWallVec);
@@ -97,7 +101,9 @@ void compute(const Options& option){
     fs   = new FunctionSpaceScalar(domain, order);
     fsS  = static_cast<FunctionSpaceScalar*>(fs);
     wave = new FormulationSteadyWaveScalar<double>(volume, *fsS, k);
-    sys  = new System<double>(*wave);
+    sys  = new System<double>;
+
+    sys->addFormulation(*wave);
 
     SystemHelper<double>::dirichlet(*sys, *fsS, source, fSourceScal);
     SystemHelper<double>::dirichlet(*sys, *fsS, wall,   fWallScal);

@@ -44,7 +44,9 @@ void compute(const Options& option){
 
   // Compute //
   FormulationPoisson poisson(volume, fs, fSource);
-  System<double> sysPoisson(poisson);
+
+  System<double> sysPoisson;
+  sysPoisson.addFormulation(poisson);
 
   SystemHelper<double>::dirichlet(sysPoisson, fs, boundary0, fDirichlet0);
   SystemHelper<double>::dirichlet(sysPoisson, fs, boundary1, fDirichlet1);

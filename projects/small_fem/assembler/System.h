@@ -12,6 +12,7 @@
    The Solver used is <a href="http://graal.ens-lyon.fr/MUMPS/index.php">MUMPS
    </a>.
  */
+
 template<typename scalar>
 class System: public SystemAbstract<scalar>{
  protected:
@@ -20,10 +21,8 @@ class System: public SystemAbstract<scalar>{
   fullVector<scalar>*   x;
 
  public:
-  System(const Formulation<scalar>& formulation);
+  System(void);
   virtual ~System(void);
-
-  void addBorderTerm(const Formulation<scalar>& formulation);
 
   virtual size_t getNComputedSolution(void)                           const;
   virtual void   getSolution(fullVector<scalar>& sol, size_t nSol)    const;

@@ -46,16 +46,18 @@ void compute(const Options& option){
   FormulationNeumann neumann(freeSpace, fs, k);
 
   // System //
-  System<complex<double> > sys(wave);
+  System<complex<double> > sys;
+  sys.addFormulation(wave);
+  sys.addFormulation(neumann);
+
   SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
 
   cout << "Free Space (Order: "  << order
        << " --- Wavenumber: "    << k
        << "): " << sys.getSize() << endl;
 
-  // Assemble and Neumann//
+  // Assemble //
   sys.assemble();
-  sys.addBorderTerm(neumann);
   assemble.stop();
 
   cout << "Assembled: " << assemble.time() << assemble.unit()

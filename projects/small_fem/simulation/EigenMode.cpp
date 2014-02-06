@@ -52,7 +52,9 @@ void compute(const Options& option){
     fs  = new FunctionSpaceVector(domain, order);
     fsV = static_cast<FunctionSpaceVector*>(fs);
     eig = new FormulationEigenFrequencyVector(volume, *fsV);
-    sys = new SystemEigen(*eig);
+    sys = new SystemEigen;
+
+    sys->addFormulation(*eig);
 
     SystemHelper<complex<double> >::dirichlet(*sys, *fsV, border, fVect);
     cout << "Vectorial ";
@@ -62,7 +64,9 @@ void compute(const Options& option){
     fs  = new FunctionSpaceScalar(domain, order);
     fsS = static_cast<FunctionSpaceScalar*>(fs);
     eig = new FormulationEigenFrequencyScalar(volume, *fsS);
-    sys = new SystemEigen(*eig);
+    sys = new SystemEigen;
+
+    sys->addFormulation(*eig);
 
     SystemHelper<complex<double> >::dirichlet(*sys, *fsS, border, fScal);
     cout << "Scalar ";

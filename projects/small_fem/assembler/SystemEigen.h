@@ -32,7 +32,7 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
   std::vector<fullVector<std::complex<double> > >* eigenVector;
 
  public:
-  SystemEigen(const Formulation<std::complex<double> >& formulation);
+  SystemEigen(void);
   virtual ~SystemEigen(void);
 
   virtual size_t getNComputedSolution(void)                             const;
@@ -49,6 +49,8 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
   virtual void assemble(void);
   virtual void solve(void);
 
+  virtual void writeMatrix(std::string fileName,
+                           std::string matrixName) const;
 };
 
 

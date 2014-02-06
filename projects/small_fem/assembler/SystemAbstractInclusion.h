@@ -5,9 +5,6 @@
 // Damn you gcc: we want 'export' !              //
 ///////////////////////////////////////////////////
 
-#include <fstream>
-#include "Exception.h"
-
 template<typename scalar>
 SystemAbstract<scalar>::~SystemAbstract(void){
 }
@@ -24,7 +21,24 @@ bool SystemAbstract<scalar>::isSolved(void) const{
 
 template<typename scalar>
 size_t SystemAbstract<scalar>::getSize(void) const{
-  return dofM->getUnfixedDofNumber();
+  return dofM.getUnfixedDofNumber();
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+addFormulation(const Formulation<scalar>& formulation){
+  // Add formulation in list of formulation //
+  this->formulation.push_back(&formulation);
+
+  // Get Formulation Dofs (Field & Test) //
+  std::set<Dof> dofField;
+  std::set<Dof> dofTest;
+  formulation.fsField().getKeys(formulation.domain(), dofField);
+  formulation.fsTest().getKeys(formulation.domain(), dofTest);
+
+  // Add them to DofManager //
+  this->dofM.addToDofManager(dofField);
+  this->dofM.addToDofManager(dofTest);
 }
 
 template<typename scalar>
@@ -33,16 +47,7 @@ void SystemAbstract<scalar>::constraint(const std::map<Dof, scalar>& constr){
   typename std::map<Dof, scalar>::const_iterator end = constr.end();
 
   for(; it != end; it++)
-    dofM->fixValue(it->first, it->second);
-}
-
-template<typename scalar>
-void SystemAbstract<scalar>::writeMatrix(std::string fileName,
-                                         std::string matrixName) const{
-  std::ofstream stream;
-  stream.open(fileName.c_str());
-  stream << "writeMatrix not implemented for this system" << std::endl;
-  stream.close();
+    dofM.fixValue(it->first, it->second);
 }
 
 template<typename scalar>
@@ -62,12 +67,12 @@ assemble(SolverMatrix<scalar>& A,
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM->getGlobalId(dofField[i]);
+    dofI = dofM.getGlobalId(dofField[i]);
 
     // If not a fixed Dof line: assemble
     if(dofI != DofManager<scalar>::isFixedId()){
       for(size_t j = 0; j < M; j++){
-        dofJ = dofM->getGlobalId(dofTest[j]);
+        dofJ = dofM.getGlobalId(dofTest[j]);
 
         // If not a fixed Dof
         if(dofJ != DofManager<scalar>::isFixedId())
@@ -77,7 +82,7 @@ assemble(SolverMatrix<scalar>& A,
         //    add to right hand side (with a minus sign) !
         else
           b.add(dofI,
-                minusSign * dofM->getValue(dofTest[j]) *
+                minusSign * dofM.getValue(dofTest[j]) *
                            (formulation.*term)(i, j, elementId));
       }
 

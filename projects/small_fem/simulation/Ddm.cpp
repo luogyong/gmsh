@@ -243,12 +243,6 @@ void compute(const Options& option){
     // Function Space //
     fs = new FunctionSpaceScalar(*domain, order);
 
-    // Formulations //
-    wave = new FormulationSteadyWaveScalar<Complex>(*volume, *fs, k);
-
-    // System //
-    system = new System<Complex>(*wave);
-
     // Init DDM Border Dofs
     if(step == 0){
       solution = new map<Dof, Complex>;
@@ -269,19 +263,10 @@ void compute(const Options& option){
       inValue  = new vector<Complex>(ddmG->size(), 0);
     }
 
-    // Constraint
-    if(myId == 0)
-      SystemHelper<Complex>::dirichlet(*system, *fs, *source, fSource);
-
-    // Assemble //
-    // Volume
-    system->assemble();
-
-    // Neumann terms
+    // Formulations //
+    wave    = new FormulationSteadyWaveScalar<Complex>(*volume, *fs, k);
     neumann = new FormulationNeumann(*infinity, *fs, k);
-    system->addBorderTerm(*neumann);
 
-    // DDM terms
     if(ddmType == emdaType)
       ddm = new FormulationEMDA(*ddmBorder, *fs, k, chi, *ddmG);
     else if(ddmType == oo2Type)
@@ -289,9 +274,21 @@ void compute(const Options& option){
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
-    system->addBorderTerm(*ddm);
+    // System //
+    // Terms
+    system = new System<Complex>;
+    system->addFormulation(*wave);
+    system->addFormulation(*neumann);
+    system->addFormulation(*ddm);
 
-    // Solve //
+    // Constraint
+    if(myId == 0)
+      SystemHelper<Complex>::dirichlet(*system, *fs, *source, fSource);
+
+    // Assemble
+    system->assemble();
+
+    // Solve
     system->solve();
 
     // Get DDM Border Solution //
@@ -317,7 +314,8 @@ void compute(const Options& option){
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
-    update = new System<Complex>(*upDdm);
+    update = new System<Complex>;
+    update->addFormulation(*upDdm);
 
     update->assemble();
     update->solve();

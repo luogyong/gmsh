@@ -2,11 +2,10 @@
 #define _SYSTEMABSTRACT_H_
 
 #include <string>
+#include <list>
 
 #include "DofManager.h"
 #include "Formulation.h"
-#include "FunctionSpace.h"
-#include "GroupOfElement.h"
 #include "FEMSolution.h"
 
 #include "SolverMatrix.h"
@@ -35,17 +34,17 @@ class SystemAbstract{
   bool assembled;
   bool solved;
 
-  const Formulation<scalar>* formulation;
-  DofManager<scalar>*        dofM;
+  std::list<const Formulation<scalar>*> formulation;
+  DofManager<scalar> dofM;
 
  public:
   virtual ~SystemAbstract(void);
 
-  bool isAssembled(void) const;
-  bool isSolved(void)    const;
+  bool   isAssembled(void) const;
+  bool   isSolved(void)    const;
+  size_t getSize(void)     const;
 
-  size_t getSize(void) const;
-
+  void addFormulation(const Formulation<scalar>& formulation);
   void constraint(const std::map<Dof, scalar>& constr);
 
   virtual void assemble(void) = 0;
@@ -56,7 +55,8 @@ class SystemAbstract{
   virtual void   getSolution(std::map<Dof, scalar>& sol, size_t nSol) const = 0;
   virtual void   getSolution(FEMSolution<scalar>& feSol)              const = 0;
 
-  virtual void  writeMatrix(std::string fileName, std::string matrixName) const;
+  virtual void writeMatrix(std::string fileName,
+                           std::string matrixName) const = 0;
 
  protected:
   void assemble(SolverMatrix<scalar>& A,
