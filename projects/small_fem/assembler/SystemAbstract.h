@@ -36,7 +36,6 @@ class SystemAbstract{
   bool solved;
 
   const Formulation<scalar>* formulation;
-  const FunctionSpace*       fs;
   DofManager<scalar>*        dofM;
 
  public:
@@ -45,9 +44,7 @@ class SystemAbstract{
   bool isAssembled(void) const;
   bool isSolved(void)    const;
 
-  size_t                    getSize(void)          const;
-  const DofManager<scalar>& getDofManager(void)    const;
-  const FunctionSpace&      getFunctionSpace(void) const;
+  size_t getSize(void) const;
 
   void constraint(const std::map<Dof, scalar>& constr);
 
@@ -65,7 +62,8 @@ class SystemAbstract{
   void assemble(SolverMatrix<scalar>& A,
                 SolverVector<scalar>& b,
                 size_t elementId,
-                const std::vector<Dof>& dof,
+                const std::vector<Dof>& dofField,
+                const std::vector<Dof>& dofTest,
                 formulationPtr& term,
                 const Formulation<scalar>& formulation);
 };

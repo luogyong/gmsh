@@ -21,17 +21,9 @@ class SystemHelper{
   ~SystemHelper(void);
 
   static void dirichlet(SystemAbstract<scalar>& sys,
-                        const GroupOfElement& goe,
-                        scalar (*f)(fullVector<double>& xyz));
-
-  static void dirichlet(SystemAbstract<scalar>& sys,
                         const FunctionSpaceScalar& fs,
                         const GroupOfElement& goe,
                         scalar (*f)(fullVector<double>& xyz));
-
-  static void dirichlet(SystemAbstract<scalar>& sys,
-                        const GroupOfElement& goe,
-                        fullVector<scalar> (*f)(fullVector<double>& xyz));
 
   static void dirichlet(SystemAbstract<scalar>& sys,
                         const FunctionSpaceVector& fs,

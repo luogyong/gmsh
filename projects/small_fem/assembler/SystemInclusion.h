@@ -11,11 +11,10 @@ template<typename scalar>
 System<scalar>::System(const Formulation<scalar>& formulation){
   // Get Formulation //
   this->formulation = &formulation;
-  this->fs          = &(formulation.fsField());
 
   // Get Formulation Dofs //
   std::set<Dof> dof;
-  this->fs->getKeys(formulation.domain(), dof);
+  formulation.fsField().getKeys(formulation.domain(), dof);
 
   // Get Dof Manager //
   this->dofM = new DofManager<scalar>();
@@ -47,24 +46,23 @@ System<scalar>::~System(void){
 
 template<typename scalar>
 void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
-  // Get the FunctionSpace of the given formulation
-  const FunctionSpace& fs = formulation.fsField();
-
-  // Get All Dofs per Element //
-  std::vector<std::vector<Dof> > dof;
-  fs.getKeys(formulation.domain(), dof);
+  // Get All Field & Test Dofs per Element //
+  std::vector<std::vector<Dof> > dofField;
+  std::vector<std::vector<Dof> > dofTest;
+  formulation.fsField().getKeys(formulation.domain(), dofField);
+  formulation.fsTest().getKeys(formulation.domain(), dofTest);
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
     &Formulation<scalar>::weak;
 
   // Assemble //
-  const size_t E = dof.size();
+  const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
 
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::
-      assemble(*A, *b, i, dof[i], term, formulation);
+      assemble(*A, *b, i, dofField[i], dofTest[i], term, formulation);
 }
 
 template<typename scalar>
@@ -72,9 +70,11 @@ void System<scalar>::assemble(void){
   // Enumerate //
   this->dofM->generateGlobalIdSpace();
 
-  // Get All Dofs per Element //
-  std::vector<std::vector<Dof> > dof;
-  this->fs->getKeys(this->formulation->domain(), dof);
+  // Get All Field & Test Dofs per Element //
+  std::vector<std::vector<Dof> > dofField;
+  std::vector<std::vector<Dof> > dofTest;
+  this->formulation->fsField().getKeys(this->formulation->domain(), dofField);
+  this->formulation->fsTest().getKeys(this->formulation->domain(), dofTest);
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
@@ -87,12 +87,12 @@ void System<scalar>::assemble(void){
   b = new SolverVector<scalar>(size);
 
   // Assemble //
-  const size_t E = dof.size();
+  const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
 
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
     SystemAbstract<scalar>::
-      assemble(*A, *b, i, dof[i], term, *this->formulation);
+      assemble(*A, *b, i, dofField[i], dofTest[i], term, *this->formulation);
 
   // The system is assembled //
   this->assembled = true;

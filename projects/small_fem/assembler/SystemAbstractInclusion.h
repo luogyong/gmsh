@@ -28,16 +28,6 @@ size_t SystemAbstract<scalar>::getSize(void) const{
 }
 
 template<typename scalar>
-const DofManager<scalar>& SystemAbstract<scalar>::getDofManager(void) const{
-  return *dofM;
-}
-
-template<typename scalar>
-const FunctionSpace& SystemAbstract<scalar>::getFunctionSpace(void) const{
-  return *fs;
-}
-
-template<typename scalar>
 void SystemAbstract<scalar>::constraint(const std::map<Dof, scalar>& constr){
   typename std::map<Dof, scalar>::const_iterator it  = constr.begin();
   typename std::map<Dof, scalar>::const_iterator end = constr.end();
@@ -60,22 +50,24 @@ void SystemAbstract<scalar>::
 assemble(SolverMatrix<scalar>& A,
          SolverVector<scalar>& b,
          size_t elementId,
-         const std::vector<Dof>& dof,
+         const std::vector<Dof>& dofField,
+         const std::vector<Dof>& dofTest,
          formulationPtr& term,
          const Formulation<scalar>& formulation){
 
-  const size_t N = dof.size();
+  const size_t N = dofField.size();
+  const size_t M = dofTest.size();
 
   size_t dofI;
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM->getGlobalId(dof[i]);
+    dofI = dofM->getGlobalId(dofField[i]);
 
     // If not a fixed Dof line: assemble
     if(dofI != DofManager<scalar>::isFixedId()){
-      for(size_t j = 0; j < N; j++){
-        dofJ = dofM->getGlobalId(dof[j]);
+      for(size_t j = 0; j < M; j++){
+        dofJ = dofM->getGlobalId(dofTest[j]);
 
         // If not a fixed Dof
         if(dofJ != DofManager<scalar>::isFixedId())
@@ -85,9 +77,8 @@ assemble(SolverMatrix<scalar>& A,
         //    add to right hand side (with a minus sign) !
         else
           b.add(dofI,
-                minusSign * dofM->getValue(dof[j]) *
+                minusSign * dofM->getValue(dofTest[j]) *
                            (formulation.*term)(i, j, elementId));
-
       }
 
       b.add(dofI, formulation.rhs(i, elementId));

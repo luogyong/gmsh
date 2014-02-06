@@ -6,11 +6,10 @@ using namespace std;
 SystemEigen::SystemEigen(const Formulation<std::complex<double> >& formulation){
   // Get Formulation //
   this->formulation = &formulation;
-  this->fs          = &(formulation.fsField());
 
   // Get Formulation Dofs //
   set<Dof> dof;
-  this->fs->getKeys(formulation.domain(), dof);
+  formulation.fsField().getKeys(formulation.domain(), dof);
 
   // Get Dof Manager //
   dofM = new DofManager<std::complex<double> >();
@@ -129,9 +128,11 @@ void SystemEigen::assemble(void){
   // Enumerate //
   dofM->generateGlobalIdSpace();
 
-  // Get All Dofs per Element //
-  std::vector<std::vector<Dof> > dof;
-  fs->getKeys(formulation->domain(), dof);
+  // Get All Field & Test Dofs per Element //
+  vector<vector<Dof> > dofField;
+  vector<vector<Dof> > dofTest;
+  formulation->fsField().getKeys(formulation->domain(), dofField);
+  formulation->fsTest().getKeys(formulation->domain(), dofTest);
 
   // Get Formulation Terms //
   formulationPtr termA = &Formulation<std::complex<double> >::weak;
@@ -140,21 +141,23 @@ void SystemEigen::assemble(void){
   // Alloc Temp Sparse Matrices (not with PETSc) //
   const size_t size = dofM->getUnfixedDofNumber();
 
-  SolverVector<std::complex<double> > tmpRHS(size);
-  SolverMatrix<std::complex<double> > tmpA(size, size);
-  SolverMatrix<std::complex<double> > tmpB(size, size);
+  SolverVector<complex<double> > tmpRHS(size);
+  SolverMatrix<complex<double> > tmpA(size, size);
+  SolverMatrix<complex<double> > tmpB(size, size);
 
   // Assemble Systems (tmpA and tmpB) //
-  const size_t E = dof.size();
+  const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
 
   #pragma omp parallel for
   for(size_t i = 0; i < E; i++)
-    SystemAbstract::assemble(tmpA, tmpRHS, i, dof[i], termA, *formulation);
+    SystemAbstract::assemble
+      (tmpA, tmpRHS, i, dofField[i], dofTest[i], termA, *formulation);
 
   if(general)
     #pragma omp parallel for
     for(size_t i = 0; i < E; i++)
-      SystemAbstract::assemble(tmpB, tmpRHS, i, dof[i], termB, *formulation);
+      SystemAbstract::assemble
+        (tmpB, tmpRHS, i, dofField[i], dofTest[i], termB, *formulation);
 
   // Copy tmpA into Assembled PETSc matrix //
   // Data

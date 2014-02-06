@@ -271,7 +271,7 @@ void compute(const Options& option){
 
     // Constraint
     if(myId == 0)
-      SystemHelper<Complex>::dirichlet(*system, *source, fSource);
+      SystemHelper<Complex>::dirichlet(*system, *fs, *source, fSource);
 
     // Assemble //
     // Volume
