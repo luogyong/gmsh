@@ -144,12 +144,16 @@ bool FormulationEMDA::isGeneral(void) const{
   return false;
 }
 
-complex<double>  FormulationEMDA::weakB(size_t dofI, size_t dofJ,
+complex<double> FormulationEMDA::weakB(size_t dofI, size_t dofJ,
                                         size_t elementId) const{
   return complex<double>(0, 0);
 }
 
-const FunctionSpace& FormulationEMDA::fs(void) const{
+const FunctionSpace& FormulationEMDA::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationEMDA::fsTest(void) const{
   return *fspace;
 }
 

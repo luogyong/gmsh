@@ -82,7 +82,12 @@ double FormulationSteadyWaveScalar<double>::weakB(size_t dofI, size_t dofJ,
 }
 
 template<>
-const FunctionSpace& FormulationSteadyWaveScalar<double>::fs(void) const{
+const FunctionSpace& FormulationSteadyWaveScalar<double>::fsField(void) const{
+  return *fspace;
+}
+
+template<>
+const FunctionSpace& FormulationSteadyWaveScalar<double>::fsTest(void) const{
   return *fspace;
 }
 

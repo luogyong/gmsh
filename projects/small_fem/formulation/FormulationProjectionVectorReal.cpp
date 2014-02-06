@@ -76,7 +76,12 @@ weakB(size_t dofI, size_t dofJ, size_t elementId) const{
 }
 
 template<>
-const FunctionSpace& FormulationProjectionVector<double>::fs(void) const{
+const FunctionSpace& FormulationProjectionVector<double>::fsField(void) const{
+  return *fspace;
+}
+
+template<>
+const FunctionSpace& FormulationProjectionVector<double>::fsTest(void) const{
   return *fspace;
 }
 

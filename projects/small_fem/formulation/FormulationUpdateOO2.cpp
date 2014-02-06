@@ -284,7 +284,11 @@ complex<double>  FormulationUpdateOO2::weakB(size_t dofI, size_t dofJ,
   return complex<double>(0, 0);
 }
 
-const FunctionSpace& FormulationUpdateOO2::fs(void) const{
+const FunctionSpace& FormulationUpdateOO2::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationUpdateOO2::fsTest(void) const{
   return *fspace;
 }
 

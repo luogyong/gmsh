@@ -73,7 +73,11 @@ bool FormulationEigenFrequencyVector::isGeneral(void) const{
   return true;
 }
 
-const FunctionSpace& FormulationEigenFrequencyVector::fs(void) const{
+const FunctionSpace& FormulationEigenFrequencyVector::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationEigenFrequencyVector::fsTest(void) const{
   return *fspace;
 }
 

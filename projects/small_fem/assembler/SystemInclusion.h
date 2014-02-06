@@ -11,7 +11,7 @@ template<typename scalar>
 System<scalar>::System(const Formulation<scalar>& formulation){
   // Get Formulation //
   this->formulation = &formulation;
-  this->fs          = &(formulation.fs());
+  this->fs          = &(formulation.fsField());
 
   // Get Formulation Dofs //
   std::set<Dof> dof;
@@ -48,7 +48,7 @@ System<scalar>::~System(void){
 template<typename scalar>
 void System<scalar>::addBorderTerm(const Formulation<scalar>& formulation){
   // Get the FunctionSpace of the given formulation
-  const FunctionSpace& fs = formulation.fs();
+  const FunctionSpace& fs = formulation.fsField();
 
   // Get All Dofs per Element //
   std::vector<std::vector<Dof> > dof;
@@ -150,7 +150,7 @@ void System<scalar>::getSolution(FEMSolution<scalar>& feSol) const{
 
   // Coefficients //
   // FunctionSpace & Domain
-  const FunctionSpace&  fs  = this->formulation->fs();
+  const FunctionSpace&  fs  = this->formulation->fsField();
   const GroupOfElement& goe = this->formulation->domain();
 
   // Get Dofs

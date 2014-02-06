@@ -75,7 +75,11 @@ double FormulationPoisson::weakB(size_t dofI, size_t dofJ,
   return 0;
 }
 
-const FunctionSpace& FormulationPoisson::fs(void) const{
+const FunctionSpace& FormulationPoisson::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationPoisson::fsTest(void) const{
   return *fspace;
 }
 

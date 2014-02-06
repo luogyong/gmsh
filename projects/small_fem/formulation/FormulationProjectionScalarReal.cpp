@@ -72,7 +72,12 @@ double FormulationProjectionScalar<double>::weakB(size_t dofI, size_t dofJ,
 }
 
 template<>
-const FunctionSpace& FormulationProjectionScalar<double>::fs(void) const{
+const FunctionSpace& FormulationProjectionScalar<double>::fsField(void) const{
+  return *fspace;
+}
+
+template<>
+const FunctionSpace& FormulationProjectionScalar<double>::fsTest(void) const{
   return *fspace;
 }
 

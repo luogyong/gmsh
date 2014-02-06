@@ -74,7 +74,11 @@ bool FormulationEigenFrequencyScalar::isGeneral(void) const{
   return true;
 }
 
-const FunctionSpace& FormulationEigenFrequencyScalar::fs(void) const{
+const FunctionSpace& FormulationEigenFrequencyScalar::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationEigenFrequencyScalar::fsTest(void) const{
   return *fspace;
 }
 

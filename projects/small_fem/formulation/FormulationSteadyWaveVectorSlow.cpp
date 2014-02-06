@@ -133,7 +133,11 @@ double FormulationSteadyWaveVectorSlow::weakB(size_t dofI, size_t dofJ,
   return 0;
 }
 
-const FunctionSpace& FormulationSteadyWaveVectorSlow::fs(void) const{
+const FunctionSpace& FormulationSteadyWaveVectorSlow::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationSteadyWaveVectorSlow::fsTest(void) const{
   return *fspace;
 }
 

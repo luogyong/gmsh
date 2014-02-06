@@ -43,8 +43,9 @@ class FormulationNeumann: public Formulation<std::complex<double> >{
   virtual std::complex<double>
     rhs(size_t equationI, size_t elementId)           const;
 
-  virtual const FunctionSpace&  fs(void)     const;
-  virtual const GroupOfElement& domain(void) const;
+  virtual const FunctionSpace&  fsField(void) const;
+  virtual const FunctionSpace&  fsTest(void)  const;
+  virtual const GroupOfElement& domain(void)  const;
 };
 
 /**

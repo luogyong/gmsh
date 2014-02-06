@@ -185,7 +185,11 @@ complex<double>  FormulationUpdateEMDA::weakB(size_t dofI, size_t dofJ,
   return complex<double>(0, 0);
 }
 
-const FunctionSpace& FormulationUpdateEMDA::fs(void) const{
+const FunctionSpace& FormulationUpdateEMDA::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationUpdateEMDA::fsTest(void) const{
   return *fspace;
 }
 

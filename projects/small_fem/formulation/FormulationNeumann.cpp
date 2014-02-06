@@ -64,7 +64,12 @@ complex<double> FormulationNeumann::weakB(size_t dofI, size_t dofJ,
   return complex<double>(0, 0);
 }
 
-const FunctionSpace& FormulationNeumann::fs(void) const{
+
+const FunctionSpace& FormulationNeumann::fsField(void) const{
+  return *fspace;
+}
+
+const FunctionSpace& FormulationNeumann::fsTest(void) const{
   return *fspace;
 }
 

@@ -6,7 +6,7 @@ using namespace std;
 SystemEigen::SystemEigen(const Formulation<std::complex<double> >& formulation){
   // Get Formulation //
   this->formulation = &formulation;
-  this->fs          = &(formulation.fs());
+  this->fs          = &(formulation.fsField());
 
   // Get Formulation Dofs //
   set<Dof> dof;
@@ -82,7 +82,7 @@ void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol) const{
 
   // Coefficients //
   // FunctionSpace & Domain
-  const FunctionSpace&  fs  = formulation->fs();
+  const FunctionSpace&  fs  = formulation->fsField();
   const GroupOfElement& goe = formulation->domain();
 
   // Get Dofs
