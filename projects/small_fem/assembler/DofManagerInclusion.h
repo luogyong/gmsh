@@ -12,6 +12,9 @@ template<typename scalar>
 const size_t DofManager<scalar>::isFixed = 0 - 1; // Largest size_t
 
 template<typename scalar>
+const size_t DofManager<scalar>::isUndef = 0 - 2; // Second Largest size_t
+
+template<typename scalar>
 DofManager<scalar>::DofManager(void){
 }
 
@@ -78,6 +81,7 @@ void DofManager<scalar>::serialize(void){
 
   // Populate //
   size_t nDof;
+  size_t max;
   std::map<Dof, size_t>::iterator currentEntity = it;
 
   // Iterate on vector
@@ -92,18 +96,37 @@ void DofManager<scalar>::serialize(void){
             currentEntity->first.getEntity() == it->first.getEntity(); it++)
         nDof++; // New Dof found
 
-    // Alloc
+    // Dof with Biggest type in this 'Same Entity Range'
+    it--;
+    max = it->first.getType();
+    it++;
+
+    //////////////////////////////////////////////////////////////////
+    // Here we have the following configuration:                    //
+    // ----------------------------------------                     //
+    //                                                              //
+    // itrators:      currentEntity                      it         //
+    // variable:             |      nDof                 |          //
+    //                       <----------------->         |          //
+    //                       |                 |         |          //
+    //                       v                 v         v          //
+    // map: ... ; (3, 4) ; (4, 0) ; (4, 2) ; (4, 10) ; (6, 0) ; ... //
+    //                                            ^                 //
+    //                                            |                 //
+    // variable:                                 max                //
+    //////////////////////////////////////////////////////////////////
+
+    // Alloc if Dofs were found
     if(nDof)
-      globalIdV[i].resize(nDof);
+      // Space for maximum type in this rang of Dof
+      // Up to now, values are undefined
+      globalIdV[i].resize(max + 1, isUndef);
 
-    // Add globalIds in vector for this entity
-    it = currentEntity;
-    for(size_t j = 0; j < nDof; j++, it++)
-      globalIdV[i][j] = it->second; // Copy globalId from map
+    // Add globalIds in vector for this range of Dof
+    for(; currentEntity != it; currentEntity++)
+      globalIdV[i][currentEntity->first.getType()] = currentEntity->second;
 
-    // Current entity is added to vector:
-    //                 go to next entity
-    currentEntity = it;
+    // Now currentEntity is equal to it and we can work on the next entity
   }
 }
 
@@ -129,10 +152,21 @@ std::pair<bool, size_t> DofManager<scalar>::findSafe(const Dof& dof) const{
   // Look for Entity in globalIdV
   const size_t nDof = globalIdV[entity].size();
 
-  if(nDof > 0 && type <= nDof)
+  size_t globalId;
+
+  if(nDof > 0 && type <= nDof){
     // If we have Dofs associated to this Entity,
-    // get the requested Type and return Id
-    return std::pair<bool, size_t>(true, globalIdV[entity][type]);
+    // get the requested Type and fetch globalId
+    globalId = globalIdV[entity][type];
+
+    // If globalId is defined return it,
+    if(globalId != isUndef)
+      return std::pair<bool, size_t>(true, globalId);
+
+    // Else, no Dof and return false
+    else
+      return std::pair<bool, size_t>(false, 42);
+  }
 
   else
     // If no Dof, return false

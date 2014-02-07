@@ -29,6 +29,7 @@ template<typename scalar>
 class DofManager{
  private:
   static const size_t isFixed;
+  static const size_t isUndef;
 
   std::vector<std::vector<size_t> > globalIdV;
   std::map<Dof, size_t>             globalIdM;
