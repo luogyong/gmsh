@@ -1,20 +1,22 @@
 #include <iostream>
+#include <cmath>
 #include <complex>
 
 #include "Mesh.h"
 #include "System.h"
-#include "SystemHelper.h"
 
 #include "FormulationSteadyWaveScalar.h"
 #include "FormulationNeumann.h"
+#include "FormulationFieldLagrange.h"
+#include "FormulationLagrangeField.h"
 
 #include "Timer.h"
 #include "SmallFem.h"
 
 using namespace std;
 
-complex<double> fSourceScal(fullVector<double>& xyz){
-  return complex<double>(fabs(xyz(1)), 0);
+double fSourceReal(fullVector<double>& xyz){
+  return fabs(xyz(1));
 }
 
 void compute(const Options& option){
@@ -45,15 +47,21 @@ void compute(const Options& option){
   FormulationSteadyWaveScalar<complex<double> > wave(volume, fs, k);
   FormulationNeumann neumann(freeSpace, fs, k);
 
+  // Lagrange //
+  FunctionSpaceScalar lagrange(domain, order);
+
+  FormulationFieldLagrange fieldLagrange(source, fs, lagrange, fSourceReal);
+  FormulationLagrangeField lagrangeField(source, lagrange, fs);
+
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
   sys.addFormulation(neumann);
+  sys.addFormulation(fieldLagrange);
+  sys.addFormulation(lagrangeField);
 
-  SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
-
-  cout << "Free Space (Order: "  << order
-       << " --- Wavenumber: "    << k
+  cout << "Free Space Lagrange contrainted (Order: "  << order
+       << " --- Wavenumber: "                         << k
        << "): " << sys.getSize() << endl;
 
   // Assemble //
@@ -78,7 +86,7 @@ void compute(const Options& option){
   catch(...){
     FEMSolution<complex<double> > feSol;
     sys.getSolution(feSol);
-    feSol.write("free");
+    feSol.write("lagr");
   }
 
   // Timer -- Finalize -- Return //

@@ -60,19 +60,19 @@ assemble(SolverMatrix<scalar>& A,
          formulationPtr& term,
          const Formulation<scalar>& formulation){
 
-  const size_t N = dofField.size();
-  const size_t M = dofTest.size();
+  const size_t N = dofTest.size();
+  const size_t M = dofField.size();
 
   size_t dofI;
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM.getGlobalId(dofField[i]);
+    dofI = dofM.getGlobalId(dofTest[i]);
 
     // If not a fixed Dof line: assemble
     if(dofI != DofManager<scalar>::isFixedId()){
       for(size_t j = 0; j < M; j++){
-        dofJ = dofM.getGlobalId(dofTest[j]);
+        dofJ = dofM.getGlobalId(dofField[j]);
 
         // If not a fixed Dof
         if(dofJ != DofManager<scalar>::isFixedId())
@@ -82,7 +82,7 @@ assemble(SolverMatrix<scalar>& A,
         //    add to right hand side (with a minus sign) !
         else
           b.add(dofI,
-                minusSign * dofM.getValue(dofTest[j]) *
+                minusSign * dofM.getValue(dofField[j]) *
                            (formulation.*term)(i, j, elementId));
       }
 

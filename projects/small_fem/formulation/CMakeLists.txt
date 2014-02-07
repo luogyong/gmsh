@@ -9,6 +9,9 @@ set(src
   FormulationSteadyWaveScalarReal.cpp
   FormulationSteadyWaveScalarComplex.cpp
 
+  FormulationLagrangeField.cpp
+  FormulationFieldLagrange.cpp
+
   FormulationNeumann.cpp
 
   FormulationEMDA.cpp
