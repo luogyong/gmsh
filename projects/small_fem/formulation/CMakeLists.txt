@@ -4,15 +4,16 @@ set(src
   FormulationProjectionVectorComplex.cpp
   FormulationProjectionScalarReal.cpp
   FormulationProjectionScalarComplex.cpp
-  FormulationSteadyWaveVector.cpp
-  FormulationSteadyWaveVectorSlow.cpp
-  FormulationSteadyWaveScalarReal.cpp
-  FormulationSteadyWaveScalarComplex.cpp
 
   FormulationLagrangeField.cpp
   FormulationFieldLagrange.cpp
 
   FormulationNeumann.cpp
+
+  FormulationStiffness.cpp
+  FormulationMass.cpp
+
+  FormulationSteadySlow.cpp
 
   FormulationEMDA.cpp
   FormulationUpdateEMDA.cpp

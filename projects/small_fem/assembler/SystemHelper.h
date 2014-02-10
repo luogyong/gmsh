@@ -8,11 +8,9 @@
    A bunch of helping class methods for linear systems
 */
 
-#include "FunctionSpaceScalar.h"
-#include "FunctionSpaceVector.h"
-
 #include "SystemAbstract.h"
 #include "GroupOfElement.h"
+#include "FunctionSpace.h"
 
 template<typename scalar>
 class SystemHelper{
@@ -21,12 +19,12 @@ class SystemHelper{
   ~SystemHelper(void);
 
   static void dirichlet(SystemAbstract<scalar>& sys,
-                        const FunctionSpaceScalar& fs,
+                        const FunctionSpace& fs,
                         const GroupOfElement& goe,
                         scalar (*f)(fullVector<double>& xyz));
 
   static void dirichlet(SystemAbstract<scalar>& sys,
-                        const FunctionSpaceVector& fs,
+                        const FunctionSpace& fs,
                         const GroupOfElement& goe,
                         fullVector<scalar> (*f)(fullVector<double>& xyz));
 };

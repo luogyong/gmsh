@@ -1,30 +1,27 @@
 #include <cmath>
 
-#include "BasisGenerator.h"
 #include "Quadrature.h"
 #include "Mapper.h"
 
-#include "FormulationSteadyWaveVectorSlow.h"
+#include "FormulationSteadySlow.h"
 
 using namespace std;
 
-FormulationSteadyWaveVectorSlow::
-FormulationSteadyWaveVectorSlow(const GroupOfElement& goe,
-                                const FunctionSpaceVector& fs,
-                                double k){
-
-  // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+FormulationSteadySlow::FormulationSteadySlow(const GroupOfElement& domain,
+                                             const FunctionSpaceVector& fs,
+                                             double k){
+  // Check domain stats: uniform mesh //
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
-    throw Exception("FormulationSteadyWaveVectorSlow needs a uniform mesh");
+    throw Exception("FormulationSteadySlow needs a uniform mesh");
 
   // Wave Squared //
   kSquare = k * k;
 
   // Domain //
-  this->goe = &goe;
+  ddomain = &domain;
 
   // Save FunctionSpace & Get Basis //
   fspace = &fs;
@@ -49,11 +46,11 @@ FormulationSteadyWaveVectorSlow(const GroupOfElement& goe,
   basis->preEvaluateDerivatives(*gC1);
   basis->preEvaluateFunctions(*gC2);
 
-  jac1 = new GroupOfJacobian(goe, *gC1, "jacobian");
-  jac2 = new GroupOfJacobian(goe, *gC2, "invert");
+  jac1 = new GroupOfJacobian(domain, *gC1, "jacobian");
+  jac2 = new GroupOfJacobian(domain, *gC2, "invert");
 }
 
-FormulationSteadyWaveVectorSlow::~FormulationSteadyWaveVectorSlow(void){
+FormulationSteadySlow::~FormulationSteadySlow(void){
   delete gC1;
   delete gW1;
   delete gC2;
@@ -62,8 +59,9 @@ FormulationSteadyWaveVectorSlow::~FormulationSteadyWaveVectorSlow(void){
   delete jac2;
 }
 
-double FormulationSteadyWaveVectorSlow::weak(size_t dofI, size_t dofJ,
-                                             size_t elementId) const{
+double FormulationSteadySlow::
+weak(size_t dofI, size_t dofJ, size_t elementId) const{
+
   // Init Some Stuff //
   fullVector<double> phiI(3);
   fullVector<double> phiJ(3);
@@ -75,7 +73,7 @@ double FormulationSteadyWaveVectorSlow::weak(size_t dofI, size_t dofJ,
   double det;
 
   // Get Element //
-  const MElement& element = goe->get(elementId);
+  const MElement& element = ddomain->get(elementId);
 
   // Get Basis Functions //
   const fullMatrix<double>& eCurlFun =
@@ -119,28 +117,28 @@ double FormulationSteadyWaveVectorSlow::weak(size_t dofI, size_t dofJ,
   return integral1 - integral2;
 }
 
-double FormulationSteadyWaveVectorSlow::rhs(size_t equationI,
-                                            size_t elementId) const{
+double FormulationSteadySlow::
+weakB(size_t dofI, size_t dofJ, size_t elementId) const{
+
   return 0;
 }
 
-bool FormulationSteadyWaveVectorSlow::isGeneral(void) const{
+double FormulationSteadySlow::rhs(size_t equationI, size_t elementId) const{
+  return 0;
+}
+
+bool FormulationSteadySlow::isGeneral(void) const{
   return false;
 }
 
-double FormulationSteadyWaveVectorSlow::weakB(size_t dofI, size_t dofJ,
-                                              size_t elementId) const{
-  return 0;
-}
-
-const FunctionSpace& FormulationSteadyWaveVectorSlow::fsField(void) const{
+const FunctionSpace& FormulationSteadySlow::fsField(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationSteadyWaveVectorSlow::fsTest(void) const{
+const FunctionSpace& FormulationSteadySlow::fsTest(void) const{
   return *fspace;
 }
 
-const GroupOfElement& FormulationSteadyWaveVectorSlow::domain(void) const{
-  return *goe;
+const GroupOfElement& FormulationSteadySlow::domain(void) const{
+  return *ddomain;
 }

@@ -4,14 +4,15 @@
 #include "System.h"
 #include "SystemHelper.h"
 
-#include "FormulationSteadyWaveScalar.h"
-#include "FormulationSteadyWaveVector.h"
-#include "FormulationSteadyWaveVectorSlow.h"
+#include "FormulationSteadyWave.h"
 
 #include "Timer.h"
 #include "SmallFem.h"
 
 using namespace std;
+
+static const size_t scal = 0;
+static const size_t vect = 1;
 
 fullVector<double> fSourceVec(fullVector<double>& xyz){
   fullVector<double> res(3);
@@ -62,69 +63,59 @@ void compute(const Options& option){
   const double k     = atof(option.getValue("-k")[1].c_str());
   const size_t order = atoi(option.getValue("-o")[1].c_str());
 
-  // Chose write formulation for Steady Wave and boundary condition //
-  FunctionSpace*       fs   = NULL;
-  FunctionSpaceScalar* fsS = NULL;
-  FunctionSpaceVector* fsV = NULL;
-  Formulation<double>* wave = NULL;
-  System<double>*      sys  = NULL;
+  // Get Type //
+  size_t type;
 
-  assemble.start();
-
-  if(option.getValue("-type")[1].compare("vector") == 0){
-    fs   = new FunctionSpaceVector(domain, order);
-    fsV  = static_cast<FunctionSpaceVector*>(fs);
-    wave = new FormulationSteadyWaveVector(volume, *fsV, k);
-    sys  = new System<double>;
-
-    sys->addFormulation(*wave);
-
-    SystemHelper<double>::dirichlet(*sys, *fsV, source, fSourceVec);
-    SystemHelper<double>::dirichlet(*sys, *fsV, wall,   fWallVec);
-    cout << "Vectorial ";
-  }
-
-  else if(option.getValue("-type")[1].compare("slow") == 0){
-    fs   = new FunctionSpaceVector(domain, order);
-    fsV  = static_cast<FunctionSpaceVector*>(fs);
-    wave = new FormulationSteadyWaveVectorSlow(volume, *fsV, k);
-    sys  = new System<double>;
-
-    sys->addFormulation(*wave);
-
-    SystemHelper<double>::dirichlet(*sys, *fsV, source, fSourceVec);
-    SystemHelper<double>::dirichlet(*sys, *fsV, wall,   fWallVec);
-    cout << "Slow Vectorial ";
-  }
-
-  else if(option.getValue("-type")[1].compare("scalar") == 0){
-    fs   = new FunctionSpaceScalar(domain, order);
-    fsS  = static_cast<FunctionSpaceScalar*>(fs);
-    wave = new FormulationSteadyWaveScalar<double>(volume, *fsS, k);
-    sys  = new System<double>;
-
-    sys->addFormulation(*wave);
-
-    SystemHelper<double>::dirichlet(*sys, *fsS, source, fSourceScal);
-    SystemHelper<double>::dirichlet(*sys, *fsS, wall,   fWallScal);
+  if(option.getValue("-type")[1].compare("scalar") == 0){
+    type = scal;
     cout << "Scalar ";
   }
 
-  else
-    throw Exception("No -type given");
+  else if(option.getValue("-type")[1].compare("vector") == 0){
+    type = vect;
+    cout << "Vectorial ";
+  }
 
-  cout << "Steady Wave (Order: "  << order
-       << " --- Wavenumber: "     << k
-       << "): " << sys->getSize() << endl;
+  else
+    throw Exception("Bad -type: %s", option.getValue("-type")[1].c_str());
+
+  // Function Space //
+  assemble.start();
+  FunctionSpace* fs = NULL;
+
+  if(type == scal)
+    fs = new FunctionSpaceScalar(domain, order);
+  else
+    fs = new FunctionSpaceVector(domain, order);
+
+  // Formulation & System //
+  FormulationSteadyWave<double> wave(volume, *fs, k);
+  System<double> sys;
+  sys.addFormulation(wave);
+
+  // Dirichlet //
+  if(type == scal){
+    SystemHelper<double>::dirichlet(sys, *fs, source, fSourceScal);
+    SystemHelper<double>::dirichlet(sys, *fs, wall,   fWallScal);
+  }
+
+  else{
+    SystemHelper<double>::dirichlet(sys, *fs, source, fSourceVec);
+    SystemHelper<double>::dirichlet(sys, *fs, wall,   fWallVec);
+  }
+
+  cout << "Steady Wave (Order: " << order
+       << " --- Wavenumber: "    << k
+       << "): " << sys.getSize() << endl;
 
   // Assemble and solve //
-  sys->assemble();
+  sys.assemble();
   assemble.stop();
   cout << "Assembled: " << assemble.time() << assemble.unit()
        << endl << flush;
 
   solve.start();
-  sys->solve();
+  sys.solve();
   solve.stop();
   cout << "Solved: " << solve.time() << solve.unit()
        << endl << flush;
@@ -135,13 +126,11 @@ void compute(const Options& option){
   }
   catch(...){
     FEMSolution<double> feSol;
-    sys->getSolution(feSol);
+    sys.getSolution(feSol);
     feSol.write("swave");
   }
 
   // Clean //
-  delete sys;
-  delete wave;
   delete fs;
 
   // Timer -- Finalize -- Return //

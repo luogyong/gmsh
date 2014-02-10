@@ -10,7 +10,7 @@
 #include "SystemHelper.h"
 
 #include "FormulationNeumann.h"
-#include "FormulationSteadyWaveScalar.h"
+#include "FormulationSteadyWave.h"
 
 #include "FormulationEMDA.h"
 #include "FormulationUpdateEMDA.h"
@@ -264,7 +264,7 @@ void compute(const Options& option){
     }
 
     // Formulations //
-    wave    = new FormulationSteadyWaveScalar<Complex>(*volume, *fs, k);
+    wave    = new FormulationSteadyWave<Complex>(*volume, *fs, k);
     neumann = new FormulationNeumann(*infinity, *fs, k);
 
     if(ddmType == emdaType)

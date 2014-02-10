@@ -6,6 +6,10 @@
 /////////////////////////////////////////////////
 
 #include "System.h"
+
+#include "FunctionSpaceScalar.h"
+#include "FunctionSpaceVector.h"
+
 #include "FormulationProjectionScalar.h"
 #include "FormulationProjectionVector.h"
 
@@ -21,12 +25,13 @@ SystemHelper<scalar>::~SystemHelper(void){
 template<typename scalar>
 void SystemHelper<scalar>::
 dirichlet(SystemAbstract<scalar>& sys,
-          const FunctionSpaceScalar& fs,
+          const FunctionSpace& fs,
           const GroupOfElement& goe,
           scalar (*f)(fullVector<double>& xyz)){
 
   // Solve Projection //
-  FormulationProjectionScalar<scalar> formulation(goe, fs, f);
+  const FunctionSpaceScalar& fsS = static_cast<const FunctionSpaceScalar&>(fs);
+  FormulationProjectionScalar<scalar> formulation(goe, fsS, f);
 
   System<scalar> projection;
   projection.addFormulation(formulation);
@@ -52,12 +57,13 @@ dirichlet(SystemAbstract<scalar>& sys,
 template<typename scalar>
 void SystemHelper<scalar>::
 dirichlet(SystemAbstract<scalar>& sys,
-          const FunctionSpaceVector& fs,
+          const FunctionSpace& fs,
           const GroupOfElement& goe,
           fullVector<scalar> (*f)(fullVector<double>& xyz)){
 
   // Solve Projection //
-  FormulationProjectionVector<scalar> formulation(goe, fs, f);
+  const FunctionSpaceVector& fsV = static_cast<const FunctionSpaceVector&>(fs);
+  FormulationProjectionVector<scalar> formulation(goe, fsV, f);
 
   System<scalar> projection;
   projection.addFormulation(formulation);

@@ -1,20 +1,34 @@
 #include <iostream>
-#include <complex>
 
 #include "Mesh.h"
 #include "System.h"
 #include "SystemHelper.h"
 
-#include "FormulationSteadyWave.h"
-#include "FormulationNeumann.h"
+#include "FormulationSteadySlow.h"
 
 #include "Timer.h"
 #include "SmallFem.h"
 
 using namespace std;
 
-complex<double> fSourceScal(fullVector<double>& xyz){
-  return complex<double>(fabs(xyz(1)), 0);
+fullVector<double> fSourceVec(fullVector<double>& xyz){
+  fullVector<double> res(3);
+
+  res(0) = 0;
+  res(1) = 1;
+  res(2) = 0;
+
+  return res;
+}
+
+fullVector<double> fWallVec(fullVector<double>& xyz){
+  fullVector<double> res(3);
+
+  res(0) = 0;
+  res(1) = 0;
+  res(2) = 0;
+
+  return res;
 }
 
 void compute(const Options& option){
@@ -24,50 +38,47 @@ void compute(const Options& option){
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement volume     = msh.getFromPhysical(7);
-  GroupOfElement source     = msh.getFromPhysical(5);
-  GroupOfElement freeSpace  = msh.getFromPhysical(6);
+  GroupOfElement volume = msh.getFromPhysical(7);
+  GroupOfElement source = msh.getFromPhysical(5);
+  GroupOfElement wall   = msh.getFromPhysical(6);
 
   // Full Domain //
   GroupOfElement domain(msh);
   domain.add(volume);
   domain.add(source);
-  domain.add(freeSpace);
+  domain.add(wall);
 
   // Get Parameters //
   const double k     = atof(option.getValue("-k")[1].c_str());
   const size_t order = atoi(option.getValue("-o")[1].c_str());
 
-  // Formulation //
+  // Function Space //
   assemble.start();
-  FunctionSpaceScalar fs(domain, order);
+  FunctionSpaceVector fs(domain, order);
 
-  FormulationSteadyWave<complex<double> > wave(volume, fs, k);
-  FormulationNeumann neumann(freeSpace, fs, k);
-
-  // System //
-  System<complex<double> > sys;
+  // Formulation & System //
+  FormulationSteadySlow wave(volume, fs, k);
+  System<double> sys;
   sys.addFormulation(wave);
-  sys.addFormulation(neumann);
 
-  SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
+  // Dirichlet //
+  SystemHelper<double>::dirichlet(sys, fs, source, fSourceVec);
+  SystemHelper<double>::dirichlet(sys, fs, wall,   fWallVec);
 
-  cout << "Free Space (Order: "  << order
+  cout << "Slow Vectorial "
+       << "Steady Wave (Order: " << order
        << " --- Wavenumber: "    << k
        << "): " << sys.getSize() << endl;
 
-  // Assemble //
+  // Assemble and solve //
   sys.assemble();
   assemble.stop();
-
   cout << "Assembled: " << assemble.time() << assemble.unit()
        << endl << flush;
 
-  // Solve //
   solve.start();
   sys.solve();
   solve.stop();
-
   cout << "Solved: " << solve.time() << solve.unit()
        << endl << flush;
 
@@ -76,9 +87,9 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
-    FEMSolution<complex<double> > feSol;
+    FEMSolution<double> feSol;
     sys.getSolution(feSol);
-    feSol.write("free");
+    feSol.write("slow");
   }
 
   // Timer -- Finalize -- Return //
