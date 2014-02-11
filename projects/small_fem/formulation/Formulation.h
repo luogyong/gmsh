@@ -9,6 +9,15 @@
    @brief Base interface of a finite element formulation
 
    This is the base interface of a finite element formulation.
+
+   A Formulation is able to compute a weak term of a finite element matrix
+   and its right hand side.
+
+   A Formulation is defined with two FunctionSpaces:
+   @li One to insterpolate the unknown field
+   @li One for the test functions
+
+   Finaly a Formulation must be defined on a geomtrical domain.
  */
 
 template<typename scalar>
@@ -43,8 +52,16 @@ class Formulation{
    @return The value of the ith equation right hand side
    **
 
-   @fn Formulation::fs
-   @return Returns the FunctionSpace used by this Formulation
+   @fn Formulation::field
+   @return Returns the FunctionSpace used to interpolate the unknown field
+   **
+
+   @fn Formulation::test
+   @return Returns the FunctionSpace used for the test functions
+   **
+
+   @fn Formulation::domain
+   @return Returns the domain of definition of this Formulation
 */
 
 //////////////////////////////////////

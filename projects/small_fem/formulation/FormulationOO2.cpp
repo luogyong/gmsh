@@ -8,14 +8,14 @@
 using namespace std;
 
 FormulationOO2::
-FormulationOO2(const GroupOfElement& goe,
+FormulationOO2(const GroupOfElement& domain,
                const FunctionSpaceScalar& fs,
-               std::complex<double> a,
-               std::complex<double> b,
-               const std::map<Dof, std::complex<double> >& ddmDof){
+               Complex a,
+               Complex b,
+               const std::map<Dof, Complex>& ddmDof){
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -26,7 +26,7 @@ FormulationOO2(const GroupOfElement& goe,
   this->b = b;
 
   // Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Save FunctionSpace & Get Basis //
   fspace = &fs;
@@ -48,8 +48,8 @@ FormulationOO2(const GroupOfElement& goe,
   basis->preEvaluateFunctions(*gC);
   basis->preEvaluateDerivatives(gCGG);
 
-  jac = new GroupOfJacobian(goe, *gC, "jacobian");
-  GroupOfJacobian jacGG(goe, gCGG, "invert");
+  jac = new GroupOfJacobian(domain, *gC, "jacobian");
+  GroupOfJacobian jacGG(domain, gCGG, "invert");
 
   // Local Terms //
   localTermsUU = new TermFieldField(*jac, *basis, *gW);
@@ -68,14 +68,13 @@ FormulationOO2::~FormulationOO2(void){
   delete jac;
 }
 
-complex<double> FormulationOO2::weak(size_t dofI, size_t dofJ,
-                                     size_t elementId) const{
+Complex FormulationOO2::weak(size_t dofI, size_t dofJ, size_t elementId) const{
   return
     a * localTermsUU->getTerm(dofI, dofJ, elementId) -
     b * localTermsGG->getTerm(dofI, dofJ, elementId);
 }
 
-complex<double> FormulationOO2::rhs(size_t equationI, size_t elementId) const{
+Complex FormulationOO2::rhs(size_t equationI, size_t elementId) const{
   // Init //
   double phi;
   double det;
@@ -83,8 +82,8 @@ complex<double> FormulationOO2::rhs(size_t equationI, size_t elementId) const{
   double pxyz[3];
   fullVector<double> xyz(3);
 
-  complex<double> ddmValue;
-  complex<double> integral = complex<double>(0, 0);
+  Complex ddmValue;
+  Complex integral = Complex(0, 0);
 
   // Get Element //
   const MElement& element = goe->get(elementId);
@@ -124,15 +123,15 @@ complex<double> FormulationOO2::rhs(size_t equationI, size_t elementId) const{
   return integral;
 }
 
-std::complex<double> FormulationOO2::
+Complex FormulationOO2::
 interpolate(const MElement& element, const fullVector<double>& xyz) const{
   // Get Dofs associated to element //
   const vector<Dof>  dof = fspace->getKeys(element);
   const size_t      nDof = dof.size();
 
   // Get Values of these Dofs //
-  map<Dof, complex<double> >::const_iterator end = ddmDof->end();
-  map<Dof, complex<double> >::const_iterator it;
+  map<Dof, Complex>::const_iterator end = ddmDof->end();
+  map<Dof, Complex>::const_iterator it;
   vector<double> realCoef(nDof);
   vector<double> imagCoef(nDof);
 
@@ -149,7 +148,7 @@ interpolate(const MElement& element, const fullVector<double>& xyz) const{
   double real = fspace->interpolate(element, realCoef, xyz);
   double imag = fspace->interpolate(element, imagCoef, xyz);
 
-  return complex<double>(real, imag);
+  return Complex(real, imag);
 }
 
 const FunctionSpace& FormulationOO2::field(void) const{

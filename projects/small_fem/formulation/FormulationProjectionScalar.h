@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONPROJECTIONSCALAR_H_
 #define _FORMULATIONPROJECTIONSCALAR_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "fullMatrix.h"
 
@@ -12,7 +12,7 @@
 
 /**
    @class FormulationProjectionScalar
-   @brief Formulation for the Projection of a Scalar Function problem
+   @brief Formulation for the L2 projection of a scalar function
 
    Scalar Formulation for the L2 projection problem
  */
@@ -30,13 +30,13 @@ class FormulationProjectionScalar: public Formulation<scalar>{
   TermProjectionField* localTerms2;
 
   // For complex version //
-  std::complex<double> (*f)(fullVector<double>& xyz);
+  Complex (*f)(fullVector<double>& xyz);
   fullMatrix<double>*   gC;
   fullVector<double>*   gW;
   GroupOfJacobian*      jac;
 
  public:
-  FormulationProjectionScalar(const GroupOfElement& goe,
+  FormulationProjectionScalar(const GroupOfElement& domain,
                               const FunctionSpaceScalar& fs,
                               scalar (*f)(fullVector<double>& xyz));
 
@@ -52,14 +52,11 @@ class FormulationProjectionScalar: public Formulation<scalar>{
 
 /**
    @fn FormulationProjectionScalar::FormulationProjectionScalar
+   @param domain The domain of this Formulation
+   @param fs A FunctionSpaceScalar for both unknown and test field
    @param f The function to project
-   @param fs A FunctionSpaceNode
 
-   Instantiates a new FormulationProjectionScalar to project
-   the given function@n
-
-   FormulationProjectionScalar will use the given FunctionSpace
-   for the projection
+   Instantiates a new FormulationProjectionScalar to project the given function
    **
 
    @fn FormulationProjectionScalar::~FormulationProjectionScalar

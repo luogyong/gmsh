@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONEMDA_H_
 #define _FORMULATIONEMDA_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 #include "Formulation.h"
@@ -13,7 +13,7 @@
    EMDA Formulation for DDM
  */
 
-class FormulationEMDA: public Formulation<std::complex<double> >{
+class FormulationEMDA: public Formulation<Complex>{
  private:
   // Wavenumber & Chi //
   double k;
@@ -35,44 +35,39 @@ class FormulationEMDA: public Formulation<std::complex<double> >{
   GroupOfJacobian*    jac;
 
   // DDM //
-  const std::map<Dof, std::complex<double> >* ddmDof;
+  const std::map<Dof, Complex>* ddmDof;
 
  public:
-  FormulationEMDA(const GroupOfElement& goe,
+  FormulationEMDA(const GroupOfElement& domain,
                   const FunctionSpaceScalar& fs,
                   double k,
                   double chi,
-                  const std::map<Dof, std::complex<double> >& ddmDof);
+                  const std::map<Dof, Complex>& ddmDof);
 
   virtual ~FormulationEMDA(void);
 
-  virtual std::complex<double>
-    weak(size_t dofI, size_t dofJ, size_t elementId) const;
-
-  virtual std::complex<double>
-    rhs(size_t equationI, size_t elementId)          const;
+  virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual Complex rhs(size_t equationI, size_t elementId)          const;
 
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
 
  private:
-  std::complex<double>
+  Complex
     interpolate(const MElement& element, const fullVector<double>& xyz) const;
 };
 
 /**
    @fn FormulationEMDA::FormulationEMDA
-   @param goe A GroupOfElement
+   @param domain A GroupOfElement for the domain
+   @param fs A FunctionSpace for both unknown and test fields
    @param k A real number
    @param chi A real number
-   @param order A natural number
    @param ddmDof A map with the DDM Dof%s and their associated values
 
-   Instantiates a new FormulationEMDA of the given order, wavenumber (k),
-   real shift (chi) and ddm Dof%s
-
-   The given GroupOfElement will be used as the geomtrical domain
+   Instantiates a new FormulationEMDA with wavenumber k and real shift chi
+   The DDM Dof%s are given by ddmDof.
    **
 
    @fn FormulationEMDA::~FormulationEMDA

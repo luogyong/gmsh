@@ -9,7 +9,7 @@
 
 /**
    @class FormulationSteadySlow
-   @brief Vectorial Formulation for the steady wave problem (Slow version)
+   @brief Vectorial Formulation for the steady wave problem (slow version)
 
    Slow version of the vectorial Formulation for the steady wave problem
    This version don't use the fast integration algorithm
@@ -59,7 +59,7 @@ class FormulationSteadySlow: public Formulation<double>{
 /**
    @fn FormulationSteadySlow::FormulationSteadySlow
    @param domain A GroupOfElement
-   @param fs A FunctionSpaceVector
+   @param fs A FunctionSpaceVector for both unknown and test field
    @param k a scalar
 
    Instantiates a new FormulationSteadySlow with given parametres:

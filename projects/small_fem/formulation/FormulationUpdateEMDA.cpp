@@ -9,17 +9,17 @@
 using namespace std;
 
 FormulationUpdateEMDA::
-FormulationUpdateEMDA(const GroupOfElement& goe,
+FormulationUpdateEMDA(const GroupOfElement& domain,
                       const FunctionSpaceScalar& fs,
                       double k,
                       double chi,
-                      const std::map<Dof, std::complex<double> >& solution,
-                      const std::map<Dof, std::complex<double> >& oldG){
+                      const std::map<Dof, Complex>& solution,
+                      const std::map<Dof, Complex>& oldG){
   // Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -41,7 +41,7 @@ FormulationUpdateEMDA(const GroupOfElement& goe,
 
   // Pre-evalution //
   basis->preEvaluateFunctions(*gC);
-  jac = new GroupOfJacobian(goe, *gC, "jacobian");
+  jac = new GroupOfJacobian(domain, *gC, "jacobian");
 
   // DDM //
   this->solution = &solution;
@@ -54,7 +54,7 @@ FormulationUpdateEMDA::~FormulationUpdateEMDA(void){
   delete jac;
 }
 
-complex<double> FormulationUpdateEMDA::
+Complex FormulationUpdateEMDA::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
   // Init //
   double phiI;
@@ -86,22 +86,22 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
     integral += phiI * phiJ * fabs(det) * (*gW)(g);
   }
 
-  return complex<double>(integral, 0);
+  return Complex(integral, 0);
 }
 
-complex<double> FormulationUpdateEMDA::
-rhs(size_t equationI, size_t elementId) const{
+Complex FormulationUpdateEMDA::rhs(size_t equationI, size_t elementId) const{
   // Init //
   double phi;
   double det;
 
   double pxyz[3];
   fullVector<double> xyz(3);
-  complex<double> oldGValue;
-  complex<double> solutionValue;
-  complex<double> sub;
 
-  complex<double> integral = complex<double>(0, 0);
+  Complex oldGValue;
+  Complex solutionValue;
+  Complex sub;
+
+  Complex integral = Complex(0, 0);
 
   // Get Element //
   const MElement& element = goe->get(elementId);
@@ -135,8 +135,7 @@ rhs(size_t equationI, size_t elementId) const{
     // OldG & solution in *physical* coordinate
     oldGValue     = interpolate(element, xyz, *oldG);
     solutionValue = interpolate(element, xyz, *solution);
-    sub           =
-      complex<double>(2 * chi, -2 * k) * solutionValue - oldGValue;
+    sub           = Complex(2 * chi, -2 * k) * solutionValue - oldGValue;
 
     // Integrate
     integral += sub * phi * fabs(det) * (*gW)(g);
@@ -145,18 +144,18 @@ rhs(size_t equationI, size_t elementId) const{
   return integral;
 }
 
-std::complex<double> FormulationUpdateEMDA::
+Complex FormulationUpdateEMDA::
 interpolate(const MElement& element,
             const fullVector<double>& xyz,
-            const std::map<Dof, std::complex<double> >& f) const{
+            const std::map<Dof, Complex>& f) const{
 
   // Get Dofs associated to element //
   const vector<Dof>  dof = fspace->getKeys(element);
   const size_t      nDof = dof.size();
 
   // Get Values of these Dofs //
-  map<Dof, complex<double> >::const_iterator end = f.end();
-  map<Dof, complex<double> >::const_iterator it;
+  map<Dof, Complex>::const_iterator end = f.end();
+  map<Dof, Complex>::const_iterator it;
   vector<double> realCoef(nDof);
   vector<double> imagCoef(nDof);
 
@@ -173,7 +172,7 @@ interpolate(const MElement& element,
   double real = fspace->interpolate(element, realCoef, xyz);
   double imag = fspace->interpolate(element, imagCoef, xyz);
 
-  return complex<double>(real, imag);
+  return Complex(real, imag);
 }
 
 const FunctionSpace& FormulationUpdateEMDA::field(void) const{

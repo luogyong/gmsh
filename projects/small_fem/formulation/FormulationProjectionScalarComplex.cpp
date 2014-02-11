@@ -9,15 +9,15 @@
 using namespace std;
 
 template<>
-FormulationProjectionScalar<complex<double> >::
-FormulationProjectionScalar(const GroupOfElement& goe,
+FormulationProjectionScalar<Complex>::
+FormulationProjectionScalar(const GroupOfElement& domain,
                             const FunctionSpaceScalar& fs,
-                            std::complex<double> (*f)(fullVector<double>& xyz)){
+                            Complex (*f)(fullVector<double>& xyz)){
   // Save Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -36,22 +36,21 @@ FormulationProjectionScalar(const GroupOfElement& goe,
 
   // Pre-evalution //
   basis->preEvaluateFunctions(*gC);
-  jac = new GroupOfJacobian(goe, *gC, "jacobian");
+  jac = new GroupOfJacobian(domain, *gC, "jacobian");
 
   // f //
   this->f = f;
 }
 
 template<>
-FormulationProjectionScalar<complex<double> >::
-~FormulationProjectionScalar(void){
+FormulationProjectionScalar<Complex>::~FormulationProjectionScalar(void){
   delete gC;
   delete gW;
   delete jac;
 }
 
 template<>
-complex<double> FormulationProjectionScalar<complex<double> >::
+Complex FormulationProjectionScalar<Complex>::
 weak(size_t dofI, size_t dofJ,size_t elementId) const{
 
   // Init //
@@ -84,11 +83,11 @@ weak(size_t dofI, size_t dofJ,size_t elementId) const{
     integral += phiI * phiJ * fabs(det) * (*gW)(g);
   }
 
-  return complex<double>(integral, 0);
+  return Complex(integral, 0);
 }
 
 template<>
-complex<double> FormulationProjectionScalar<complex<double> >::
+Complex FormulationProjectionScalar<Complex>::
 rhs(size_t equationI, size_t elementId) const{
 
   // Init //
@@ -97,9 +96,9 @@ rhs(size_t equationI, size_t elementId) const{
 
   fullVector<double> xyz(3);
   double             pxyz[3];
-  complex<double>    fxyz;
+  Complex            fxyz;
 
-  complex<double>    integral = complex<double>(0, 0);
+  Complex integral = Complex(0, 0);
 
   // Get Element //
   const MElement& element = goe->get(elementId);
@@ -140,19 +139,16 @@ rhs(size_t equationI, size_t elementId) const{
 }
 
 template<>
-const FunctionSpace& FormulationProjectionScalar<complex<double> >::
-field(void) const{
+const FunctionSpace& FormulationProjectionScalar<Complex>::field(void) const{
   return *fspace;
 }
 
 template<>
-const FunctionSpace& FormulationProjectionScalar<complex<double> >::
-test(void) const{
+const FunctionSpace& FormulationProjectionScalar<Complex>::test(void) const{
   return *fspace;
 }
 
 template<>
-const GroupOfElement& FormulationProjectionScalar<complex<double> >::
-domain(void) const{
+const GroupOfElement& FormulationProjectionScalar<Complex>::domain(void) const{
   return *goe;
 }

@@ -9,14 +9,14 @@ using namespace std;
 
 template<>
 FormulationProjectionScalar<double>::
-FormulationProjectionScalar(const GroupOfElement& goe,
+FormulationProjectionScalar(const GroupOfElement& domain,
                             const FunctionSpaceScalar& fs,
                             double (*f)(fullVector<double>& xyz)){
   // Save Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -34,7 +34,7 @@ FormulationProjectionScalar(const GroupOfElement& goe,
 
   // Local Terms //
   basis->preEvaluateFunctions(gC);
-  GroupOfJacobian jac(goe, gC, "jacobian");
+  GroupOfJacobian jac(domain, gC, "jacobian");
 
   localTerms1 = new TermFieldField(jac, *basis, gW);
   localTerms2 = new TermProjectionField(jac, *basis, gW, gC, f);

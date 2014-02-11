@@ -1,4 +1,4 @@
-#include <complex>
+#include "SmallFem.h"
 #include "FormulationMass.h"
 
 using namespace std;
@@ -22,15 +22,15 @@ rhs(size_t equationI, size_t elementId) const{
 // Complex Version //
 // --------------- //
 template<>
-complex<double> FormulationMass<complex<double> >::
+Complex FormulationMass<Complex>::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
 
-  return complex<double>(localTerms->getTerm(dofI, dofJ, elementId), 0);
+  return Complex(localTerms->getTerm(dofI, dofJ, elementId), 0);
 }
 
 template<>
-complex<double> FormulationMass<complex<double> >::
+Complex FormulationMass<Complex>::
 rhs(size_t equationI, size_t elementId) const{
 
-  return complex<double>(0, 0);
+  return Complex(0, 0);
 }

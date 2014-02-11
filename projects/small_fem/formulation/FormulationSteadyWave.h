@@ -40,7 +40,7 @@ class FormulationSteadyWave: public Formulation<scalar>{
 /**
    @fn FormulationSteadyWave::FormulationSteadyWave
    @param domain A GroupOfElement
-   @param fs A FunctionSpace
+   @param fs A FunctionSpace  for both unknown and test field
    @param k a scalar
 
    Instantiates a new FormulationSteadyWave with given parametres:

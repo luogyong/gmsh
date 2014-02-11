@@ -7,14 +7,14 @@
 using namespace std;
 
 // Poisson //
-FormulationPoisson::FormulationPoisson(const GroupOfElement& goe,
+FormulationPoisson::FormulationPoisson(const GroupOfElement& domain,
                                        const FunctionSpaceScalar& fs,
                                        double (*f)(fullVector<double>& xyz)){
   // Save Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -42,8 +42,8 @@ FormulationPoisson::FormulationPoisson(const GroupOfElement& goe,
   basis.preEvaluateDerivatives(gCL);
   basis.preEvaluateFunctions(gCR);
 
-  GroupOfJacobian jacL(goe, gCL, "invert");
-  GroupOfJacobian jacR(goe, gCR, "jacobian");
+  GroupOfJacobian jacL(domain, gCL, "invert");
+  GroupOfJacobian jacR(domain, gCR, "jacobian");
 
   localTermsL = new TermGradGrad(jacL, basis, gWL);
   localTermsR = new TermProjectionField(jacR, basis, gWR, gCR, fSource);

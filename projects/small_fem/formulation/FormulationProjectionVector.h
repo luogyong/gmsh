@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONPROJECTIONVECTOR_H_
 #define _FORMULATIONPROJECTIONVECTOR_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceVector.h"
 #include "fullMatrix.h"
 
@@ -12,7 +12,7 @@
 
 /**
    @class FormulationProjectionVector
-   @brief Formulation for the Projection of Vectorial Function problem
+   @brief Formulation for the L2 projection of a vectorial function
 
    Vectorial Formulation for the L2 projection problem
  */
@@ -30,13 +30,13 @@ class FormulationProjectionVector: public Formulation<scalar>{
   TermProjectionGrad* localTerms2;
 
   // For complex version //
-  fullVector<std::complex<double> > (*f)(fullVector<double>& xyz);
+  fullVector<Complex> (*f)(fullVector<double>& xyz);
   fullMatrix<double>*   gC;
   fullVector<double>*   gW;
   GroupOfJacobian*      jac;
 
  public:
-  FormulationProjectionVector(const GroupOfElement& goe,
+  FormulationProjectionVector(const GroupOfElement& domain,
                               const FunctionSpaceVector& fs,
                               fullVector<scalar> (*f)(fullVector<double>& xyz));
 
@@ -52,14 +52,11 @@ class FormulationProjectionVector: public Formulation<scalar>{
 
 /**
    @fn FormulationProjectionVector::FormulationProjectionVector
+   @param goe The domain of this Formulation
+   @param fs A FunctionSpaceVector  for both unknown and test field
    @param f The function to project
-   @param fs A FunctionSpaceEdge
 
-   Instantiates a new FormulationProjectionVector to project
-   the given function@n
-
-   FormulationProjectionVector will use the given FunctionSpace
-   for the projection
+   Instantiates a new FormulationProjectionScalar to project the given function
    **
 
    @fn FormulationProjectionVector::~FormulationProjectionVector

@@ -6,14 +6,14 @@
 
 using namespace std;
 
-FormulationNeumann::FormulationNeumann(const GroupOfElement& goe,
+FormulationNeumann::FormulationNeumann(const GroupOfElement& domain,
                                        const FunctionSpaceScalar& fs,
                                        double k){
   // Save Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -35,7 +35,7 @@ FormulationNeumann::FormulationNeumann(const GroupOfElement& goe,
   // Local Terms //
   basis.preEvaluateFunctions(gC);
 
-  GroupOfJacobian jac(goe, gC, "jacobian");
+  GroupOfJacobian jac(domain, gC, "jacobian");
 
   localTerms = new TermFieldField(jac, basis, gW);
 }
@@ -44,15 +44,13 @@ FormulationNeumann::~FormulationNeumann(void){
   delete localTerms;
 }
 
-complex<double> FormulationNeumann::weak(size_t dofI, size_t dofJ,
-                                         size_t elementId) const{
-  return
-    complex<double>(0, -1 * k * localTerms->getTerm(dofI, dofJ, elementId));
+Complex FormulationNeumann::
+weak(size_t dofI, size_t dofJ, size_t elementId) const{
+  return Complex(0, -1 * k * localTerms->getTerm(dofI, dofJ, elementId));
 }
 
-complex<double> FormulationNeumann::rhs(size_t equationI,
-                                        size_t elementId) const{
-  return complex<double>(0, 0);
+Complex FormulationNeumann::rhs(size_t equationI, size_t elementId) const{
+  return Complex(0, 0);
 }
 
 const FunctionSpace& FormulationNeumann::field(void) const{

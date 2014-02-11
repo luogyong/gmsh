@@ -30,7 +30,7 @@ class FormulationPoisson: public Formulation<double>{
   double (*fSource)(fullVector<double>& xyz);
 
  public:
-  FormulationPoisson(const GroupOfElement& goe,
+  FormulationPoisson(const GroupOfElement& domain,
                      const FunctionSpaceScalar& fs,
                      double (*f)(fullVector<double>& xyz));
 
@@ -46,15 +46,11 @@ class FormulationPoisson: public Formulation<double>{
 
 /**
    @fn FormulationPoisson::FormulationPoisson
-   @param goe A GroupOfElement
-   @param f A scalar function
-   @param order A natural number
+   @param domain A GroupOfElement for the domain
+   @param fs A FunctionSpace used for both test and unknown field
+   @param f A function for the source term
 
-   Instantiates a new FormulationPoisson of the given order,
-   and with the given function as source term@n
-
-   The given GroupOfElement will be used as the
-   geomtrical @em domain
+   Instantiates a new FormulationPoisson
    **
 
    @fn FormulationPoisson::~FormulationPoisson

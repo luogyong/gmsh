@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONLAGRANGEFIELD_H_
 #define _FORMULATIONLAGRANGEFIELD_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 #include "Formulation.h"
@@ -13,7 +13,7 @@
    Lagrange multipliers Formulation (Tested by Field)
  */
 
-class FormulationLagrangeField: public Formulation<std::complex<double> >{
+class FormulationLagrangeField: public Formulation<Complex>{
  private:
   // Function Space & Domain //
   const FunctionSpaceScalar* fsF;
@@ -24,17 +24,14 @@ class FormulationLagrangeField: public Formulation<std::complex<double> >{
   TermFieldField* localTerms;
 
  public:
-  FormulationLagrangeField(const GroupOfElement& goe,
-                           const FunctionSpaceScalar& fsField,
-                           const FunctionSpaceScalar& fsTest);
+  FormulationLagrangeField(const GroupOfElement& domain,
+                           const FunctionSpaceScalar& field,
+                           const FunctionSpaceScalar& test);
 
   virtual ~FormulationLagrangeField(void);
 
-  virtual std::complex<double>
-    weak(size_t dofI, size_t dofJ, size_t elementId) const;
-
-  virtual std::complex<double>
-    rhs(size_t equationI, size_t elementId)          const;
+  virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual Complex rhs(size_t equationI, size_t elementId)          const;
 
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
@@ -43,9 +40,9 @@ class FormulationLagrangeField: public Formulation<std::complex<double> >{
 
 /**
    @fn FormulationLagrangeField::FormulationLagrangeField
-   @param goe A GroupOfElement
-   @param fsField FunctionSpace for the computed field
-   @param fsTest FunctionSpace for the test functions
+   @param domain A GroupOfElement for the domain
+   @param field FunctionSpace for the computed field
+   @param test FunctionSpace for the test functions
 
    Instantiates a new FormulationLagrangeField
    **

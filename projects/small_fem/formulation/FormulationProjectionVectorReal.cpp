@@ -9,14 +9,14 @@ using namespace std;
 
 template<>
 FormulationProjectionVector<double>::
-FormulationProjectionVector(const GroupOfElement& goe,
+FormulationProjectionVector(const GroupOfElement& domain,
                             const FunctionSpaceVector& fs,
                             fullVector<double> (*f)(fullVector<double>& xyz)){
   // Save Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -35,15 +35,14 @@ FormulationProjectionVector(const GroupOfElement& goe,
   // Local Terms //
   basis->preEvaluateFunctions(gC);
 
-  GroupOfJacobian jac(goe, gC, "invert");
+  GroupOfJacobian jac(domain, gC, "invert");
 
   localTerms1 = new TermGradGrad(jac, *basis, gW);
   localTerms2 = new TermProjectionGrad(jac, *basis, gW, gC, f);
 }
 
 template<>
-FormulationProjectionVector<double>::
-~FormulationProjectionVector(void){
+FormulationProjectionVector<double>::~FormulationProjectionVector(void){
   delete localTerms1;
   delete localTerms2;
 }

@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONUPDATEEMDA_H_
 #define _FORMULATIONUPDATEEMDA_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 #include "Formulation.h"
@@ -13,7 +13,7 @@
    Update Formulation for FormulationEMDA
  */
 
-class FormulationUpdateEMDA: public Formulation<std::complex<double> >{
+class FormulationUpdateEMDA: public Formulation<Complex>{
  private:
   // Wavenumber & Chi //
   double k;
@@ -32,48 +32,36 @@ class FormulationUpdateEMDA: public Formulation<std::complex<double> >{
   GroupOfJacobian*    jac;
 
   // DDM //
-  const std::map<Dof, std::complex<double> >* solution;
-  const std::map<Dof, std::complex<double> >* oldG;
+  const std::map<Dof, Complex>* solution;
+  const std::map<Dof, Complex>* oldG;
 
  public:
-  FormulationUpdateEMDA(const GroupOfElement& goe,
+  FormulationUpdateEMDA(const GroupOfElement& domain,
                         const FunctionSpaceScalar& fs,
                         double k,
                         double chi,
-                        const std::map<Dof, std::complex<double> >& solution,
-                        const std::map<Dof, std::complex<double> >& oldG);
+                        const std::map<Dof, Complex>& solution,
+                        const std::map<Dof, Complex>& oldG);
 
   virtual ~FormulationUpdateEMDA(void);
 
-  virtual std::complex<double>
-    weak(size_t dofI, size_t dofJ, size_t elementId) const;
-
-  virtual std::complex<double>
-    rhs(size_t equationI, size_t elementId)          const;
+  virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual Complex rhs(size_t equationI, size_t elementId)          const;
 
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
 
  private:
-  std::complex<double>
+  Complex
     interpolate(const MElement& element,
                 const fullVector<double>& xyz,
-                const std::map<Dof, std::complex<double> >& f) const;
+                const std::map<Dof, Complex>& f) const;
 };
 
 /**
    @fn FormulationUpdateEMDA::FormulationUpdateEMDA
-   @param goe A GroupOfElement
-   @param k A real number
-   @param chi A real number
-   @param order A natural number
-   @param ddmDof A map with the DDM Dof%s and their associated values
-
-   Instantiates a new FormulationUpdateEMDA of the given order, wavenumber (k),
-   real shift (chi) and ddm Dof%s
-
-   The given GroupOfElement will be used as the geomtrical domain
+   @todo TODO
    **
 
    @fn FormulationUpdateEMDA::~FormulationUpdateEMDA

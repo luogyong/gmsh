@@ -7,15 +7,15 @@
 using namespace std;
 
 FormulationFieldLagrange::
-FormulationFieldLagrange(const GroupOfElement& goe,
+FormulationFieldLagrange(const GroupOfElement& domain,
                          const FunctionSpaceScalar& fsField,
                          const FunctionSpaceScalar& fsTest,
                          double (*f)(fullVector<double>& xyz)){
   // Save Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -35,7 +35,7 @@ FormulationFieldLagrange(const GroupOfElement& goe,
   // Local Terms //
   basis.preEvaluateFunctions(gC);
 
-  GroupOfJacobian jac(goe, gC, "jacobian");
+  GroupOfJacobian jac(domain, gC, "jacobian");
 
   localTerms      = new TermFieldField(jac, basis, gW);
   projectionTerms = new TermProjectionField(jac, basis, gW, gC, f);
@@ -46,15 +46,14 @@ FormulationFieldLagrange::~FormulationFieldLagrange(void){
   delete projectionTerms;
 }
 
-complex<double> FormulationFieldLagrange::weak(size_t dofI, size_t dofJ,
-                                               size_t elementId) const{
-  return
-    complex<double>(localTerms->getTerm(dofI, dofJ, elementId), 0);
+Complex FormulationFieldLagrange::
+weak(size_t dofI, size_t dofJ, size_t elementId) const{
+
+  return Complex(localTerms->getTerm(dofI, dofJ, elementId), 0);
 }
 
-complex<double> FormulationFieldLagrange::rhs(size_t equationI,
-                                              size_t elementId) const{
-  return complex<double>(projectionTerms->getTerm(0, equationI, elementId), 0);
+Complex FormulationFieldLagrange::rhs(size_t equationI, size_t elementId) const{
+  return Complex(projectionTerms->getTerm(0, equationI, elementId), 0);
 }
 
 const FunctionSpace& FormulationFieldLagrange::field(void) const{

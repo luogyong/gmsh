@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONNEUMANN_H_
 #define _FORMULATIONNEUMANN_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 #include "Formulation.h"
@@ -13,7 +13,7 @@
    Neumann Formulation
  */
 
-class FormulationNeumann: public Formulation<std::complex<double> >{
+class FormulationNeumann: public Formulation<Complex>{
  private:
   // Wavenumber //
   double k;
@@ -26,17 +26,14 @@ class FormulationNeumann: public Formulation<std::complex<double> >{
   TermFieldField* localTerms;
 
  public:
-  FormulationNeumann(const GroupOfElement& goe,
+  FormulationNeumann(const GroupOfElement& domain,
                      const FunctionSpaceScalar& fs,
                      double k);
 
   virtual ~FormulationNeumann(void);
 
-  virtual std::complex<double>
-    weak(size_t dofI, size_t dofJ, size_t elementId) const;
-
-  virtual std::complex<double>
-    rhs(size_t equationI, size_t elementId)          const;
+  virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual Complex rhs(size_t equationI, size_t elementId)          const;
 
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
@@ -45,14 +42,11 @@ class FormulationNeumann: public Formulation<std::complex<double> >{
 
 /**
    @fn FormulationNeumann::FormulationNeumann
-   @param goe A GroupOfElement
+   @param domain A GroupOfElement for the domain
+   @param fs A FunctionSpace for both the unknown and test field
    @param k A real number
-   @param order A natural number
 
-   Instantiates a new FormulationNeumann of the given
-   order and wavenumber (k)@n
-
-   The given GroupOfElement will be used as the geomtrical domain
+   Instantiates a new FormulationNeumann with wavenumber k
    **
 
    @fn FormulationNeumann::~FormulationNeumann

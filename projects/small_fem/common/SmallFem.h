@@ -1,7 +1,9 @@
 #ifndef _SMALLFEM_H_
 #define _SMALLFEM_H_
 
+#include <complex>
 #include <string>
+
 #include "mpi.h"
 #include "Options.h"
 
@@ -16,6 +18,15 @@
    (see SmallFem::Keywords()):
    @li -solver
 */
+
+/**
+   @typedef Complex
+   @brief A short cut for std::complex<double>
+
+   A short cut for std::complex<double>
+ */
+
+typedef std::complex<double> Complex;
 
 class SmallFem{
  private:

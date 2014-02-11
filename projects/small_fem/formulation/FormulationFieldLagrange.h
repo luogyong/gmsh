@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONFIELDLAGRANGE_H_
 #define _FORMULATIONFIELDLAGRANGE_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 #include "TermProjectionField.h"
@@ -14,7 +14,7 @@
    Lagrange multipliers Formulation (Tested by Lagrange)
  */
 
-class FormulationFieldLagrange: public Formulation<std::complex<double> >{
+class FormulationFieldLagrange: public Formulation<Complex>{
  private:
   // Function Space & Domain //
   const FunctionSpaceScalar* fsF;
@@ -26,18 +26,15 @@ class FormulationFieldLagrange: public Formulation<std::complex<double> >{
   TermProjectionField* projectionTerms;
 
  public:
-  FormulationFieldLagrange(const GroupOfElement& goe,
-                           const FunctionSpaceScalar& fsField,
-                           const FunctionSpaceScalar& fsTest,
+  FormulationFieldLagrange(const GroupOfElement& domain,
+                           const FunctionSpaceScalar& field,
+                           const FunctionSpaceScalar& test,
                            double (*f)(fullVector<double>& xyz));
 
   virtual ~FormulationFieldLagrange(void);
 
-  virtual std::complex<double>
-    weak(size_t dofI, size_t dofJ, size_t elementId) const;
-
-  virtual std::complex<double>
-    rhs(size_t equationI, size_t elementId)          const;
+  virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual Complex rhs(size_t equationI, size_t elementId)          const;
 
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
@@ -46,10 +43,10 @@ class FormulationFieldLagrange: public Formulation<std::complex<double> >{
 
 /**
    @fn FormulationFieldLagrange::FormulationFieldLagrange
-   @param goe A GroupOfElement
-   @param fsField FunctionSpace for the computed field
-   @param fsTest FunctionSpace for the test functions
-   @param f Function imposed by Lagrange multipliers
+   @param domain A GroupOfElement for the domain
+   @param field A FunctionSpace for the computed field
+   @param test A FunctionSpace for the test functions
+   @param f A function to impose by Lagrange multipliers
 
    Instantiates a new FormulationFieldLagrange
    **

@@ -10,17 +10,17 @@
 using namespace std;
 
 FormulationUpdateOO2::
-FormulationUpdateOO2(const GroupOfElement& goe,
+FormulationUpdateOO2(const GroupOfElement& domain,
                      const FunctionSpaceScalar& fs,
-                     std::complex<double> a,
-                     std::complex<double> b,
-                     const std::map<Dof, std::complex<double> >& solution,
-                     const std::map<Dof, std::complex<double> >& oldG){
+                     Complex a,
+                     Complex b,
+                     const std::map<Dof, Complex>& solution,
+                     const std::map<Dof, Complex>& oldG){
   // Domain //
-  this->goe = &goe;
+  goe = &domain;
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = goe.isUniform();
+  pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
@@ -50,8 +50,8 @@ FormulationUpdateOO2(const GroupOfElement& goe,
   basis->preEvaluateFunctions(*gCFF);
   basis->preEvaluateDerivatives(*gCGG);
 
-  jacFF = new GroupOfJacobian(goe, *gCFF, "jacobian");
-  jacGG = new GroupOfJacobian(goe, *gCGG, "invert");
+  jacFF = new GroupOfJacobian(domain, *gCFF, "jacobian");
+  jacGG = new GroupOfJacobian(domain, *gCGG, "invert");
 
   // DDM //
   this->solution = &solution;
@@ -68,7 +68,7 @@ FormulationUpdateOO2::~FormulationUpdateOO2(void){
   delete jacGG;
 }
 
-complex<double> FormulationUpdateOO2::
+Complex FormulationUpdateOO2::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
   // Init //
   double phiI;
@@ -100,11 +100,10 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
     integral += phiI * phiJ * fabs(det) * (*gWFF)(g);
   }
 
-  return complex<double>(integral, 0);
+  return Complex(integral, 0);
 }
 
-complex<double> FormulationUpdateOO2::
-rhs(size_t equationI, size_t elementId) const{
+Complex FormulationUpdateOO2::rhs(size_t equationI, size_t elementId) const{
   // Init //
   size_t G;
 
@@ -115,14 +114,14 @@ rhs(size_t equationI, size_t elementId) const{
   fullVector<double> gradPhi(3);
 
   double pxyz[3];
-  fullVector<double> xyz(3);
-  complex<double> oldGValue;
-  complex<double> solutionValue;
-  fullVector<complex<double> > gradValue;
+  fullVector<double>  xyz(3);
+  fullVector<Complex> gradValue;
 
-  complex<double> sub;
+  Complex oldGValue;
+  Complex solutionValue;
+  Complex sub;
 
-  complex<double> integral = complex<double>(0, 0);
+  Complex integral = Complex(0, 0);
 
   // Get Element //
   const MElement& element = goe->get(elementId);
@@ -163,7 +162,7 @@ rhs(size_t equationI, size_t elementId) const{
     // OldG & solution in *physical* coordinate
     oldGValue     = interpolate(element, xyz, *oldG);
     solutionValue = interpolate(element, xyz, *solution);
-    sub           = complex<double>(2, 0) * a * solutionValue - oldGValue;
+    sub           = Complex(2, 0) * a * solutionValue - oldGValue;
 
     // Integrate
     integral += sub * phi * fabs(det) * (*gWFF)(g);
@@ -194,27 +193,27 @@ rhs(size_t equationI, size_t elementId) const{
 
     // Integrate
     integral +=
-      complex<double>(-2, 0) * b *
-      (gradValue(0) * complex<double>(gradPhi(0), 0) +
-       gradValue(1) * complex<double>(gradPhi(1), 0) +
-       gradValue(2) * complex<double>(gradPhi(2), 0)) * fabs(det) * (*gWGG)(g);
+      Complex(-2, 0) * b *
+      (gradValue(0) * Complex(gradPhi(0), 0) +
+       gradValue(1) * Complex(gradPhi(1), 0) +
+       gradValue(2) * Complex(gradPhi(2), 0)) * fabs(det) * (*gWGG)(g);
   }
 
   return integral;
 }
 
-std::complex<double> FormulationUpdateOO2::
+Complex FormulationUpdateOO2::
 interpolate(const MElement& element,
             const fullVector<double>& xyz,
-            const std::map<Dof, std::complex<double> >& f) const{
+            const std::map<Dof, Complex>& f) const{
 
   // Get Dofs associated to element //
   const vector<Dof>  dof = fspace->getKeys(element);
   const size_t      nDof = dof.size();
 
   // Get Values of these Dofs //
-  map<Dof, complex<double> >::const_iterator end = f.end();
-  map<Dof, complex<double> >::const_iterator it;
+  map<Dof, Complex>::const_iterator end = f.end();
+  map<Dof, Complex>::const_iterator it;
   vector<double> realCoef(nDof);
   vector<double> imagCoef(nDof);
 
@@ -231,21 +230,21 @@ interpolate(const MElement& element,
   double real = fspace->interpolate(element, realCoef, xyz);
   double imag = fspace->interpolate(element, imagCoef, xyz);
 
-  return complex<double>(real, imag);
+  return Complex(real, imag);
 }
 
-fullVector<std::complex<double> > FormulationUpdateOO2::
+fullVector<Complex> FormulationUpdateOO2::
 interpolateGrad(const MElement& element,
                 const fullVector<double>& xyz,
-                const std::map<Dof, std::complex<double> >& f) const{
+                const std::map<Dof, Complex>& f) const{
 
   // Get Dofs associated to element //
   const vector<Dof>  dof = fspace->getKeys(element);
   const size_t      nDof = dof.size();
 
   // Get Values of these Dofs //
-  map<Dof, complex<double> >::const_iterator end = f.end();
-  map<Dof, complex<double> >::const_iterator it;
+  map<Dof, Complex>::const_iterator end = f.end();
+  map<Dof, Complex>::const_iterator it;
   vector<double> realCoef(nDof);
   vector<double> imagCoef(nDof);
 
@@ -266,11 +265,11 @@ interpolateGrad(const MElement& element,
   if(re.size() != 3)
     throw Exception("Snif");
 
-  fullVector<complex<double> > ret(3);
+  fullVector<Complex> ret(3);
 
-  ret(0) = complex<double>(re(0), im(0));
-  ret(1) = complex<double>(re(1), im(1));
-  ret(2) = complex<double>(re(2), im(2));
+  ret(0) = Complex(re(0), im(0));
+  ret(1) = Complex(re(1), im(1));
+  ret(2) = Complex(re(2), im(2));
 
   return ret;
 }

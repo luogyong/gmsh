@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONUPDATEOO2_H_
 #define _FORMULATIONUPDATEOO2_H_
 
-#include <complex>
+#include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
@@ -14,11 +14,11 @@
    Update Formulation for FormulationOO2
  */
 
-class FormulationUpdateOO2: public Formulation<std::complex<double> >{
+class FormulationUpdateOO2: public Formulation<Complex>{
  private:
   // a & b //
-  std::complex<double> a;
-  std::complex<double> b;
+  Complex a;
+  Complex b;
 
   // Function Space & Basis //
   const FunctionSpaceScalar* fspace;
@@ -38,53 +38,39 @@ class FormulationUpdateOO2: public Formulation<std::complex<double> >{
   GroupOfJacobian*    jacGG;
 
   // DDM //
-  const std::map<Dof, std::complex<double> >* solution;
-  const std::map<Dof, std::complex<double> >* oldG;
+  const std::map<Dof, Complex>* solution;
+  const std::map<Dof, Complex>* oldG;
 
  public:
-  FormulationUpdateOO2(const GroupOfElement& goe,
+  FormulationUpdateOO2(const GroupOfElement& domain,
                        const FunctionSpaceScalar& fs,
-                       std::complex<double> a,
-                       std::complex<double> b,
-                       const std::map<Dof, std::complex<double> >& solution,
-                       const std::map<Dof, std::complex<double> >& oldG);
+                       Complex a,
+                       Complex b,
+                       const std::map<Dof, Complex>& solution,
+                       const std::map<Dof, Complex>& oldG);
 
   virtual ~FormulationUpdateOO2(void);
 
-  virtual std::complex<double>
-    weak(size_t dofI, size_t dofJ, size_t elementId) const;
-
-  virtual std::complex<double>
-    rhs(size_t equationI, size_t elementId)          const;
+  virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual Complex rhs(size_t equationI, size_t elementId)          const;
 
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
 
  private:
-  std::complex<double>
-    interpolate(const MElement& element,
-                const fullVector<double>& xyz,
-                const std::map<Dof, std::complex<double> >& f) const;
+  Complex interpolate(const MElement& element,
+                      const fullVector<double>& xyz,
+                      const std::map<Dof, Complex>& f) const;
 
-  fullVector<std::complex<double> >
-    interpolateGrad(const MElement& element,
-                    const fullVector<double>& xyz,
-                    const std::map<Dof, std::complex<double> >& f) const;
+  fullVector<Complex> interpolateGrad(const MElement& element,
+                                      const fullVector<double>& xyz,
+                                      const std::map<Dof, Complex>& f) const;
 };
 
 /**
    @fn FormulationUpdateOO2::FormulationUpdateOO2
-   @param goe A GroupOfElement
-   @param a A real number
-   @param b A real number
-   @param order A natural number
-   @param ddmDof A map with the DDM Dof%s and their associated values
-
-   Instantiates a new FormulationUpdateOO2 of the given order,
-   coefficients (a & b) and ddm Dof%s
-
-   The given GroupOfElement will be used as the geomtrical domain
+   @todo TODO
    **
 
    @fn FormulationUpdateOO2::~FormulationUpdateOO2
