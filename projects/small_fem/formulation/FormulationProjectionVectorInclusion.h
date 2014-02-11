@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////
-// Templates Implementations for FormulationProjectionScalar: //
+// Templates Implementations for FormulationProjectionVector: //
 // Inclusion compilation model                                //
 //                                                            //
 // Damn you gcc: we want 'export' !                           //
@@ -9,10 +9,10 @@
 #include "Quadrature.h"
 
 template<typename scalar>
-FormulationProjectionScalar<scalar>::
-FormulationProjectionScalar(const GroupOfElement& domain,
-                            const FunctionSpaceScalar& fs,
-                            scalar (*f)(fullVector<double>& xyz)){
+FormulationProjectionVector<scalar>::
+FormulationProjectionVector(const GroupOfElement& domain,
+                            const FunctionSpaceVector& fs,
+                            fullVector<scalar> (*f)(fullVector<double>& xyz)){
   // Save Domain //
   ddomain = &domain;
 
@@ -21,7 +21,7 @@ FormulationProjectionScalar(const GroupOfElement& domain,
   size_t                    eType = uniform.second;
 
   if(!uniform.first)
-    throw ("FormulationProjectionScalar needs a uniform mesh");
+    throw ("FormulationProjectionVector needs a uniform mesh");
 
   // Save fspace //
   fspace = &fs;
@@ -35,29 +35,29 @@ FormulationProjectionScalar(const GroupOfElement& domain,
 
   // Local Terms //
   basis.preEvaluateFunctions(gC);
-  GroupOfJacobian jac(domain, gC, "jacobian");
+  GroupOfJacobian jac(domain, gC, "invert");
 
-  localTerms1 = new TermFieldField(jac, basis, gW);
-  localTerms2 = new TermProjectionField<scalar>(jac, basis, gW, gC, f);
+  localTerms1 = new TermGradGrad(jac, basis, gW);
+  localTerms2 = new TermProjectionGrad<scalar>(jac, basis, gW, gC, f);
 }
 
 template<typename scalar>
-FormulationProjectionScalar<scalar>::~FormulationProjectionScalar(void){
-  delete localTerms2;
+FormulationProjectionVector<scalar>::~FormulationProjectionVector(void){
   delete localTerms1;
+  delete localTerms2;
 }
 
 template<typename scalar>
-const FunctionSpace& FormulationProjectionScalar<scalar>::field(void) const{
+const FunctionSpace& FormulationProjectionVector<scalar>::field(void) const{
   return *fspace;
 }
 
 template<typename scalar>
-const FunctionSpace& FormulationProjectionScalar<scalar>::test(void) const{
+const FunctionSpace& FormulationProjectionVector<scalar>::test(void) const{
   return *fspace;
 }
 
 template<typename scalar>
-const GroupOfElement& FormulationProjectionScalar<scalar>::domain(void) const{
+const GroupOfElement& FormulationProjectionVector<scalar>::domain(void) const{
   return *ddomain;
 }

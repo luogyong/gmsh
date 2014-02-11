@@ -12,7 +12,8 @@
    Term of the Field (in physical space) Grad (in reference space) type
  */
 
-class TermProjectionGrad: public Term<double>{
+template<typename scalar>
+class TermProjectionGrad: public Term<scalar>{
  private:
   typedef const fullMatrix<double>& (Basis::*bFunction)(size_t s)const;
 
@@ -21,7 +22,7 @@ class TermProjectionGrad: public Term<double>{
                      const Basis& basis,
                      const fullVector<double>& integrationWeights,
                      const fullMatrix<double>& integrationPoints,
-                     fullVector<double> (*f)(fullVector<double>& xyz));
+                     fullVector<scalar> (*f)(fullVector<double>& xyz));
 
   virtual ~TermProjectionGrad(void);
 
@@ -30,13 +31,22 @@ class TermProjectionGrad: public Term<double>{
   void computeC(const Basis& basis,
                 const bFunction& getFunction,
                 const fullVector<double>& gW,
-                fullMatrix<double>**& cM);
+                fullMatrix<scalar>**& cM);
 
   void computeB(const GroupOfJacobian& goj,
                 const Basis& basis,
                 const fullMatrix<double>& gC,
-                fullVector<double> (*f)(fullVector<double>& xyz),
-                fullMatrix<double>**& bM);
+                fullVector<scalar> (*f)(fullVector<double>& xyz),
+                fullMatrix<scalar>**& bM);
 };
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "TermProjectionGradInclusion.h"
 
 #endif

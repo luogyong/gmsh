@@ -45,19 +45,23 @@
 #include "SolverMUMPS.h"
 
 using namespace std;
-
+/*
 Complex f(fullVector<double>& xyz){
   return Complex(+1, -1) * (sin(10 * xyz(0)) +
                             sin(10 * xyz(1)) +
                             sin(10 * xyz(2)));
 }
-/*
-double f(fullVector<double>& xyz){
-  return  1 * (sin(10 * xyz(0)) +
-               sin(10 * xyz(1)) +
-               sin(10 * xyz(2)));
-}
 */
+fullVector<Complex> f(fullVector<double>& xyz){
+  fullVector<Complex> res(3);
+
+  res(0) =  Complex(+1, -1) * sin(10 * xyz(0));
+  res(1) =  Complex(+1, -1) * sin(10 * xyz(1));
+  res(2) =  Complex(+1, -1) * sin(10 * xyz(2));
+
+  return res;
+}
+
 void compute(const Options& option){
   // Get FEM Orders //
   const size_t nOrder = option.getValue("-o").size() - 1;
@@ -84,8 +88,8 @@ void compute(const Options& option){
       cout << "  -- Order " << order[j] << ": " << flush;
 
       // Projection
-      FunctionSpaceScalar fSpace(domain, order[j]);
-      FormulationProjectionScalar<Complex> projection(domain, fSpace, f);
+      FunctionSpaceVector fSpace(domain, order[j]);
+      FormulationProjectionVector<Complex> projection(domain, fSpace, f);
       System<Complex> sysProj;
 
       sysProj.addFormulation(projection);

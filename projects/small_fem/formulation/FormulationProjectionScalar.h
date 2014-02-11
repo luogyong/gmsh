@@ -23,7 +23,6 @@ class FormulationProjectionScalar: public Formulation<scalar>{
   // Function Space & Basis & Domain //
   const FunctionSpaceScalar* fspace;
   const GroupOfElement*      ddomain;
-  const Basis*               basis;
 
   // Local Terms //
   TermFieldField*              localTerms1;

@@ -1,7 +1,6 @@
 set(src
   FormulationPoisson.cpp
-  FormulationProjectionVectorReal.cpp
-  FormulationProjectionVectorComplex.cpp
+  FormulationProjectionVector.cpp
   FormulationProjectionScalar.cpp
 
   FormulationLagrangeField.cpp
