@@ -2,8 +2,7 @@ set(src
   FormulationPoisson.cpp
   FormulationProjectionVectorReal.cpp
   FormulationProjectionVectorComplex.cpp
-  FormulationProjectionScalarReal.cpp
-  FormulationProjectionScalarComplex.cpp
+  FormulationProjectionScalar.cpp
 
   FormulationLagrangeField.cpp
   FormulationFieldLagrange.cpp
@@ -20,7 +19,6 @@ set(src
   FormulationOO2.cpp
   FormulationUpdateOO2.cpp
 
-  Term.cpp
   TermFieldField.cpp
   TermGradGrad.cpp
   TermCurlCurl.cpp

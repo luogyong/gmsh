@@ -46,7 +46,7 @@ FormulationPoisson::FormulationPoisson(const GroupOfElement& domain,
   GroupOfJacobian jacR(domain, gCR, "jacobian");
 
   localTermsL = new TermGradGrad(jacL, basis, gWL);
-  localTermsR = new TermProjectionField(jacR, basis, gWR, gCR, fSource);
+  localTermsR = new TermProjectionField<double>(jacR, basis, gWR, gCR, fSource);
 }
 
 FormulationPoisson::~FormulationPoisson(void){

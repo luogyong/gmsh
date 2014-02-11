@@ -1,5 +1,6 @@
 #include <iostream>
 #include <complex>
+#include <cmath>
 
 #include "Mesh.h"
 #include "System.h"
@@ -14,7 +15,10 @@
 using namespace std;
 
 complex<double> fSourceScal(fullVector<double>& xyz){
-  return complex<double>(fabs(xyz(1)), 0);
+  //return complex<double>(1, 0);
+  //return complex<double>(fabs(xyz(1)), 0);
+  return complex<double>(exp(-((xyz(1) * 4.2) * (xyz(1) * 4.2) +
+                               (xyz(2) * 4.2) * (xyz(2) * 4.2))), 0);
 }
 
 void compute(const Options& option){

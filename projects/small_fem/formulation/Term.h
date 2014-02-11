@@ -6,18 +6,19 @@
 
 /**
    @interface Term
-   @brief Interface of helper methods for computing Finit Element Terms
+   @brief Interface of helper methods for computing finite element terms
 
-   Interface of helper methods for computing Finit Element Terms
+   Interface of helper methods for computing finite element terms
  */
 
+template<typename scalar>
 class Term{
  protected:
   size_t nFunction;
   size_t nOrientation;
   const std::vector<size_t>* orientationStat;
 
-  fullMatrix<double>** aM;
+  fullMatrix<scalar>** aM;
 
   mutable bool*   once;
   mutable size_t* lastId;
@@ -27,26 +28,18 @@ class Term{
  public:
   virtual ~Term(void);
 
-  double getTerm(size_t dofI,
-                 size_t dofJ,
-                 size_t elementId) const;
+  scalar getTerm(size_t dofI, size_t dofJ, size_t elementId) const;
 
  private:
-  double getTermOutCache(size_t dofI,
-                         size_t dofJ,
-                         size_t elementId,
+  scalar getTermOutCache(size_t dofI, size_t dofJ, size_t elementId,
                          size_t threadId) const;
 
  protected:
   Term(void);
 
-  void allocA(size_t nFunction);
-
-  void computeA(fullMatrix<double>**& bM,
-                fullMatrix<double>**& cM);
-
-  void clean(fullMatrix<double>**& bM,
-             fullMatrix<double>**& cM);
+  void   allocA(size_t nFunction);
+  void computeA(fullMatrix<scalar>**& bM, fullMatrix<scalar>**& cM);
+  void    clean(fullMatrix<scalar>**& bM, fullMatrix<scalar>**& cM);
 };
 
 /**
@@ -65,9 +58,9 @@ class Term{
 // Inline Function //
 /////////////////////
 
-inline double Term::getTerm(size_t dofI,
-                            size_t dofJ,
-                            size_t elementId) const{
+template<typename scalar>
+inline scalar Term<scalar>::
+getTerm(size_t dofI, size_t dofJ, size_t elementId) const{
 
   const size_t threadId = omp_get_thread_num();
 
@@ -79,5 +72,14 @@ inline double Term::getTerm(size_t dofI,
     // Else, rock baby yeah !
     return (*aM[lastI[threadId]])(lastCtr[threadId], dofI * nFunction + dofJ);
 }
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "TermInclusion.h"
 
 #endif

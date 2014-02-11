@@ -9,30 +9,39 @@
    @class TermProjectionField
    @brief Term of the Field (in physical space) Field (in reference space) type
 
-   Term of the Field (in physical space)
-   Field (in reference space) type
+   Term of the Field (in physical space) Field (in reference space) type
  */
 
-class TermProjectionField: public Term{
+template<typename scalar>
+class TermProjectionField: public Term<scalar>{
  public:
   TermProjectionField(const GroupOfJacobian& goj,
                       const Basis& basis,
                       const fullVector<double>& integrationWeights,
                       const fullMatrix<double>& integrationPoints,
-                      double (*f)(fullVector<double>& xyz));
+                      scalar (*f)(fullVector<double>& xyz));
 
   virtual ~TermProjectionField(void);
 
  private:
   void computeC(const Basis& basis,
                 const fullVector<double>& gW,
-                fullMatrix<double>**& cM);
+                fullMatrix<scalar>**& cM);
 
   void computeB(const GroupOfJacobian& goj,
                 const Basis& basis,
                 const fullMatrix<double>& gC,
-                double (*f)(fullVector<double>& xyz),
-                fullMatrix<double>**& bM);
+                scalar (*f)(fullVector<double>& xyz),
+                fullMatrix<scalar>**& bM);
 };
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "TermProjectionFieldInclusion.h"
 
 #endif

@@ -16,7 +16,10 @@
 using namespace std;
 
 double fSourceReal(fullVector<double>& xyz){
-  return fabs(xyz(1));
+  //return 1;
+  //return fabs(xyz(1);
+  return exp(-((xyz(1) * 4.2) * (xyz(1) * 4.2) +
+               (xyz(2) * 4.2) * (xyz(2) * 4.2)));
 }
 
 void compute(const Options& option){

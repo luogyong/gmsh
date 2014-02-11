@@ -1,6 +1,12 @@
-#include "Term.h"
+/////////////////////////////////////////
+// Templates Implementations for Term: //
+// Inclusion compilation model         //
+//                                     //
+// Damn you gcc: we want 'export' !    //
+/////////////////////////////////////////
 
-Term::Term(void){
+template<typename scalar>
+Term<scalar>::Term(void){
   // One cache per thread
   const size_t nThread = omp_get_max_threads();
 
@@ -14,7 +20,8 @@ Term::Term(void){
     once[i] = false;
 }
 
-Term::~Term(void){
+template<typename scalar>
+Term<scalar>::~Term(void){
   delete[] once;
   delete[] lastId;
   delete[] lastI;
@@ -26,10 +33,9 @@ Term::~Term(void){
   delete[] aM;
 }
 
-double Term::getTermOutCache(size_t dofI,
-                             size_t dofJ,
-                             size_t elementId,
-                             size_t threadId) const{
+template<typename scalar>
+scalar Term<scalar>::getTermOutCache(size_t dofI, size_t dofJ, size_t elementId,
+                                     size_t threadId) const{
   size_t i   = 0;
   size_t ctr = elementId;
   size_t off = (*orientationStat)[0];
@@ -47,16 +53,17 @@ double Term::getTermOutCache(size_t dofI,
   return (*aM[i])(ctr, dofI * nFunction + dofJ);
 }
 
-void Term::allocA(size_t nFunction){
+template<typename scalar>
+void Term<scalar>::allocA(size_t nFunction){
   // Alloc //
-  aM = new fullMatrix<double>*[nOrientation];
+  aM = new fullMatrix<scalar>*[nOrientation];
 
   for(size_t s = 0; s < nOrientation; s++)
-    aM[s] = new fullMatrix<double>((*orientationStat)[s], nFunction);
+    aM[s] = new fullMatrix<scalar>((*orientationStat)[s], nFunction);
 }
 
-void Term::computeA(fullMatrix<double>**& bM,
-                    fullMatrix<double>**& cM){
+template<typename scalar>
+void Term<scalar>::computeA(fullMatrix<scalar>**& bM, fullMatrix<scalar>**& cM){
   // Fill //
   for(size_t s = 0; s < nOrientation; s++)
     // GEMM doesn't like matrices with 0 Elements
@@ -64,8 +71,8 @@ void Term::computeA(fullMatrix<double>**& bM,
       aM[s]->gemm(*bM[s], *cM[s]);
 }
 
-void Term::clean(fullMatrix<double>**& bM,
-                 fullMatrix<double>**& cM){
+template<typename scalar>
+void Term<scalar>::clean(fullMatrix<scalar>**& bM, fullMatrix<scalar>**& cM){
 
   for(size_t s = 0; s < nOrientation; s++)
     delete cM[s];

@@ -21,7 +21,7 @@ class FormulationMass: public Formulation<scalar>{
   const GroupOfElement* ddomain;
 
   // Local Terms //
-  Term* localTerms;
+  Term<double>* localTerms;
 
  public:
   FormulationMass(const GroupOfElement& domain,

@@ -12,7 +12,7 @@
    A Term of the Field Field type
  */
 
-class TermFieldField: public Term{
+class TermFieldField: public Term<double>{
  public:
   TermFieldField(const GroupOfJacobian& goj,
                  const Basis& basis,

@@ -22,18 +22,12 @@ class FormulationProjectionScalar: public Formulation<scalar>{
  private:
   // Function Space & Basis & Domain //
   const FunctionSpaceScalar* fspace;
-  const GroupOfElement*      goe;
+  const GroupOfElement*      ddomain;
   const Basis*               basis;
 
-  // For real version (Local Terms) //
-  TermFieldField*      localTerms1;
-  TermProjectionField* localTerms2;
-
-  // For complex version //
-  Complex (*f)(fullVector<double>& xyz);
-  fullMatrix<double>*   gC;
-  fullVector<double>*   gW;
-  GroupOfJacobian*      jac;
+  // Local Terms //
+  TermFieldField*              localTerms1;
+  TermProjectionField<scalar>* localTerms2;
 
  public:
   FormulationProjectionScalar(const GroupOfElement& domain,
@@ -62,5 +56,14 @@ class FormulationProjectionScalar: public Formulation<scalar>{
    @fn FormulationProjectionScalar::~FormulationProjectionScalar
    Deletes the this FormulationProjectionScalar
 */
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "FormulationProjectionScalarInclusion.h"
 
 #endif

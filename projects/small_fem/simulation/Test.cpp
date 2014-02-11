@@ -1,5 +1,6 @@
 #include <complex>
 #include <iostream>
+#include <cmath>
 
 #include "SmallFem.h"
 
@@ -44,105 +45,69 @@
 #include "SolverMUMPS.h"
 
 using namespace std;
-/*
-complex<double> fDirichlet0(fullVector<double>& xyz){
-  return complex<double>(0, 0);
-}
 
-complex<double> fDirichlet1(fullVector<double>& xyz){
-  return complex<double>(1, 0);
+Complex f(fullVector<double>& xyz){
+  return Complex(+1, -1) * (sin(10 * xyz(0)) +
+                            sin(10 * xyz(1)) +
+                            sin(10 * xyz(2)));
+}
+/*
+double f(fullVector<double>& xyz){
+  return  1 * (sin(10 * xyz(0)) +
+               sin(10 * xyz(1)) +
+               sin(10 * xyz(2)));
 }
 */
-
-fullVector<double> fDirichlet0(fullVector<double>& xyz){
-  fullVector<double> res(3);
-
-  res(0) = 0;
-  res(1) = 0;
-  res(2) = 0;
-
-  return res;
-}
-
-fullVector<double> fDirichlet1(fullVector<double>& xyz){
-  fullVector<double> res(3);
-
-  res(0) = 1;
-  res(1) = 0;
-  res(2) = 0;
-
-  return res;
-}
-
 void compute(const Options& option){
-  // Start Timer //
-  Timer timer, assemble, solve;
-  timer.start();
+  // Get FEM Orders //
+  const size_t nOrder = option.getValue("-o").size() - 1;
+  vector<int>   order(nOrder);
 
-  // Get Domains //
-  Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement    volume = msh.getFromPhysical(7);
-  GroupOfElement boundary0 = msh.getFromPhysical(6);
-  GroupOfElement boundary1 = msh.getFromPhysical(5);
+  for(size_t i = 0; i < nOrder; i++)
+    order[i] = atoi(option.getValue("-o")[i + 1].c_str());
 
-  // Full Domain //
-  GroupOfElement domain(msh);
-  domain.add(volume);
-  domain.add(boundary0);
-  domain.add(boundary1);
+  // Get FEM Meshes //
+  const size_t  nMesh = option.getValue("-msh").size() - 1;
+  vector<string> mesh(nMesh);
 
-  // Get Order //
-  size_t order = atoi(option.getValue("-o")[1].c_str());
+  for(size_t i = 0; i < nMesh; i++)
+    mesh[i] = option.getValue("-msh")[i + 1];
 
-  // Function Space //
-  assemble.start();
-  FunctionSpaceVector fs(domain, order);
+  // Iterate on Meshes //
+  for(size_t i = 0; i < nMesh; i++){
+    cout << " ** Mesh: " << mesh[i] << endl << flush;
+    Mesh           msh(mesh[i]);
+    GroupOfElement domain = msh.getFromPhysical(7);
 
-  // Compute //
-  FormulationSteadyWave<double> wave(volume, fs, 5);
+    // Iterate on Orders
+    for(size_t j = 0; j < nOrder; j++){
+      cout << "  -- Order " << order[j] << ": " << flush;
 
-  System<double> sys;
-  sys.addFormulation(wave);
+      // Projection
+      FunctionSpaceScalar fSpace(domain, order[j]);
+      FormulationProjectionScalar<Complex> projection(domain, fSpace, f);
+      System<Complex> sysProj;
 
-  SystemHelper<double>::dirichlet(sys, fs, boundary0, fDirichlet0);
-  SystemHelper<double>::dirichlet(sys, fs, boundary1, fDirichlet1);
+      sysProj.addFormulation(projection);
 
-  cout << "Test -- Order " << order
-       << ": " << sys.getSize()
-       << endl << flush;
+      // Assemble and Solve //
+      sysProj.assemble();
+      sysProj.solve();
 
-  sys.assemble();
-  assemble.stop();
+      // Post-processing //
+      FEMSolution<Complex> feSol;
+      stringstream stream;
+      stream << "projection_Mesh" << domain.getNumber() << "_Order" << order[j];
 
-  cout << "Assembled: " << assemble.time() << assemble.unit()
-       << endl << flush;
-
-  solve.start();
-  sys.solve();
-  solve.stop();
-
-  cout << "Solved: " << solve.time() << solve.unit()
-       << endl << flush;
-
-  // Write Sol //
-  try{
-    option.getValue("-nopos");
+      sysProj.getSolution(feSol);
+      feSol.write(stream.str());
+    }
   }
-  catch(...){
-    FEMSolution<double> feSol;
-    sys.getSolution(feSol);
-    feSol.write("test");
-  }
-
-  timer.stop();
-  cout << "Elapsed Time: " << timer.time()
-       << " s"             << endl;
-
 }
 
 int main(int argc, char** argv){
   // SmallFEM //
-  SmallFem::Keywords("-msh,-o,-k,-nopos");
+  SmallFem::Keywords("-msh,-o");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

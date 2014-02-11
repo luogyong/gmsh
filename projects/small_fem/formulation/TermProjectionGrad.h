@@ -9,11 +9,10 @@
    @class TermProjectionGrad
    @brief Term of the Field (in physical space) Grad (in reference space) type
 
-   Term of the Field (in physical space)
-   Grad (in reference space) type
+   Term of the Field (in physical space) Grad (in reference space) type
  */
 
-class TermProjectionGrad: public Term{
+class TermProjectionGrad: public Term<double>{
  private:
   typedef const fullMatrix<double>& (Basis::*bFunction)(size_t s)const;
 
@@ -25,6 +24,7 @@ class TermProjectionGrad: public Term{
                      fullVector<double> (*f)(fullVector<double>& xyz));
 
   virtual ~TermProjectionGrad(void);
+
 
  private:
   void computeC(const Basis& basis,

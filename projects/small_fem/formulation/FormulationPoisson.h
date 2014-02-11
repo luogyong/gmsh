@@ -23,8 +23,8 @@ class FormulationPoisson: public Formulation<double>{
   const GroupOfElement*      goe;
 
   // Local Terms //
-  TermGradGrad*        localTermsL;
-  TermProjectionField* localTermsR;
+  TermGradGrad*                localTermsL;
+  TermProjectionField<double>* localTermsR;
 
   // Source Term //
   double (*fSource)(fullVector<double>& xyz);

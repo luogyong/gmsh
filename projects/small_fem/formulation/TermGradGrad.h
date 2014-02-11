@@ -12,7 +12,7 @@
    Term of the Grad Grad type
  */
 
-class TermGradGrad: public Term{
+class TermGradGrad: public Term<double>{
  private:
   typedef const fullMatrix<double>& (Basis::*bFunction)(size_t s)const;
 

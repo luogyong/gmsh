@@ -12,7 +12,7 @@
    Term of the Curl Curl type
  */
 
-class TermCurlCurl: public Term{
+class TermCurlCurl: public Term<double>{
  private:
   typedef const fullMatrix<double>& (Basis::*bFunction)(size_t s)const;
 
