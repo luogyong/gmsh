@@ -140,20 +140,11 @@ interpolate(const MElement& element, const fullVector<double>& xyz) const{
   return complex<double>(real, imag);
 }
 
-bool FormulationEMDA::isGeneral(void) const{
-  return false;
-}
-
-complex<double> FormulationEMDA::weakB(size_t dofI, size_t dofJ,
-                                        size_t elementId) const{
-  return complex<double>(0, 0);
-}
-
-const FunctionSpace& FormulationEMDA::fsField(void) const{
+const FunctionSpace& FormulationEMDA::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationEMDA::fsTest(void) const{
+const FunctionSpace& FormulationEMDA::test(void) const{
   return *fspace;
 }
 

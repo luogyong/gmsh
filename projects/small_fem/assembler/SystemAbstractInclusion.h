@@ -33,8 +33,8 @@ addFormulation(const Formulation<scalar>& formulation){
   // Get Formulation Dofs (Field & Test) //
   std::set<Dof> dofField;
   std::set<Dof> dofTest;
-  formulation.fsField().getKeys(formulation.domain(), dofField);
-  formulation.fsTest().getKeys(formulation.domain(), dofTest);
+  formulation.field().getKeys(formulation.domain(), dofField);
+  formulation.test().getKeys(formulation.domain(), dofTest);
 
   // Add them to DofManager //
   this->dofM.addToDofManager(dofField);

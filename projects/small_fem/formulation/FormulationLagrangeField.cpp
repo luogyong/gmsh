@@ -54,21 +54,11 @@ complex<double> FormulationLagrangeField::rhs(size_t equationI,
   return complex<double>(0, 0);
 }
 
-bool FormulationLagrangeField::isGeneral(void) const{
-  return false;
-}
-
-complex<double> FormulationLagrangeField::weakB(size_t dofI, size_t dofJ,
-                                                size_t elementId) const{
-  return complex<double>(0, 0);
-}
-
-
-const FunctionSpace& FormulationLagrangeField::fsField(void) const{
+const FunctionSpace& FormulationLagrangeField::field(void) const{
   return *fsF;
 }
 
-const FunctionSpace& FormulationLagrangeField::fsTest(void) const{
+const FunctionSpace& FormulationLagrangeField::test(void) const{
   return *fsT;
 }
 

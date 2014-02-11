@@ -13,7 +13,7 @@
    @class FormulationPoisson
    @brief Formulation for the Poisson problem
 
-   Formulation for the @em Poisson problem
+   Formulation for the Poisson problem
  */
 
 class FormulationPoisson: public Formulation<double>{
@@ -36,15 +36,12 @@ class FormulationPoisson: public Formulation<double>{
 
   virtual ~FormulationPoisson(void);
 
-  virtual bool isGeneral(void) const;
+  virtual double weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual double rhs(size_t equationI, size_t elementId)          const;
 
-  virtual double weak(size_t dofI, size_t dofJ, size_t elementId)  const;
-  virtual double weakB(size_t dofI, size_t dofJ, size_t elementId) const;
-  virtual double rhs(size_t equationI, size_t elementId)           const;
-
-  virtual const FunctionSpace&  fsField(void) const;
-  virtual const FunctionSpace&  fsTest(void)  const;
-  virtual const GroupOfElement& domain(void)  const;
+  virtual const FunctionSpace&  field(void)  const;
+  virtual const FunctionSpace&  test(void)   const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**

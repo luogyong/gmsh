@@ -117,25 +117,15 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
   return integral1 - integral2;
 }
 
-double FormulationSteadySlow::
-weakB(size_t dofI, size_t dofJ, size_t elementId) const{
-
-  return 0;
-}
-
 double FormulationSteadySlow::rhs(size_t equationI, size_t elementId) const{
   return 0;
 }
 
-bool FormulationSteadySlow::isGeneral(void) const{
-  return false;
-}
-
-const FunctionSpace& FormulationSteadySlow::fsField(void) const{
+const FunctionSpace& FormulationSteadySlow::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationSteadySlow::fsTest(void) const{
+const FunctionSpace& FormulationSteadySlow::test(void) const{
   return *fspace;
 }
 

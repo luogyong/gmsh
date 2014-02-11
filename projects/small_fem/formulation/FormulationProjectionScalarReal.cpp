@@ -61,23 +61,12 @@ double FormulationProjectionScalar<double>::rhs(size_t equationI,
 }
 
 template<>
-bool FormulationProjectionScalar<double>::isGeneral(void) const{
-  return false;
-}
-
-template<>
-double FormulationProjectionScalar<double>::weakB(size_t dofI, size_t dofJ,
-                                                  size_t elementId) const{
-  return 0;
-}
-
-template<>
-const FunctionSpace& FormulationProjectionScalar<double>::fsField(void) const{
+const FunctionSpace& FormulationProjectionScalar<double>::field(void) const{
   return *fspace;
 }
 
 template<>
-const FunctionSpace& FormulationProjectionScalar<double>::fsTest(void) const{
+const FunctionSpace& FormulationProjectionScalar<double>::test(void) const{
   return *fspace;
 }
 

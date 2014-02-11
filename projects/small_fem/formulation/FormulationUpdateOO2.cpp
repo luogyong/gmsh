@@ -275,20 +275,11 @@ interpolateGrad(const MElement& element,
   return ret;
 }
 
-bool FormulationUpdateOO2::isGeneral(void) const{
-  return false;
-}
-
-complex<double>  FormulationUpdateOO2::weakB(size_t dofI, size_t dofJ,
-                                             size_t elementId) const{
-  return complex<double>(0, 0);
-}
-
-const FunctionSpace& FormulationUpdateOO2::fsField(void) const{
+const FunctionSpace& FormulationUpdateOO2::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationUpdateOO2::fsTest(void) const{
+const FunctionSpace& FormulationUpdateOO2::test(void) const{
   return *fspace;
 }
 

@@ -5,9 +5,7 @@ using namespace std;
 
 SystemEigen::SystemEigen(void){
   // Is the Problem a General EigenValue Problem ? //
-  general = true;
-  cout << "WARNING: SystemEigen HACK --> general is set to 'true' "
-       << "--> add 'addFormulationB()'" << endl << flush;
+  general = false;
 
   // Init //
   A           = NULL;
@@ -39,6 +37,44 @@ SystemEigen::~SystemEigen(void){
   }
 }
 
+void SystemEigen::
+addFormulationB(const Formulation<complex<double> >& formulation){
+  // Add formulation in list of formulation //
+  formulationB.push_back(&formulation);
+
+  // Get Formulation Dofs (Field & Test) //
+  set<Dof> dofField;
+  set<Dof> dofTest;
+  formulation.field().getKeys(formulation.domain(), dofField);
+  formulation.test().getKeys(formulation.domain(), dofTest);
+
+  // Add them to DofManager //
+  dofM.addToDofManager(dofField);
+  dofM.addToDofManager(dofTest);
+
+  // This EigenSystem is general
+  general = true;
+}
+
+void SystemEigen::assemble(SolverMatrix<complex<double> >& tmpMat,
+                           SolverVector<complex<double> >& tmpRHS,
+                           const Formulation<complex<double> >& formulation,
+                           formulationPtr term){
+  // Get All Dofs (Field & Test) per Element //
+  vector<vector<Dof> > dofField;
+  vector<vector<Dof> > dofTest;
+  formulation.field().getKeys(formulation.domain(), dofField);
+  formulation.test().getKeys(formulation.domain(), dofTest);
+
+  // Assemble Systems (tmpA and tmpB) //
+  const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
+
+  #pragma omp parallel for
+  for(size_t i = 0; i < E; i++)
+    SystemAbstract::assemble
+      (tmpMat, tmpRHS, i, dofField[i], dofTest[i], term, formulation);
+}
+
 void SystemEigen::assemble(void){
   // Enumerate Dofs in DofManager //
   dofM.generateGlobalIdSpace();
@@ -51,33 +87,22 @@ void SystemEigen::assemble(void){
   SolverMatrix<complex<double> > tmpB(size, size);
 
   // Get Formulation Terms //
-  formulationPtr termA = &Formulation<std::complex<double> >::weak;
-  formulationPtr termB = &Formulation<std::complex<double> >::weakB;
+  formulationPtr term = &Formulation<complex<double> >::weak;
 
-  // Iterate on Formulations //
+  // Iterate on Formulations A //
   list<const Formulation<complex<double> >*>::iterator it = formulation.begin();
   list<const Formulation<complex<double> >*>::iterator end = formulation.end();
 
-  for(; it != end; it++){
-    // Get All Dofs (Field & Test) per Element //
-    vector<vector<Dof> > dofField;
-    vector<vector<Dof> > dofTest;
-    (*it)->fsField().getKeys((*it)->domain(), dofField);
-    (*it)->fsTest().getKeys((*it)->domain(), dofTest);
+  for(; it != end; it++)
+    assemble(tmpA, tmpRHS, **it, term);
 
-    // Assemble Systems (tmpA and tmpB) //
-    const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
+  // Iterate on Formulations B //
+  if(general){
+    it  = formulationB.begin();
+    end = formulationB.end();
 
-    #pragma omp parallel for
-    for(size_t i = 0; i < E; i++)
-      SystemAbstract::assemble
-        (tmpA, tmpRHS, i, dofField[i], dofTest[i], termA, **it);
-
-    if(general)
-      #pragma omp parallel for
-      for(size_t i = 0; i < E; i++)
-        SystemAbstract::assemble
-          (tmpB, tmpRHS, i, dofField[i], dofTest[i], termB, **it);
+    for(; it != end; it++)
+      assemble(tmpB, tmpRHS, **it, term);
   }
 
   // Copy tmpA into Assembled PETSc matrix //
@@ -247,7 +272,7 @@ void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol) const{
 
   // Coefficients //
   // FunctionSpace & Domain
-  const FunctionSpace&  fs  = formulation.front()->fsField();
+  const FunctionSpace&  fs  = formulation.front()->field();
   const GroupOfElement& goe = formulation.front()->domain();
 
   std::cout << "WARNING: SystemEigen::getSolution(FEMSolution) "

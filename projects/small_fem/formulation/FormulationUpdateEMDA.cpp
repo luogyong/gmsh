@@ -176,20 +176,11 @@ interpolate(const MElement& element,
   return complex<double>(real, imag);
 }
 
-bool FormulationUpdateEMDA::isGeneral(void) const{
-  return false;
-}
-
-complex<double>  FormulationUpdateEMDA::weakB(size_t dofI, size_t dofJ,
-                                              size_t elementId) const{
-  return complex<double>(0, 0);
-}
-
-const FunctionSpace& FormulationUpdateEMDA::fsField(void) const{
+const FunctionSpace& FormulationUpdateEMDA::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationUpdateEMDA::fsTest(void) const{
+const FunctionSpace& FormulationUpdateEMDA::test(void) const{
   return *fspace;
 }
 

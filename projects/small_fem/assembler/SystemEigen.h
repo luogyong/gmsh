@@ -22,6 +22,7 @@
 
 class SystemEigen: public SystemAbstract<std::complex<double> >{
  protected:
+  std::list<const Formulation<std::complex<double> >*> formulationB;
   bool general;
 
   Mat* A;
@@ -34,6 +35,8 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
  public:
   SystemEigen(void);
   virtual ~SystemEigen(void);
+
+  void addFormulationB(const Formulation<std::complex<double> >& formulation);
 
   virtual size_t getNComputedSolution(void)                             const;
   virtual void   getSolution(fullVector<std::complex<double> >& sol,
@@ -51,6 +54,11 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
 
   virtual void writeMatrix(std::string fileName,
                            std::string matrixName) const;
+ private:
+  void assemble(SolverMatrix<std::complex<double> >& tmpMat,
+                SolverVector<std::complex<double> >& tmpRHS,
+                const Formulation<std::complex<double> >& formulation,
+                formulationPtr term);
 };
 
 

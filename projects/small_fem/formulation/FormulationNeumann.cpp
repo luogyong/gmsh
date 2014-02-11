@@ -55,21 +55,11 @@ complex<double> FormulationNeumann::rhs(size_t equationI,
   return complex<double>(0, 0);
 }
 
-bool FormulationNeumann::isGeneral(void) const{
-  return false;
-}
-
-complex<double> FormulationNeumann::weakB(size_t dofI, size_t dofJ,
-                                          size_t elementId) const{
-  return complex<double>(0, 0);
-}
-
-
-const FunctionSpace& FormulationNeumann::fsField(void) const{
+const FunctionSpace& FormulationNeumann::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationNeumann::fsTest(void) const{
+const FunctionSpace& FormulationNeumann::test(void) const{
   return *fspace;
 }
 

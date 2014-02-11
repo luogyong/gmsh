@@ -5,12 +5,15 @@
 #include "SystemEigen.h"
 #include "SystemHelper.h"
 
-#include "FormulationEigenFrequencyScalar.h"
-#include "FormulationEigenFrequencyVector.h"
+#include "FormulationStiffness.h"
+#include "FormulationMass.h"
 
 #include "SmallFem.h"
 
 using namespace std;
+
+static const size_t scal = 0;
+static const size_t vect = 1;
 
 fullVector<complex<double> > fVect(fullVector<double>& xyz){
   fullVector<complex<double> > f(3);
@@ -41,59 +44,61 @@ void compute(const Options& option){
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   const size_t nWave = atoi(option.getValue("-n")[1].c_str());
 
-  // Chose write formulation for Eigenvalues and boundary condition //
-  FunctionSpace*                  fs = NULL;
-  FunctionSpaceScalar*           fsS = NULL;
-  FunctionSpaceVector*           fsV = NULL;
-  Formulation<complex<double> >* eig = NULL;
-  SystemEigen*                   sys = NULL;
+  // Get Type //
+  size_t type;
 
-  if(option.getValue("-type")[1].compare("vector") == 0){
-    fs  = new FunctionSpaceVector(domain, order);
-    fsV = static_cast<FunctionSpaceVector*>(fs);
-    eig = new FormulationEigenFrequencyVector(volume, *fsV);
-    sys = new SystemEigen;
-
-    sys->addFormulation(*eig);
-
-    SystemHelper<complex<double> >::dirichlet(*sys, *fsV, border, fVect);
-    cout << "Vectorial ";
-  }
-
-  else if(option.getValue("-type")[1].compare("scalar") == 0){
-    fs  = new FunctionSpaceScalar(domain, order);
-    fsS = static_cast<FunctionSpaceScalar*>(fs);
-    eig = new FormulationEigenFrequencyScalar(volume, *fsS);
-    sys = new SystemEigen;
-
-    sys->addFormulation(*eig);
-
-    SystemHelper<complex<double> >::dirichlet(*sys, *fsS, border, fScal);
+  if(option.getValue("-type")[1].compare("scalar") == 0){
+    type = scal;
     cout << "Scalar ";
   }
 
-  else
-    throw Exception("No -type given");
+  else if(option.getValue("-type")[1].compare("vector") == 0){
+    type = vect;
+    cout << "Vectorial ";
+  }
 
-  cout << "Eigenvalues problem: " << sys->getSize() << endl;
+  else
+    throw Exception("Bad -type: %s", option.getValue("-type")[1].c_str());
+
+  // Function Space //
+  FunctionSpace* fs = NULL;
+
+  if(type == scal)
+    fs = new FunctionSpaceScalar(domain, order);
+  else
+    fs = new FunctionSpaceVector(domain, order);
+
+  // Formulations & System //
+  FormulationStiffness<complex<double> > stiff(volume, *fs, *fs);
+  FormulationMass<complex<double> >       mass(volume, *fs, *fs);
+
+  SystemEigen sys;
+  sys.addFormulation(stiff);
+  sys.addFormulationB(mass);
+
+  // Dirichlet //
+  if(type == scal)
+    SystemHelper<complex<double> >::dirichlet(sys, *fs, border, fScal);
+  else
+    SystemHelper<complex<double> >::dirichlet(sys, *fs, border, fVect);
 
   // Assemble and Solve //
-  cout << "Assembling..." << endl << flush;
-  sys->assemble();
+  cout << "Eigenvalues problem: " << sys.getSize() << endl
+       << "Assembling..."         << endl          << flush;
+  sys.assemble();
 
   cout << "Solving..." << endl << flush;
-  sys->setNumberOfEigenValues(nWave);
-  sys->solve();
+  sys.setNumberOfEigenValues(nWave);
+  sys.solve();
 
   // Display //
   fullVector<complex<double> > eigenValue;
-  const size_t nEigenValue = sys->getNComputedSolution();
-  sys->getEigenValues(eigenValue);
+  const size_t nEigenValue = sys.getNComputedSolution();
+  sys.getEigenValues(eigenValue);
 
   cout << "Number of found Eigenvalues: " << nEigenValue
-       << endl;
-
-  cout << endl
+       << endl
+       << endl
        << "Number\tEigen Value" << endl;
 
   for(size_t i = 0; i < nEigenValue; i++)
@@ -106,13 +111,11 @@ void compute(const Options& option){
   }
   catch(...){
     FEMSolution<complex<double> > feSol;
-    sys->getSolution(feSol);
+    sys.getSolution(feSol);
     feSol.write("eigen_mode");
   }
 
   // Clean //
-  delete sys;
-  delete eig;
   delete fs;
 }
 

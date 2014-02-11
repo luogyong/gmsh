@@ -73,17 +73,12 @@ FormulationMass<scalar>::~FormulationMass(void){
 }
 
 template<typename scalar>
-bool FormulationMass<scalar>::isGeneral(void) const{
-  return false;
-}
-
-template<typename scalar>
-const FunctionSpace& FormulationMass<scalar>::fsField(void) const{
+const FunctionSpace& FormulationMass<scalar>::field(void) const{
   return *ffield;
 }
 
 template<typename scalar>
-const FunctionSpace& FormulationMass<scalar>::fsTest(void) const{
+const FunctionSpace& FormulationMass<scalar>::test(void) const{
   return *ttest;
 }
 

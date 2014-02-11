@@ -48,20 +48,15 @@ class FormulationOO2: public Formulation<std::complex<double> >{
 
   virtual ~FormulationOO2(void);
 
-  virtual bool isGeneral(void) const;
+  virtual std::complex<double>
+    weak(size_t dofI, size_t dofJ, size_t elementId) const;
 
   virtual std::complex<double>
-    weak(size_t dofI, size_t dofJ, size_t elementId)  const;
+    rhs(size_t equationI, size_t elementId)          const;
 
-  virtual std::complex<double>
-    weakB(size_t dofI, size_t dofJ, size_t elementId) const;
-
-  virtual std::complex<double>
-    rhs(size_t equationI, size_t elementId)           const;
-
-  virtual const FunctionSpace&  fsField(void) const;
-  virtual const FunctionSpace&  fsTest(void)  const;
-  virtual const GroupOfElement& domain(void)  const;
+  virtual const FunctionSpace&  field(void)  const;
+  virtual const FunctionSpace&  test(void)   const;
+  virtual const GroupOfElement& domain(void) const;
 
  private:
   std::complex<double>

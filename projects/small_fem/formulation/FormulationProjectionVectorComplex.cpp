@@ -153,27 +153,14 @@ rhs(size_t equationI, size_t elementId) const{
 }
 
 template<>
-bool FormulationProjectionVector<complex<double> >::isGeneral(void) const{
-
-  return false;
-}
-
-template<>
-complex<double> FormulationProjectionVector<complex<double> >::
-weakB(size_t dofI, size_t dofJ, size_t elementId) const{
-
-  return complex<double>(0, 0);
-}
-
-template<>
 const FunctionSpace& FormulationProjectionVector<complex<double> >::
-fsField(void) const{
+field(void) const{
   return *fspace;
 }
 
 template<>
 const FunctionSpace& FormulationProjectionVector<complex<double> >::
-fsTest(void) const{
+test(void) const{
   return *fspace;
 }
 

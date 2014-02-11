@@ -152,20 +152,11 @@ interpolate(const MElement& element, const fullVector<double>& xyz) const{
   return complex<double>(real, imag);
 }
 
-bool FormulationOO2::isGeneral(void) const{
-  return false;
-}
-
-complex<double>  FormulationOO2::weakB(size_t dofI, size_t dofJ,
-                                        size_t elementId) const{
-  return complex<double>(0, 0);
-}
-
-const FunctionSpace& FormulationOO2::fsField(void) const{
+const FunctionSpace& FormulationOO2::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationOO2::fsTest(void) const{
+const FunctionSpace& FormulationOO2::test(void) const{
   return *fspace;
 }
 

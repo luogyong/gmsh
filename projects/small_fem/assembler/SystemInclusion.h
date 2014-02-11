@@ -57,8 +57,8 @@ void System<scalar>::assemble(void){
     // Get All Dofs (Field & Test) per Element
     std::vector<std::vector<Dof> > dofField;
     std::vector<std::vector<Dof> > dofTest;
-    (*it)->fsField().getKeys((*it)->domain(), dofField);
-    (*it)->fsTest().getKeys((*it)->domain(), dofTest);
+    (*it)->field().getKeys((*it)->domain(), dofField);
+    (*it)->test().getKeys((*it)->domain(), dofTest);
 
     // Assemble
     const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
@@ -125,7 +125,7 @@ void System<scalar>::getSolution(FEMSolution<scalar>& feSol) const{
 
   // Coefficients //
   // FunctionSpace & Domain
-  const FunctionSpace&  fs  = this->formulation.front()->fsField();
+  const FunctionSpace&  fs  = this->formulation.front()->field();
   const GroupOfElement& goe = this->formulation.front()->domain();
 
   std::cout << "WARNING: System::getSolution(FEMSolution) "

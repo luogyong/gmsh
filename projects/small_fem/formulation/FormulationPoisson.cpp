@@ -66,20 +66,11 @@ double FormulationPoisson::rhs(size_t equationI,
   return localTermsR->getTerm(0, equationI, elementId);
 }
 
-bool FormulationPoisson::isGeneral(void) const{
-  return false;
-}
-
-double FormulationPoisson::weakB(size_t dofI, size_t dofJ,
-                                 size_t elementId) const{
-  return 0;
-}
-
-const FunctionSpace& FormulationPoisson::fsField(void) const{
+const FunctionSpace& FormulationPoisson::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationPoisson::fsTest(void) const{
+const FunctionSpace& FormulationPoisson::test(void) const{
   return *fspace;
 }
 

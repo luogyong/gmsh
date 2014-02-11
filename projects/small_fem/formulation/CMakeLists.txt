@@ -20,9 +20,6 @@ set(src
   FormulationOO2.cpp
   FormulationUpdateOO2.cpp
 
-  FormulationEigenFrequencyVector.cpp
-  FormulationEigenFrequencyScalar.cpp
-
   Term.cpp
   TermFieldField.cpp
   TermGradGrad.cpp

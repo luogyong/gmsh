@@ -34,29 +34,18 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
 
 template<typename scalar>
 scalar FormulationSteadyWave<scalar>::
-weakB(size_t dofI, size_t dofJ, size_t elementId) const{
-  return 0;
-}
-
-template<typename scalar>
-scalar FormulationSteadyWave<scalar>::
 rhs(size_t equationI, size_t elementId) const{
   return 0;
 }
 
 template<typename scalar>
-bool FormulationSteadyWave<scalar>::isGeneral(void) const{
-  return false;
+const FunctionSpace& FormulationSteadyWave<scalar>::field(void) const{
+  return stiff->field();
 }
 
 template<typename scalar>
-const FunctionSpace& FormulationSteadyWave<scalar>::fsField(void) const{
-  return stiff->fsField();
-}
-
-template<typename scalar>
-const FunctionSpace& FormulationSteadyWave<scalar>::fsTest(void) const{
-  return stiff->fsTest();
+const FunctionSpace& FormulationSteadyWave<scalar>::test(void) const{
+  return stiff->test();
 }
 
 template<typename scalar>

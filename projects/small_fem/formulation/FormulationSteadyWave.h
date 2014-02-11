@@ -29,15 +29,12 @@ class FormulationSteadyWave: public Formulation<scalar>{
 
   virtual ~FormulationSteadyWave(void);
 
-  virtual bool isGeneral(void) const;
+  virtual scalar weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual scalar rhs(size_t equationI, size_t elementId)          const;
 
-  virtual scalar weak(size_t dofI, size_t dofJ, size_t elementId)  const;
-  virtual scalar weakB(size_t dofI, size_t dofJ, size_t elementId) const;
-  virtual scalar rhs(size_t equationI, size_t elementId)           const;
-
-  virtual const FunctionSpace&  fsField(void) const;
-  virtual const FunctionSpace&  fsTest(void)  const;
-  virtual const GroupOfElement& domain(void)  const;
+  virtual const FunctionSpace&  field(void)  const;
+  virtual const FunctionSpace&  test(void)   const;
+  virtual const GroupOfElement& domain(void) const;
 };
 
 /**
