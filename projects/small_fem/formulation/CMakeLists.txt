@@ -1,17 +1,13 @@
 set(src
+  FormulationMass.cpp
+  FormulationStiffness.cpp
+  FormulationProjection.cpp
   FormulationPoisson.cpp
-  FormulationProjectionVector.cpp
-  FormulationProjectionScalar.cpp
+  FormulationNeumann.cpp
+  FormulationSteadySlow.cpp
 
   FormulationLagrangeField.cpp
   FormulationFieldLagrange.cpp
-
-  FormulationNeumann.cpp
-
-  FormulationStiffness.cpp
-  FormulationMass.cpp
-
-  FormulationSteadySlow.cpp
 
   FormulationEMDA.cpp
   FormulationUpdateEMDA.cpp

@@ -27,8 +27,7 @@
 
 #include "FormulationNeumann.h"
 #include "FormulationEMDA.h"
-#include "FormulationProjectionScalar.h"
-#include "FormulationProjectionVector.h"
+#include "FormulationProjection.h"
 
 #include "FormulationSteadyWave.h"
 #include "FormulationStiffness.h"
@@ -45,13 +44,13 @@
 #include "SolverMUMPS.h"
 
 using namespace std;
-/*
+
 Complex f(fullVector<double>& xyz){
   return Complex(+1, -1) * (sin(10 * xyz(0)) +
                             sin(10 * xyz(1)) +
                             sin(10 * xyz(2)));
 }
-*/
+/*
 fullVector<Complex> f(fullVector<double>& xyz){
   fullVector<Complex> res(3);
 
@@ -61,7 +60,7 @@ fullVector<Complex> f(fullVector<double>& xyz){
 
   return res;
 }
-
+*/
 void compute(const Options& option){
   // Get FEM Orders //
   const size_t nOrder = option.getValue("-o").size() - 1;
@@ -88,8 +87,8 @@ void compute(const Options& option){
       cout << "  -- Order " << order[j] << ": " << flush;
 
       // Projection
-      FunctionSpaceVector fSpace(domain, order[j]);
-      FormulationProjectionVector<Complex> projection(domain, fSpace, f);
+      FunctionSpaceScalar fSpace(domain, order[j]);
+      FormulationProjection<Complex> projection(domain, fSpace, f);
       System<Complex> sysProj;
 
       sysProj.addFormulation(projection);

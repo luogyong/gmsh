@@ -8,6 +8,7 @@
    A bunch of helping class methods for linear systems
 */
 
+#include "FormulationProjection.h"
 #include "SystemAbstract.h"
 #include "GroupOfElement.h"
 #include "FunctionSpace.h"
@@ -20,13 +21,18 @@ class SystemHelper{
 
   static void dirichlet(SystemAbstract<scalar>& sys,
                         const FunctionSpace& fs,
-                        const GroupOfElement& goe,
+                        const GroupOfElement& domain,
                         scalar (*f)(fullVector<double>& xyz));
 
   static void dirichlet(SystemAbstract<scalar>& sys,
                         const FunctionSpace& fs,
-                        const GroupOfElement& goe,
+                        const GroupOfElement& domain,
                         fullVector<scalar> (*f)(fullVector<double>& xyz));
+ private:
+  static void dirichlet(SystemAbstract<scalar>& sys,
+                        const FunctionSpace& fs,
+                        const GroupOfElement& domain,
+                        FormulationProjection<scalar>& formulation);
 };
 
 /**
@@ -38,22 +44,26 @@ class SystemHelper{
    Deletes this SystemHelper
    **
 
-   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, GroupOfElement&, scalar (*f)(fullVector<double>& xyz))
+   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, FunctionSpace&, GroupOfElement&, scalar (*f)(fullVector<double>& xyz))
    @param sys A SystemAbstract
-   @param goe A GroupOfElement
+   @param fs A FunctionSpace
+   @param domain A GroupOfElement
    @param f A scalar function
 
-   Imposes on the given SystemAbstract a dirichlet condition
-   on the given GroupOfElement and with the given function
+   Imposes on the given SystemAbstract a dirichlet condition with:
+   @li The Dof%s of the given FunctionSpace (restricted to the given domain)
+   @li The given scalar function
    **
 
-   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, GroupOfElement&, fullVector<scalar> (*f)(fullVector<double>& xyz))
+   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, FunctionSpace&, GroupOfElement&, fullVector<scalar> (*f)(fullVector<double>& xyz))
    @param sys A SystemAbstract
-   @param goe A GroupOfElement
+   @param fs A FunctionSpace
+   @param domain A GroupOfElement
    @param f A vectorial function
 
-   Imposes on the given SystemAbstract a dirichlet condition
-   on the given GroupOfElement and with the given function
+   Imposes on the given SystemAbstract a dirichlet condition with:
+   @li The Dof%s of the given FunctionSpace (restricted to the given domain)
+   @li The given vectorial function
  */
 
 //////////////////////////////////////

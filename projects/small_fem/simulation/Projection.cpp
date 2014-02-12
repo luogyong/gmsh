@@ -11,8 +11,7 @@
 #include "Interpolator.h"
 #include "FunctionSpaceScalar.h"
 #include "FunctionSpaceVector.h"
-#include "FormulationProjectionScalar.h"
-#include "FormulationProjectionVector.h"
+#include "FormulationProjection.h"
 
 #include "SmallFem.h"
 
@@ -219,7 +218,7 @@ void fem(double (*f)(fullVector<double>& xyz),
   stringstream stream;
 
   FunctionSpaceScalar fSpace(domain, order);
-  FormulationProjectionScalar<double> projection(domain, fSpace, f);
+  FormulationProjection<double> projection(domain, fSpace, f);
   System<double> sysProj;
 
   sysProj.addFormulation(projection);
@@ -265,7 +264,7 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
   stringstream stream;
 
   FunctionSpaceVector fSpace(domain, order);
-  FormulationProjectionVector<double> projection(domain, fSpace, f);
+  FormulationProjection<double> projection(domain, fSpace, f);
   System<double> sysProj;
 
   sysProj.addFormulation(projection);
