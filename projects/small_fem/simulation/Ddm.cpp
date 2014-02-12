@@ -9,18 +9,14 @@
 #include "System.h"
 #include "SystemHelper.h"
 
+#include "FormulationOO2.h"
+#include "FormulationEMDA.h"
 #include "FormulationNeumann.h"
 #include "FormulationSteadyWave.h"
-
-#include "FormulationEMDA.h"
 #include "FormulationUpdateEMDA.h"
-
-#include "FormulationOO2.h"
 #include "FormulationUpdateOO2.h"
 
 using namespace std;
-
-typedef std::complex<double> Complex;
 
 Complex fSource(fullVector<double>& xyz){
   return Complex(1, 0);
@@ -55,11 +51,11 @@ void displaySolution(map<Dof, Complex>& solution,
   }
 }
 
-void serialize(const map<Dof, Complex>& map,
+void serialize(const map<Dof, Complex>& data,
                vector<int>& entity, vector<int>& type, vector<Complex>& value){
 
-  std::map<Dof, Complex>::const_iterator it  = map.begin();
-  std::map<Dof, Complex>::const_iterator end = map.end();
+  map<Dof, Complex>::const_iterator it  = data.begin();
+  map<Dof, Complex>::const_iterator end = data.end();
 
   for(size_t i = 0; it != end; i++, it++){
     entity[i] = (int)(it->first.getEntity());
@@ -68,12 +64,12 @@ void serialize(const map<Dof, Complex>& map,
   }
 }
 
-void unserialize(map<Dof, Complex>& map,
+void unserialize(map<Dof, Complex>& data,
                  const vector<int>& entity, const vector<int>& type,
                  const vector<Complex>& value){
 
-  std::map<Dof, Complex>::iterator it  = map.begin();
-  std::map<Dof, Complex>::iterator end = map.end();
+  map<Dof, Complex>::iterator it  = data.begin();
+  map<Dof, Complex>::iterator end = data.end();
 
   for(size_t i = 0; it != end; it++, i++){
     if((int)(it->first.getType()) != type[i])
@@ -145,7 +141,7 @@ void compute(const Options& option){
   const string oo2Type("oo2");
 
   // Variables
-  const double Pi = std::atan(1.0) * 4;
+  const double Pi = atan(1.0) * 4;
   double lc       = 0;
   double chi      = 0;
   Complex ooA     = 0;
@@ -169,8 +165,8 @@ void compute(const Options& option){
     double tmp1 =
       (ooXsiMax * ooXsiMax - k * k) * ((k + ooDeltaK) * (k + ooDeltaK) - k * k);
 
-    Complex ooAlpha = std::pow(Complex(tmp0, 0), 0.25) * Complex(0, 1);
-    Complex ooBeta  = std::pow(Complex(tmp1, 0), 0.25);
+    Complex ooAlpha = pow(Complex(tmp0, 0), 0.25) * Complex(0, 1);
+    Complex ooBeta  = pow(Complex(tmp1, 0), 0.25);
 
     ooA = -(ooAlpha * ooBeta - k * k) / (ooAlpha + ooBeta);
     ooB = Complex(-1, 0) / (ooAlpha + ooBeta);
@@ -214,7 +210,7 @@ void compute(const Options& option){
   }
 
   // Function Space //
-  FunctionSpaceScalar* fs = NULL;
+  FunctionSpaceScalar fs(*domain, order);
 
   // Formulation Pointers //
   Formulation<Complex>* wave;
@@ -240,16 +236,13 @@ void compute(const Options& option){
   vector<Complex>* inValue   = NULL;
 
   for(size_t step = 0; step < maxIt; step++){
-    // Function Space //
-    fs = new FunctionSpaceScalar(*domain, order);
-
     // Init DDM Border Dofs
     if(step == 0){
       solution = new map<Dof, Complex>;
       ddmG     = new map<Dof, Complex>;
 
-      initMap(*fs, *ddmBorder, *solution);
-      initMap(*fs, *ddmBorder, *ddmG);
+      initMap(fs, *ddmBorder, *solution);
+      initMap(fs, *ddmBorder, *ddmG);
     }
 
     // Init MPI Buffers
@@ -264,13 +257,13 @@ void compute(const Options& option){
     }
 
     // Formulations //
-    wave    = new FormulationSteadyWave<Complex>(*volume, *fs, k);
-    neumann = new FormulationNeumann(*infinity, *fs, k);
+    wave    = new FormulationSteadyWave<Complex>(*volume, fs, k);
+    neumann = new FormulationNeumann(*infinity, fs, k);
 
     if(ddmType == emdaType)
-      ddm = new FormulationEMDA(*ddmBorder, *fs, k, chi, *ddmG);
+      ddm = new FormulationEMDA(*ddmBorder, fs, k, chi, *ddmG);
     else if(ddmType == oo2Type)
-      ddm = new FormulationOO2(*ddmBorder, *fs, ooA, ooB, *ddmG);
+      ddm = new FormulationOO2(*ddmBorder, fs, ooA, ooB, *ddmG);
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -283,7 +276,7 @@ void compute(const Options& option){
 
     // Constraint
     if(myId == 0)
-      SystemHelper<Complex>::dirichlet(*system, *fs, *source, fSource);
+      SystemHelper<Complex>::dirichlet(*system, fs, *source, fSource);
 
     // Assemble
     system->assemble();
@@ -305,11 +298,11 @@ void compute(const Options& option){
     // Update G //
     if(ddmType == emdaType)
       upDdm  =
-        new FormulationUpdateEMDA(*ddmBorder, *fs, k, chi, *solution, *ddmG);
+        new FormulationUpdateEMDA(*ddmBorder, fs, k, chi, *solution, *ddmG);
 
    else if(ddmType == oo2Type)
       upDdm  =
-        new FormulationUpdateOO2(*ddmBorder, *fs, ooA, ooB, *solution, *ddmG);
+        new FormulationUpdateOO2(*ddmBorder, fs, ooA, ooB, *solution, *ddmG);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -351,8 +344,6 @@ void compute(const Options& option){
 
     delete wave;
     delete system;
-
-    delete fs;
   }
 
   // Finalize //
