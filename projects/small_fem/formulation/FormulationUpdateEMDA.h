@@ -3,6 +3,7 @@
 
 #include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
+#include "TermProjectionField.h"
 #include "TermFieldField.h"
 #include "Formulation.h"
 
@@ -19,28 +20,21 @@ class FormulationUpdateEMDA: public Formulation<Complex>{
   double k;
   double chi;
 
-  // Function Space & Basis //
+  // Function Space & Domain //
   const FunctionSpaceScalar* fspace;
-  const Basis*                basis;
+  const GroupOfElement*      goe;
 
-  // Domain //
-  const GroupOfElement* goe;
-
-  // Quadrature //
-  fullMatrix<double>* gC;
-  fullVector<double>* gW;
-  GroupOfJacobian*    jac;
-
-  // DDM //
-  const std::map<Dof, Complex>* solution;
-  const std::map<Dof, Complex>* oldG;
+  // Local Terms //
+  TermFieldField*               lGout;
+  TermProjectionField<Complex>* lGin;
+  TermProjectionField<Complex>* lU;
 
  public:
   FormulationUpdateEMDA(const GroupOfElement& domain,
                         const FunctionSpaceScalar& fs,
                         double k,
                         double chi,
-                        const std::map<Dof, Complex>& solution,
+                        const std::map<Dof, Complex>& sol,
                         const std::map<Dof, Complex>& oldG);
 
   virtual ~FormulationUpdateEMDA(void);
@@ -51,12 +45,6 @@ class FormulationUpdateEMDA: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
-
- private:
-  Complex
-    interpolate(const MElement& element,
-                const fullVector<double>& xyz,
-                const std::map<Dof, Complex>& f) const;
 };
 
 /**

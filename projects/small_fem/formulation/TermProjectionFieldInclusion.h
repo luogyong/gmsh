@@ -15,6 +15,41 @@ TermProjectionField(const GroupOfJacobian& goj,
                     const fullVector<double>& integrationWeights,
                     const fullMatrix<double>& integrationPoints,
                     scalar (*f)(fullVector<double>& xyz)){
+
+  // Save F and Evaluator //
+  Eval evaluator = &TermProjectionField<scalar>::fContainer;
+  this->f        = f;
+
+  // Init //
+  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+}
+
+template<typename scalar>
+TermProjectionField<scalar>::
+TermProjectionField(const GroupOfJacobian& goj,
+                    const Basis& basis,
+                    const fullVector<double>& integrationWeights,
+                    const fullMatrix<double>& integrationPoints,
+                    const FunctionSpaceScalar& fs,
+                    const std::map<Dof, scalar>& dof){
+
+  // Save FunctionSpace, Dof values and Evaluator //
+  Eval evaluator = &TermProjectionField<scalar>::interpolate;
+  this->fsScalar = &fs;
+  this->dofValue = &dof;
+
+  // Init //
+  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+}
+
+template<typename scalar>
+void TermProjectionField<scalar>::
+init(const GroupOfJacobian& goj,
+     const Basis& basis,
+     const fullVector<double>& integrationWeights,
+     const fullMatrix<double>& integrationPoints,
+     const Eval& evaluator){
+
   // Basis Check //
   if(basis.getForm() != 0)
     throw Exception("A Field Term must use a 0form basis");
@@ -32,7 +67,7 @@ TermProjectionField(const GroupOfJacobian& goj,
   fullMatrix<scalar>** bM;
 
   computeC(basis, integrationWeights, cM);
-  computeB(goj, basis, integrationPoints, f, bM);
+  computeB(goj, basis, integrationPoints, evaluator, bM);
 
   this->allocA(this->nFunction);
   this->computeA(bM, cM);
@@ -49,7 +84,7 @@ template<typename scalar>
 void TermProjectionField<scalar>::computeB(const GroupOfJacobian& goj,
                                            const Basis& basis,
                                            const fullMatrix<double>& gC,
-                                           scalar (*f)(fullVector<double>& xyz),
+                                           const Eval& evaluator,
                                            fullMatrix<scalar>**& bM){
   const size_t nG = gC.size1();
   size_t offset = 0;
@@ -75,18 +110,19 @@ void TermProjectionField<scalar>::computeB(const GroupOfJacobian& goj,
       const std::vector<const std::pair<const fullMatrix<double>*, double>*>&
         jacM = goj.getJacobian(e).getJacobianMatrix();
 
+      // Get Element
+      const MElement& element = goj.getAllElements().get(e);
+
       for(size_t g = 0; g < nG; g++){
         // Compute f in the *physical* coordinate
-        ReferenceSpaceManager::mapFromABCtoXYZ(goj.getAllElements().get(e),
-                                               gC(g, 0),
-                                               gC(g, 1),
-                                               gC(g, 2),
-                                               pxyz);
+        ReferenceSpaceManager::
+          mapFromABCtoXYZ(element, gC(g, 0), gC(g, 1), gC(g, 2), pxyz);
+
         xyz(0) = pxyz[0];
         xyz(1) = pxyz[1];
         xyz(2) = pxyz[2];
 
-        fxyz = f(xyz);
+        fxyz = (this->*evaluator)(element, xyz);
 
         // Compute B
         (*bM[s])(j, g) = fxyz * fabs(jacM[g]->second);

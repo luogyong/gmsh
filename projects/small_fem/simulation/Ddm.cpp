@@ -212,11 +212,13 @@ void compute(const Options& option){
   // Function Space //
   FunctionSpaceScalar fs(*domain, order);
 
-  // Formulation Pointers //
-  Formulation<Complex>* wave;
+  // Steady Wave Formulation //
+  FormulationSteadyWave<Complex> wave(*volume, fs, k);
+  FormulationNeumann             neumann(*infinity, fs, k);
+
+  // Ddm Formulation Pointers //
   Formulation<Complex>* ddm;
   Formulation<Complex>* upDdm;
-  Formulation<Complex>* neumann;
 
   // System Pointers //
   System<Complex>* system;
@@ -256,10 +258,7 @@ void compute(const Options& option){
       inValue  = new vector<Complex>(ddmG->size(), 0);
     }
 
-    // Formulations //
-    wave    = new FormulationSteadyWave<Complex>(*volume, fs, k);
-    neumann = new FormulationNeumann(*infinity, fs, k);
-
+    // Formulations for DDM //
     if(ddmType == emdaType)
       ddm = new FormulationEMDA(*ddmBorder, fs, k, chi, *ddmG);
     else if(ddmType == oo2Type)
@@ -270,8 +269,8 @@ void compute(const Options& option){
     // System //
     // Terms
     system = new System<Complex>;
-    system->addFormulation(*wave);
-    system->addFormulation(*neumann);
+    system->addFormulation(wave);
+    system->addFormulation(neumann);
     system->addFormulation(*ddm);
 
     // Constraint
@@ -335,15 +334,10 @@ void compute(const Options& option){
     }
 
     // Clean //
-    delete update;
     delete upDdm;
-
     delete ddm;
-    if(neumann)
-      delete neumann;
-
-    delete wave;
     delete system;
+    delete update;
   }
 
   // Finalize //

@@ -15,8 +15,47 @@ TermProjectionGrad(const GroupOfJacobian& goj,
                    const fullVector<double>& integrationWeights,
                    const fullMatrix<double>& integrationPoints,
                    fullVector<scalar> (*f)(fullVector<double>& xyz)){
+
+  // Save F and Evaluator //
+  Eval evaluator = &TermProjectionGrad<scalar>::fContainer;
+  this->f        = f;
+
+  // Init //
+  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+}
+
+template<typename scalar>
+TermProjectionGrad<scalar>::
+TermProjectionGrad(const GroupOfJacobian& goj,
+                   const Basis& basis,
+                   const fullVector<double>& integrationWeights,
+                   const fullMatrix<double>& integrationPoints,
+                   const FunctionSpaceScalar& fs,
+                   const std::map<Dof, scalar>& dof){
+
+  // Save FunctionSpace, Dof values and Evaluator //
+  Eval evaluator = &TermProjectionGrad<scalar>::interpolateGrad;
+  this->fsScalar = &fs;
+  this->dofValue = &dof;
+
+  // Init //
+  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+}
+
+template<typename scalar>
+TermProjectionGrad<scalar>::~TermProjectionGrad(void){
+}
+
+template<typename scalar>
+void TermProjectionGrad<scalar>::
+init(const GroupOfJacobian& goj,
+     const Basis& basis,
+     const fullVector<double>& integrationWeights,
+     const fullMatrix<double>& integrationPoints,
+     const Eval& evaluator){
+
   // Basis Check //
-  bFunction getFunction;
+  BFunction getFunction;
 
   switch(basis.getForm()){
   case 0:
@@ -46,7 +85,7 @@ TermProjectionGrad(const GroupOfJacobian& goj,
   fullMatrix<scalar>** bM;
 
   computeC(basis, getFunction, integrationWeights, cM);
-  computeB(goj, basis, integrationPoints, f, bM);
+  computeB(goj, basis, integrationPoints, evaluator, bM);
 
   this->allocA(this->nFunction);
   this->computeA(bM, cM);
@@ -56,15 +95,11 @@ TermProjectionGrad(const GroupOfJacobian& goj,
 }
 
 template<typename scalar>
-TermProjectionGrad<scalar>::~TermProjectionGrad(void){
-}
-
-template<typename scalar>
 void TermProjectionGrad<scalar>::
 computeB(const GroupOfJacobian& goj,
          const Basis& basis,
          const fullMatrix<double>& gC,
-         fullVector<scalar> (*f)(fullVector<double>& xyz),
+         const Eval& evaluator,
          fullMatrix<scalar>**& bM){
 
   const size_t nG = gC.size1();
@@ -91,19 +126,20 @@ computeB(const GroupOfJacobian& goj,
       const std::vector<const std::pair<const fullMatrix<double>*, double>*>&
         invJac = goj.getJacobian(e).getInvertJacobianMatrix();
 
+      // Get Element
+      const MElement& element = goj.getAllElements().get(e);
+
       // Loop on Gauss Points
       for(size_t g = 0; g < nG; g++){
         // Compute f in the *physical* coordinate
-        ReferenceSpaceManager::mapFromABCtoXYZ(goj.getAllElements().get(e),
-                                               gC(g, 0),
-                                               gC(g, 1),
-                                               gC(g, 2),
-                                               pxyz);
+        ReferenceSpaceManager::
+          mapFromABCtoXYZ(element, gC(g, 0), gC(g, 1), gC(g, 2), pxyz);
+
         xyz(0) = pxyz[0];
         xyz(1) = pxyz[1];
         xyz(2) = pxyz[2];
 
-        fxyz = f(xyz);
+        fxyz = (this->*evaluator)(element, xyz);
 
         // Compute B
         (*bM[s])(j, g * 3)     = 0;

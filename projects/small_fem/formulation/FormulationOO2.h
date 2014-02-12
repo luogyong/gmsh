@@ -3,6 +3,7 @@
 
 #include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
+#include "TermProjectionField.h"
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
 #include "Formulation.h"
@@ -20,24 +21,14 @@ class FormulationOO2: public Formulation<Complex>{
   Complex a;
   Complex b;
 
-  // Function Space & Basis //
+  // Function Space & Domain //
   const FunctionSpaceScalar* fspace;
-  const Basis*                basis;
-
-  // Domain //
-  const GroupOfElement* goe;
+  const GroupOfElement*      goe;
 
   // Local Terms //
-  TermFieldField* localTermsUU;
-  TermGradGrad*   localTermsGG;
-
-  // Quadrature (Field - Field) //
-  fullMatrix<double>* gC;
-  fullVector<double>* gW;
-  GroupOfJacobian*    jac;
-
-  // DDM //
-  const std::map<Dof, Complex>* ddmDof;
+  TermFieldField*               localTermsFF;
+  TermGradGrad*                 localTermsGG;
+  TermProjectionField<Complex>* localTermsPr;
 
  public:
   FormulationOO2(const GroupOfElement& domain,
@@ -54,10 +45,6 @@ class FormulationOO2: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
-
- private:
-  Complex
-    interpolate(const MElement& element, const fullVector<double>& xyz) const;
 };
 
 /**
