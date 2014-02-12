@@ -34,11 +34,11 @@ TermProjectionField(const GroupOfJacobian& goj,
   computeC(basis, integrationWeights, cM);
   computeB(goj, basis, integrationPoints, f, bM);
 
-  allocA(this->nFunction);
-  computeA(bM, cM);
+  this->allocA(this->nFunction);
+  this->computeA(bM, cM);
 
   // Clean up //
-  clean(bM, cM);
+  this->clean(bM, cM);
 }
 
 template<typename scalar>
