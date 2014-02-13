@@ -6,9 +6,9 @@
 
 /**
    @interface Term
-   @brief Interface of helper methods for computing finite element terms
+   @brief Interface for finite element terms
 
-   Interface of helper methods for computing finite element terms
+   Interface for finite element terms
  */
 
 template<typename scalar>

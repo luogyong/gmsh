@@ -12,10 +12,6 @@
 
    During the construction of the vector, multiple values
    can be added in a thread-safe manner.
-
-   Finaly, a SolverVector may be of the following scalar types:
-   @li Real
-   @li Complex
  */
 
 template<typename scalar>
@@ -47,7 +43,6 @@ class SolverVector{
 
 /**
    @fn SolverVector::SolverVector()
-   @param size An integer
 
    Instanciates a new SolverVector of size zero.
    **

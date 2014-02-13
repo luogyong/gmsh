@@ -139,39 +139,6 @@ size_t Mesh::getGlobalId(const MFace& face) const{
   return it->second;
 }
 
-const vector<const MVertex*> Mesh::getAllVertex(void) const{
-  // Init
-  const size_t size = vertex->size();
-
-  map<const MVertex*, size_t, VertexComparator>::iterator
-    itV = vertex->begin();
-
-  // Alloc
-  vector<const MVertex*> v(size);
-
-  // Fill Vector
-  for(size_t i = 0; i < size; i++, itV++)
-    v[i] = itV->first;
-
-  // Return
-  return v;
-}
-
-void Mesh::getAllVertexCoordinate(fullMatrix<double>& coord) const{
-  // Get All Vertex
-  const vector<const MVertex*>  vertex = getAllVertex();
-  const size_t                 nVertex = vertex.size();
-
-  // Allocate 'coord' and populate
-  coord.resize(nVertex, 3);
-
-  for(size_t i = 0; i < nVertex; i++){
-    coord(i, 0) = vertex[i]->x();
-    coord(i, 1) = vertex[i]->y();
-    coord(i, 2) = vertex[i]->z();
-  }
-}
-
 void Mesh::number(void){
   // Get Iterators //
   const map<const MElement*, size_t, ElementComparator>::iterator

@@ -9,13 +9,16 @@
    @class SystemEigen
    @brief This class assembles an eigenvalue system
 
-   This class assembles an eigenvalue system described by a Formulation.
+   This class assembles an eigenvalue system.
 
    The eigenvalue problem can be generalized or not:
    @li An eigenvalue problem is a of the type
    @f$\qquad(\mathbf{A} - \lambda{}\mathbf{I})\mathbf{x} = \mathbf{b}@f$
    @li A Generalized Eigenvalue problem is a of the type
    @f$\qquad(\mathbf{A} - \lambda{}\mathbf{B})\mathbf{x} = \mathbf{b}@f$
+
+   In the case of a generalized problem, a second set of Formulation%s
+   can be used to assemble matrix @f$\mathbf{B}@f$
 
    The Solver used is <a href="http://www.grycap.upv.es/slepc/">SLEPc</a>.
  */
@@ -55,23 +58,30 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
   virtual void writeMatrix(std::string fileName,
                            std::string matrixName) const;
  private:
-  void assemble(SolverMatrix<std::complex<double> >& tmpMat,
-                SolverVector<std::complex<double> >& tmpRHS,
-                const Formulation<std::complex<double> >& formulation,
-                formulationPtr term);
+  void assembleCom(SolverMatrix<std::complex<double> >& tmpMat,
+                   SolverVector<std::complex<double> >& tmpRHS,
+                   const Formulation<std::complex<double> >& formulation,
+                   formulationPtr term);
 };
 
 
 /**
    @fn SystemEigen::SystemEigen
-   @param formulation A Formulation that
-   gives the way to assemble the eigenvalue system
-
-   Instantiates a new SystemEigen
+    Instantiates a new SystemEigen
    ***
 
    @fn SystemEigen::~SystemEigen
    Deletes this SystemEigen
+   **
+
+   @fn SystemEigen::addFormulationB
+   @param formulation A Formulation
+
+   Adds the given Formulation to the Formulation%s that will be assembled
+   for matrix @f$\mathbf{B}@f$
+
+   If at least of Formulation is added with SystemEigen::addFormulationB(),
+   this SystemEigen becomes generalized
    **
 
    @fn SystemEigen::isGeneral
@@ -81,7 +91,7 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
    **
 
    @fn SystemEigen::getEigenValues
-   @param eig
+   @param eig A vector
    Allocate and populates eig with the eigenvalues of this SystemEigen
    **
 

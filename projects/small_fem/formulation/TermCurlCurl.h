@@ -34,4 +34,21 @@ class TermCurlCurl: public Term<double>{
                 fullMatrix<double>**& bM);
 };
 
+/**
+   @fn TermCurlCurl::TermCurlCurl
+   @param goj A GroupOfJacobian
+   @param basis A Basis
+   @param integrationWeights A set of integration weights
+
+   Instanciates a new Curl-Curl Term:
+   @li The geomtry and the Jacobians are given by the GroupOfJacobian
+   @li The Basis functions to use are given by the Basis
+   @li The Basis function must be pre-evaluated at the integration points
+   (corresponding to the given integration weights)
+   **
+
+   @fn TermCurlCurl::~TermCurlCurl
+   Deletes this TermCurlCurl
+*/
+
 #endif

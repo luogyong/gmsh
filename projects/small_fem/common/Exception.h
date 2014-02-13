@@ -12,8 +12,7 @@
    Exception is a general class for exceptions.
 
    An Exception is instantiated with a string.
-   This string is used as a description
-   of the cause of the exception.
+   This string is used as a description of the cause of the exception.
  */
 
 class Exception: public std::exception{
@@ -39,8 +38,7 @@ class Exception: public std::exception{
    @param format A formated string of the cause of the exception
    @param ... The parameters of the formated string
 
-   Instantiates a new Exception with Exception::what()
-   equal to the given string
+   Instantiates a new Exception with Exception::what() equal to the given string
    **
 
    @fn Exception::~Exception

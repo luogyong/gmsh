@@ -10,9 +10,12 @@
 
 /**
    @class TermProjectionField
-   @brief Term of the Field (in physical space) Field (in reference space) type
+   @brief Term of a projection onto a Field
 
-   Term of the Field (in physical space) Field (in reference space) type
+   Term of a projection onto a Field.
+   The function to project may be defined by:
+   @li A scalar function
+   @li A map of (Dof, value) and a FunctionSpaceScalar
  */
 
 template<typename scalar>
@@ -66,6 +69,45 @@ class TermProjectionField: public Term<scalar>{
   scalar  fContainer(const MElement& elem, const fullVector<double>& xyz) const;
   scalar interpolate(const MElement& elem, const fullVector<double>& xyz) const;
 };
+
+/**
+   @fn TermProjectionField<scalar>::TermProjectionField(const GroupOfJacobian&,const Basis&,const fullVector<double>&,const fullMatrix<double>&,scalar(*f)(fullVector<double>& xyz))
+   @param goj A GroupOfJacobian
+   @param basis A Basis
+   @param integrationWeights A set of integration weights
+   @param integrationPoints A set of integration points (see Quadrature)
+   @param f A scalar function
+
+   Instanciates a new Projection-Field Term:
+   @li The geomtry and the Jacobians are given by the GroupOfJacobian
+   @li The Basis functions to use are given by the Basis
+   @li The Basis function must be pre-evaluated at the given integration points
+   (corresponding to the given integration weights)
+
+   The projected function is f (0form)
+   **
+
+   @fn TermProjectionField<scalar>::TermProjectionField(const GroupOfJacobian&,const Basis&,const fullVector<double>&,const fullMatrix<double>&,const FunctionSpaceScalar&,const std::map<Dof, scalar>&)
+   @param goj A GroupOfJacobian
+   @param basis A Basis
+   @param integrationWeights A set of integration weights
+   @param integrationPoints A set of integration points (see Quadrature)
+   @param fs A FunctionSpaceScalar
+   @param dof A map of (Dof, value)
+
+   Instanciates a new Projection-Field Term:
+   @li The geomtry and the Jacobians are given by the GroupOfJacobian
+   @li The Basis functions to use are given by the Basis
+   @li The Basis function must be pre-evaluated at the given integration points
+   (corresponding to the given integration weights)
+
+   The projected function is defined by the given FunctionSpace
+   and the map (Dof, value)
+   **
+
+   @fn TermProjectionField<scalar>::~TermProjectionField
+   Deletes this TermProjectionField
+*/
 
 /////////////////////
 // Inline Function //

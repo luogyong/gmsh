@@ -11,8 +11,8 @@
    @class FormulationSteadySlow
    @brief Vectorial Formulation for the steady wave problem (slow version)
 
-   Slow version of the vectorial Formulation for the steady wave problem
-   This version don't use the fast integration algorithm
+   Slow version of the vectorial Formulation for the steady wave problem.
+   This version don't use the fast integration algorithm.
  */
 
 class FormulationSteadySlow: public Formulation<double>{

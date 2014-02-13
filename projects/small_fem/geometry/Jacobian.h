@@ -12,10 +12,10 @@
    @class Jacobian
    @brief Handels Jacobians of an Element
 
-   This class handels the Jacobians of an Element (MElement).
+   This class handels the Jacobians of an element (MElement).
 
    The Jacobian%s will be computed at a given set of points,
-   for the same Element.
+   for the same element.
 
    For this class the jacobian matrix is defined as:
 
@@ -86,7 +86,7 @@ class Jacobian{
 
 /**
    @fn Jacobian::Jacobian
-   @param element An Element (MElement)
+   @param element An element (MElement)
    @param point A [ N x 3 ] matrix (a set of N points and their coordinates)
    @param type A string
 
@@ -101,7 +101,6 @@ class Jacobian{
    **
 
    @fn Jacobian::~Jacobian
-
    Deletes this Jacobian
    **
 
@@ -149,7 +148,6 @@ class Jacobian{
 
    @fn Jacobian::toString
    @return Returns a string describing this Jacobian
-   **
  */
 
 

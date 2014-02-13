@@ -63,8 +63,8 @@ class ElementSolution{
    @param goe A GroupOfElement
    @param value A set of values
 
-   Adds the given set of values to this ElementSolution
-   with the given step and time.
+   Adds the given set of values to this ElementSolution,
+   and with the given step and time.
 
    We have that value(i) is the value of GroupOfElement::getAll()[i]
    **

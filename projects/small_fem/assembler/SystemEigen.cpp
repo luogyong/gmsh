@@ -56,10 +56,10 @@ addFormulationB(const Formulation<complex<double> >& formulation){
   general = true;
 }
 
-void SystemEigen::assemble(SolverMatrix<complex<double> >& tmpMat,
-                           SolverVector<complex<double> >& tmpRHS,
-                           const Formulation<complex<double> >& formulation,
-                           formulationPtr term){
+void SystemEigen::assembleCom(SolverMatrix<complex<double> >& tmpMat,
+                              SolverVector<complex<double> >& tmpRHS,
+                              const Formulation<complex<double> >& formulation,
+                              formulationPtr term){
   // Get All Dofs (Field & Test) per Element //
   vector<vector<Dof> > dofField;
   vector<vector<Dof> > dofTest;
@@ -94,7 +94,7 @@ void SystemEigen::assemble(void){
   list<const Formulation<complex<double> >*>::iterator end = formulation.end();
 
   for(; it != end; it++)
-    assemble(tmpA, tmpRHS, **it, term);
+    assembleCom(tmpA, tmpRHS, **it, term);
 
   // Iterate on Formulations B //
   if(general){
@@ -102,7 +102,7 @@ void SystemEigen::assemble(void){
     end = formulationB.end();
 
     for(; it != end; it++)
-      assemble(tmpB, tmpRHS, **it, term);
+      assembleCom(tmpB, tmpRHS, **it, term);
   }
 
   // Copy tmpA into Assembled PETSc matrix //

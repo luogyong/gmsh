@@ -14,6 +14,8 @@
    @brief A Group of MElement%s
 
    This class is collection of discrete elements (MElement%s).
+
+   The elements are sorted by geomtrical types and by orientations
 */
 
 class Mesh;
@@ -59,16 +61,28 @@ class GroupOfElement{
 
 
 /**
-   @fn GroupOfElement::GroupOfElement
-   @param element An list of element
+   @fn GroupOfElement::GroupOfElement(std::list<const MElement*>&, const Mesh&)
+   @param element A list of element
    @param mesh A Mesh
 
    Instantiates a new GroupOfElement,
    with the given elements and associated to the given Mesh
    **
 
+   @fn GroupOfElement::GroupOfElement(const Mesh&)
+   @param mesh A Mesh
+
+   Instantiates a new empty GroupOfElement associated to the given Mesh
+   **
+
    @fn GroupOfElement::~GroupOfElement
    Deletes this GroupOfElement
+   **
+
+   @fn GroupOfElement::add
+   @param other An other GroupOfElement
+
+   Adds the elements of the given GroupOfElement in this GroupOfElement
    **
 
    @fn GroupOfElement::getNumber
@@ -76,28 +90,61 @@ class GroupOfElement{
    **
 
    @fn GroupOfElement::get
-   @param i An interger ranging from 0
-   to GroupOfElement::getNumber() - 1
+   @param i An interger ranging from 0 to GroupOfElement::getNumber() - 1
    @return Returns the ith element of the GroupOfElement
    **
 
    @fn GroupOfElement::getAll
-   @return Returns all the elements of the GroupOfElement
+   @return Returns all the elements of this GroupOfElement
+
+   The elements are sorted by geomtrical types and by orientations
    **
 
    @fn GroupOfElement::getMesh
    @return Returns the associated Mesh
    **
 
+   @fn GroupOfElement::getAllVertex
+   @param vertex A set of MVertex
+
+   Populates the given set with the MVertex%s of this GroupOfElement
+   **
+
+   @fn GroupOfElement::getAllVertexCoordinate
+   @param coord A matrix
+
+   Populates the given matrix with the coordinates
+   of the MVertex%s of this GroupOfElement:
+   @li The ith row is the ith MVertex
+   @li The jth column is the jth dimension
+   **
+
    @fn GroupOfElement::getOrientationStats
+   @param elementType A geomtrical type
    @return A vector where the i-th entry is the number
-   of element in GroupOfElement::getAll()
+   of element in GroupOfElement::getAll() (of the given geomtrical type)
    with a ReferenceSpaceManager::getOrientation() equal to i
 
-   GroupOfElement::orientAllElement must be called
-   before for this method to have a meaning
+   @see
+   See <a href="http://www.geuz.org/gmsh">gmsh</a>
+   documentation for geomtrical types
+   **
 
-   If not, an Exception is thrown
+   @fn GroupOfElement::getTypeStats
+   @return A vector where the i-th entry is the number
+   of element in GroupOfElement::getAll() with a geomtrical type equal to i
+
+   @see
+   See <a href="http://www.geuz.org/gmsh">gmsh</a>
+   documentation for geomtrical types
+   **
+
+   @fn GroupOfElement::isUniform
+   @return Returns a pair such that:
+   @li If this GroupOfElement is composed only
+   of element with the same geomtrical type,
+   the first entry is true and the second is set to the common geomtrical type
+   @li Otherwise the first entry is set to false and the second one is undefined
    **
 
    @fn GroupOfElement::toString

@@ -44,24 +44,24 @@ class SystemHelper{
    Deletes this SystemHelper
    **
 
-   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, FunctionSpace&, GroupOfElement&, scalar (*f)(fullVector<double>& xyz))
+   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, const FunctionSpace&, const GroupOfElement&, scalar (*f)(fullVector<double>& xyz))
    @param sys A SystemAbstract
    @param fs A FunctionSpace
    @param domain A GroupOfElement
    @param f A scalar function
 
-   Imposes on the given SystemAbstract a dirichlet condition with:
+   Imposes on the given SystemAbstract a scalar dirichlet condition with:
    @li The Dof%s of the given FunctionSpace (restricted to the given domain)
    @li The given scalar function
    **
 
-   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, FunctionSpace&, GroupOfElement&, fullVector<scalar> (*f)(fullVector<double>& xyz))
+   @fn SystemHelper::dirichlet(SystemAbstract<scalar>&, const FunctionSpace&, const GroupOfElement&, fullVector<scalar> (*f)(fullVector<double>& xyz))
    @param sys A SystemAbstract
    @param fs A FunctionSpace
    @param domain A GroupOfElement
    @param f A vectorial function
 
-   Imposes on the given SystemAbstract a dirichlet condition with:
+   Imposes on the given SystemAbstract a vectorial dirichlet condition with:
    @li The Dof%s of the given FunctionSpace (restricted to the given domain)
    @li The given vectorial function
  */

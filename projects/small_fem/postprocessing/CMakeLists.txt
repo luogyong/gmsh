@@ -1,8 +1,7 @@
 set(src
-  Interpolator.cpp
   FEMSolution.cpp
   ElementSolution.cpp
-  NodeSolution.cpp
+  Interpolator.cpp
 )
 
 

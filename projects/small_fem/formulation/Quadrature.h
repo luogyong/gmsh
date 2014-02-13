@@ -39,9 +39,8 @@ class Quadrature{
    @param order An integer
    @param multiplicity A natural number
 
-   Instantiates a new Quadrature
-   over the requested element type and for
-   function of order: order * multiplicty
+   Instantiates a new Quadrature over the requested element type
+   and for function of order: order * multiplicty
 
    If order is zero or less, an order of one is assumed
    **
@@ -52,8 +51,7 @@ class Quadrature{
    **
 
    @fn Quadrature::getPoints
-   @return Returns a matrix with the integration points
-   for this Quadrature
+   @return Returns a matrix with the integration points for this Quadrature
 
    The returned matrix got the following pattern:
    @li Each row is an integration points
@@ -61,8 +59,7 @@ class Quadrature{
    **
 
    @fn Quadrature::getWeights
-   @return Returns a matrix with the integration weights
-   for this Quadrature
+   @return Returns a matrix with the integration weights for this Quadrature
    **
 */
 

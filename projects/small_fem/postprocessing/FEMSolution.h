@@ -14,11 +14,6 @@
 
    This class represents a finite element problem solution.
 
-   A FEMSolution is defined thanks to:
-   @li A set of elements (MElement)
-   @li An interpolation matrix (for Lagrange)
-   @li A set of interpolation coefficient (for Lagrange) for each element
-
    A FEMSolution can write a post-processing map in the
    <a href="http://www.geuz.org/gmsh">gmsh</a> .msh file format.
 
@@ -62,7 +57,6 @@ class FEMSolution{
 /**
    @fn FEMSolution::FEMSolution
    Instanciates a new FEMSolution which is empty
-   (no elements, interpolation matrix and coefficients)
    **
 
    @fn FEMSolution::~FEMSolution
@@ -73,21 +67,18 @@ class FEMSolution{
    This FEMSolution is now empty
    **
 
-   @fn FEMSolution::addCoefficients(size_t,double,const FunctionSpace&,const DofManager&,const fullVector<scalar>&)
+   @fn FEMSolution::addCoefficients
    @param step An integer value
    @param time A real value
+   @param goe A GroupOfElement
    @param fs A FunctionSpace
-   @param dofM A DofManager
-   @param coef A set of coefficient, whose indexes are related to the DofManager
+   @param coef A map associating some (or all) the Dof%s
+   of the given FunctionSpace to a value
 
-   Adds the given set of coefficient to this FEMSolution
-   with the given step and time.
+   Computes the FEM solution on the elements of the given GroupOfElement
+   with the given FunctionSpace at map (Dof, value)
 
-   The set of elements is extracted from the FunctionSpace::getSupport().
-   A Lagrange basis (BasisLagrange) is constructed for this set of elements.
-   Its interpolation matrices will be used in this FEMSolution.
-   The function space and the DofManager are used to compute a set
-   of coefficient in the Lagrange basis for each elements.
+   This solution is added to this FEMSolution with the given step and time.
    **
 
    @fn FEMSolution::write

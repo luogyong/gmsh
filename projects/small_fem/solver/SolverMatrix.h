@@ -15,14 +15,10 @@
 
    Once constructed, a SolverMatrix can be serialized into
    three vectors, r[], c[] and a[], such that a[k] is
-   the entry of the sparse matrix at row (r[k] - 1) and column (c[k] - 1).
+   the entry of the matrix at row (r[k] - 1) and column (c[k] - 1).
 
    During the construction of the matrix, multiple values
    can be added in a thread-safe manner.
-
-   Finaly, a SolverMatrix may be of the following scalar types:
-   @li Real
-   @li Complex
 */
 
 template<typename scalar>
@@ -137,7 +133,7 @@ class SolverMatrix{
    @return Returns a string describing this SolverMatrix
    **
 
-   @fn SolverMatrix::toMatlab
+   @fn SolverMatrix::toMatlab(std::string matrixName) const
    @param matrixName A string
    @return Returns a string that can be used in Octave/Matlab
    to reproduce this SolverMatrix, whose name will be the given one

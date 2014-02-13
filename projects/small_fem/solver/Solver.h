@@ -10,11 +10,6 @@
    @brief Common interface for solvers
 
    This class is a common interface for linear system solvers.
-
-   A Solver may be of the following scalar types:
-   @li Real
-   @li Complex
-
  */
 
 template<typename scalar>

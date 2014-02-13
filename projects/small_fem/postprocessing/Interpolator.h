@@ -11,7 +11,8 @@
    @class Interpolator
    @brief Interpolating method for FEM Solutions
 
-   This class allows the interpolation of FEM Solutions.
+   This class allows the interpolation of a map of (Dof, value)
+   associated to a FunctionSpace
 
    @todo
    NEED TO BE MERGED WITH FEMSOLUTION: NEED HO PVIEW WITH ARBITRARY BASIS
@@ -48,18 +49,15 @@ class Interpolator{
    (this is not required, since Interpolator has only one class method)
    **
 
-   @fn Interpolator::interpolate
+   @fn Interpolator::interpolate(const GroupOfElement&,const FunctionSpace&,const std::map<Dof, scalar>&,const fullMatrix<double>&,fullMatrix<scalar>&)
+   @param goe A GroupOfElement on which the solution will be interpolated
    @param fs A FunctionSpace
-   @param dofM A DofManager
-   @param coef A vector of coefficients, solution of a FEM problem
+   @param coef A map of (Dof, value) to be interpolated with the FunvtionSpace
    @param point A set of point coordinates (3D):
    one point per row and one coordinate per column
    @param values A matrix
 
-   Interpolate the given finite element solution (coef) onto the given points.
-   The domain of the solution is given by FunctionSpace::getSupport(),
-   and each Dof of this domain is numbered in the given DofManager.
-   An entry in the DofManager corresponds to the same entry in coef.
+   Interpolate the given parameters on the given set of point.
 
    The interpolated values are stored in values:
    @li Each row is point

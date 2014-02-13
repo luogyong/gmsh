@@ -75,7 +75,7 @@ class DofManager{
 
    Fixed Dof got a special global ID (which is the highest possible number).
 
-   @return Returns the special ID of fixed Dof
+   @return Returns the special ID of a fixed Dof
    **
 
    @fn DofManager::DofManager

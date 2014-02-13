@@ -84,7 +84,8 @@ void compute(const Options& option){
   Mesh visuMsh(option.getValue("-ref")[1]);
 
   fullMatrix<double> point;
-  visuMsh.getAllVertexCoordinate(point);
+  GroupOfElement     visuGoe = visuMsh.getFromPhysical(7);
+  visuGoe.getAllVertexCoordinate(point);
 
   // Get FEM Orders //
   const size_t nOrder = option.getValue("-o").size() - 1;

@@ -40,10 +40,10 @@ class GroupOfJacobian{
 
    Instanciate a GroupOfJacobian.
    This group will contain the Jacobian
-   of the element of the given GroupOfElement, computed at the given points,
+   of the elements of the given GroupOfElement, computed at the given points,
    and for the given type.
 
-   @see Jacobian::Jacobian(const MElement&, const Basis&, const fullMatrix<double>&, const std::string)
+   @see Jacobian::Jacobian()
    **
 
    @fn GroupOfJacobian::~GroupOfJacobian
@@ -52,12 +52,12 @@ class GroupOfJacobian{
 
    @fn GroupOfJacobian::getJacobian
    @param i An integer
-   @return Returns the Jacobian assiciated to the i-th
-   Element of this GroupOfJacobian
-   (and the i-th Element of the GroupOfElement given at instanciation)
+   @return Returns the Jacobian associated to the i-th
+   element of this GroupOfJacobian
+   (and the i-th element of the GroupOfElement given at instanciation)
 
    @see GroupOfJacobian::getAllElements()
-   @see GroupOfElement::get();
+   @see GroupOfElement::getAll();
    **
 
    @fn GroupOfJacobian::getAllElements
@@ -66,7 +66,6 @@ class GroupOfJacobian{
 
    @fn GroupOfJacobian::toString
    @return Returns a string describing this GroupOfJacobian
-   **
  */
 
 /////////////////////

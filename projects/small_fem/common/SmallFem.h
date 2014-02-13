@@ -15,7 +15,6 @@
    It also handels this SmallFem session Options.
 
    A SmallFem session has the following default Options keywords
-   (see SmallFem::Keywords()):
    @li -solver
 */
 
@@ -77,7 +76,7 @@ class SmallFem{
    @param argc The size of the previous vector
 
    This class method initializes SmallFem.
-   Moreover it takes {argv[0], ..., argv[argc - 1]} as Options.
+   Moreover it parses {argv[0], ..., argv[argc - 1]} for Options.
 
    @see SmallFem::getOptions()
    **
@@ -87,7 +86,7 @@ class SmallFem{
    **
 
    @fn SmallFem::getOptions
-   @return Returns the Options given in SmallFem::Initialize()
+   @return Returns the Options found in SmallFem::Initialize()
    **
 */
 

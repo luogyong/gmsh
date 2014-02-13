@@ -17,7 +17,7 @@
    @brief Common interface for linear systems assemblers
 
    This is a common interface for linear systems assemblers.
-   A SystemAbstract may be of multiple scalar type.
+   All SystemAbstract%s are able to assemble the terms of a Formulation.
  */
 
 template<typename scalar>
@@ -90,12 +90,9 @@ class SystemAbstract{
    @return Returns the number of unknowns in this linear system
    **
 
-   @fn SystemAbstract::getDofManager
-   @return Returns the DofManager used by this system
-   **
-
-   @fn SystemAbstract::getFunctionSpace
-   @return Returns the FunctionSpace used by this system
+   @fn SystemAbstract::addFormulation
+   @param formulation A Formulation
+   Adds the given Formulation to the Formulation%s that will be assembled
    **
 
    @fn SystemAbstract::constraint
@@ -106,6 +103,9 @@ class SystemAbstract{
 
    @fn SystemAbstract::assemble(void)
    Assembles this linear system
+
+   All the given Formulation%s will be processed
+   @see SytemAbstract::addFormulation
    **
 
    @fn SystemAbstract::solve(void)
@@ -116,21 +116,21 @@ class SystemAbstract{
    @return The number of computed solution by SystemAbstract::solve()
    **
 
-   @fn SystemAbstract::getSolution(fullVector<scalar>&, size_t)
+   @fn SystemAbstract::getSolution(fullVector<scalar>&, size_t) const = 0
    @param sol A vector
    @param nSol An integer
    Allocates and populates the given vector with the nSolth solution vector
    computed by SystemAbstract::solve()
    **
 
-   @fn SystemAbstract::getSolution(std::map<Dof, scalar>&, size_t)
+   @fn SystemAbstract::getSolution(std::map<Dof, scalar>&, size_t) const = 0
    @param sol A map mapping a Dof to a scalar
    @param nSol An integer
    Takes every Dof in the given map and set its assoicated value to
    the nSolth solution of this SystemAbstract
    **
 
-   @fn SystemAbstract::getSolution(FEMSolution& feSol)
+   @fn SystemAbstract::getSolution(FEMSolution<scalar>& feSol) const = 0
    @param feSol A FEMSolution
 
    Adds to the given FEMSolution the computed finite element solutions.
@@ -141,19 +141,8 @@ class SystemAbstract{
    @param fileName A string
    @param matrixName A string
 
-   Writes this system matrix in Octave/Matlab format, with the given name,
-   into the given file
-
-   @internal
-   @fn SystemAbstract::assemble
-   @param A The matrix to assemble
-   @param b The right hand side to assemble
-   @param elementId The mesh Element ID to assemble
-   @param dof The Dof%s to assemble
-   @param term The Formulation to use in the assembly
-
-   Assembles the given values
-   @endinternal
+   Writes this system matrix in Octave/Matlab format,
+   with the given name and into the given file
 */
 
 //////////////////////////////////////

@@ -13,16 +13,15 @@
 
 /**
    @class GeoExtractor
-   @brief Extraction of Geometrical Entities
+   @brief Extraction of geometrical entities
 
-   This class allows the extraction of @em Geomtrical @em Entities:
-   @li Element (MElement) extraction from an Entity (GEntity)
-   @li Vertex (MVertex) extraction from a collection of Elements (MElement)
-   @li Edge (MEdge) extraction from a collection of Elements (MElement)
-   @li Face (MFace) extraction from a collection of Elements (MElement)
+   This class allows the extraction of geomtrical entities:
+   @li Element (MElement) extraction from an entity (GEntity)
+   @li Vertex (MVertex) extraction from a collection of elements (MElement)
+   @li Edge (MEdge) extraction from a collection of elements (MElement)
+   @li Face (MFace) extraction from a collection of elements (MElement)
 
-   It got @em only @em class @em methods, so it is @em not requiered
-   to instanciate a GeoExtractor.
+   This class got only class methods, so it is not requiered to instanciate it.
 */
 
 class GeoExtractor{
@@ -60,10 +59,7 @@ class GeoExtractor{
 /**
    @fn GeoExtractor::GeoExtractor
    Instantiates a new GeoExtractor
-
-   @note
-   GeoExtractor got @em only @em class @em methods,
-   so it is @em not requiered to instanciate it.
+   (unneeded since GeoExtractor got only class methods)
    **
 
    @fn GeoExtractor::~GeoExtractor
@@ -74,29 +70,30 @@ class GeoExtractor{
    @param entity A vector of GEntity
    @return Returns an std::pair with:
    @li The first field containing a map with the MElement%s in
-   the given entities (the mapped values are set to @em zero)
+   the given entities (the mapped values are set to zero)
    @li The second field containing a multimap with the MElement%s
-   of the first field, and the @em physicals
-   (see <a href="http://www.geuz.org/gmsh">gmsh</a> documentation) of
-   the MElement%s
+   of the first field, and the physicals of the MElement%s
+
+   @see
+   See <a href="http://www.geuz.org/gmsh">gmsh</a> documentation for physcials
    **
 
    @fn GeoExtractor::extractVertex
    @param element A map with MElement%s
-   @return Returns a map with the MVertices in
-   the given MElement%s (the mapped values are set to @em zero)
+   @return Returns a map with the MVertices in the given MElement%s
+   (the mapped values are set to zero)
    **
 
    @fn GeoExtractor::extractEdge
    @param element A map with MElement%s
-   @return Returns a map with the MEdge%s in
-   the given MElement%s (the mapped values are set to @em zero)
+   @return Returns a map with the MEdge%s in the given MElement%s
+   (the mapped values are set to zero)
    **
 
    @fn GeoExtractor::extractFace
    @param element A map with MElement%s
-   @return Returns a map with the MFace%s in
-   the given MElement%s (the mapped values are set to @em zero)
+   @return Returns a map with the MFace%s in the given MElement%s
+   (the mapped values are set to zero)
  */
 
 

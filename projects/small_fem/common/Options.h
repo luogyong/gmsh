@@ -9,7 +9,7 @@
    @class Options
    @brief Handel options
 
-   An Option is a tuple composed N+1 strings:
+   An Option is a tuple composed by N+1 strings:
    @li The first one is called the option
    @li The N last ones are called the values
 
@@ -25,7 +25,7 @@ class Options{
   std::multimap<std::string, std::string>* optionMap;
 
  public:
-  Options(int argc, char** argv, const std::string& keywords);
+   Options(int argc, char** argv, const std::string& keywords);
   ~Options(void);
 
   std::vector<std::string> getValue(std::string option) const;
@@ -38,8 +38,8 @@ class Options{
 
 /**
    @fn Options::Options
-   @param argv A vector of char*
-   @param argc The size of the previous vector
+   @param argv A memory segment of char*
+   @param argc The size of the previous segment
    @param keywords A string
 
    Instanciates a new Options.
@@ -58,12 +58,12 @@ class Options{
    @return
    Returns the tuple (option, value1, value2, value3, ...)
    associated to the given option.
+
    If no match is founds , an Exception is thrown.
    **
 
    @fn Options::toString
-   @return
-   Returns a string with the stored options
+   @return Returns a string with the stored options
    **
 
    @fn Options::cStyle
@@ -75,8 +75,6 @@ class Options{
    The given char** will populated with the char* corresponding
    to each entry of the given vector.
    vecCStyle will be populated starting at offset.
-
-   The char* are bounded to the given vector.
  */
 
 #endif

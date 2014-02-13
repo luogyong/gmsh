@@ -50,7 +50,7 @@ class FormulationProjection: public Formulation<scalar>{
 };
 
 /**
-   @fn FormulationProjection::FormulationProjection
+   @fn FormulationProjection::FormulationProjection(const GroupOfElement&,const FunctionSpace&,scalar(*f)(fullVector<double>& xyz))
    @param domain The domain of this Formulation
    @param fs A FunctionSpace for both unknown and test field
    @param f The @em scalar function to project
@@ -58,7 +58,7 @@ class FormulationProjection: public Formulation<scalar>{
    Instantiates a new FormulationProjection to project the given scalar function
    **
 
-   @fn FormulationProjection::FormulationProjection
+   @fn FormulationProjection::FormulationProjection(const GroupOfElement&,const FunctionSpace&,fullVector<scalar>(*g)(fullVector<double>& xyz))
    @param domain The domain of this Formulation
    @param fs A FunctionSpace for both unknown and test field
    @param g The @em vector function to project
