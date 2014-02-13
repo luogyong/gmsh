@@ -1,10 +1,7 @@
 #include <cmath>
-#include <complex>
 #include <iostream>
 
 #include "SmallFem.h"
-
-#include "Timer.h"
 
 #include "System.h"
 #include "SystemHelper.h"
@@ -22,7 +19,7 @@ Complex fSource(fullVector<double>& xyz){
   return Complex(1, 0);
 }
 
-void initMap(FunctionSpace& fs, GroupOfElement& goe, map<Dof, Complex>& map){
+void initMap(FunctionSpace& fs, GroupOfElement& goe, map<Dof, Complex>& data){
 
   set<Dof> dSet;
   fs.getKeys(goe, dSet);
@@ -31,7 +28,7 @@ void initMap(FunctionSpace& fs, GroupOfElement& goe, map<Dof, Complex>& map){
   set<Dof>::iterator end = dSet.end();
 
   for(; it != end; it++)
-    map.insert(pair<Dof, Complex>(*it, 0));
+    data.insert(pair<Dof, Complex>(*it, 0));
 }
 
 void displaySolution(map<Dof, Complex>& solution,
@@ -174,47 +171,38 @@ void compute(const Options& option){
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement* volume;
-  GroupOfElement* source;
-  GroupOfElement* infinity;
-  GroupOfElement* ddmBorder;
+  GroupOfElement volume(msh);
+  GroupOfElement source(msh);
+  GroupOfElement infinity(msh);
+  GroupOfElement ddmBorder(msh);
 
   if(myId == 0){
-    volume    = new GroupOfElement(msh.getFromPhysical(7));
-    source    = new GroupOfElement(msh.getFromPhysical(5));
-    infinity  = new GroupOfElement(msh.getFromPhysical(61));
-    ddmBorder = new GroupOfElement(msh.getFromPhysical(4));
+    volume.add(msh.getFromPhysical(7));
+    source.add(msh.getFromPhysical(5));
+    infinity.add(msh.getFromPhysical(61));
+    ddmBorder.add(msh.getFromPhysical(4));
   }
 
   else{
-    volume    = new GroupOfElement(msh.getFromPhysical(8));
-    source    = NULL;
-    infinity  = new GroupOfElement(msh.getFromPhysical(62));
-    ddmBorder = new GroupOfElement(msh.getFromPhysical(4));
+    volume.add(msh.getFromPhysical(8));
+    //No source//
+    infinity.add(msh.getFromPhysical(62));
+    ddmBorder.add(msh.getFromPhysical(4));
   }
 
   // Full Domain //
-  GroupOfElement* domain = new GroupOfElement(msh);
-
-  if(myId == 0){
-    domain->add(*volume);
-    domain->add(*source);
-    domain->add(*infinity);
-    domain->add(*ddmBorder);
-  }
-
-  else{
-    domain->add(*volume);
-    domain->add(*infinity);
-    domain->add(*ddmBorder);
-  }
+  GroupOfElement domain(msh);
+  domain.add(volume);
+  domain.add(source);
+  domain.add(infinity);
+  domain.add(ddmBorder);
 
   // Function Space //
-  FunctionSpaceScalar fs(*domain, order);
+  FunctionSpaceScalar fs(domain, order);
 
   // Steady Wave Formulation //
-  FormulationSteadyWave<Complex> wave(*volume, fs, k);
-  FormulationNeumann             neumann(*infinity, fs, k);
+  FormulationSteadyWave<Complex> wave(volume, fs, k);
+  FormulationNeumann             neumann(infinity, fs, k);
 
   // Ddm Formulation Pointers //
   Formulation<Complex>* ddm;
@@ -224,45 +212,28 @@ void compute(const Options& option){
   System<Complex>* system;
   System<Complex>* update;
 
-  // Solution Maps Pointers //
-  map<Dof, Complex>* ddmG     = NULL;
-  map<Dof, Complex>* solution = NULL;
+  // Solution Maps //
+  map<Dof, Complex> ddmG;
+  map<Dof, Complex> solution;
 
-  // MPI Buffers Pointers //
-  vector<int>*     outEntity = NULL;
-  vector<int>*     outType   = NULL;
-  vector<Complex>* outValue  = NULL;
+  initMap(fs, ddmBorder, solution);
+  initMap(fs, ddmBorder, ddmG);
 
-  vector<int>*     inEntity  = NULL;
-  vector<int>*     inType    = NULL;
-  vector<Complex>* inValue   = NULL;
+  // MPI Buffers //
+  vector<int>     outEntity(ddmG.size(), 0);
+  vector<int>     outType(ddmG.size(), 0);
+  vector<Complex> outValue(ddmG.size(), 0);
+
+  vector<int>     inEntity(ddmG.size(), 0);
+  vector<int>     inType(ddmG.size(), 0);
+  vector<Complex> inValue(ddmG.size(), 0);
 
   for(size_t step = 0; step < maxIt; step++){
-    // Init DDM Border Dofs
-    if(step == 0){
-      solution = new map<Dof, Complex>;
-      ddmG     = new map<Dof, Complex>;
-
-      initMap(fs, *ddmBorder, *solution);
-      initMap(fs, *ddmBorder, *ddmG);
-    }
-
-    // Init MPI Buffers
-    if(step == 0){
-      outEntity = new vector<int>(ddmG->size(), 0);
-      outType   = new vector<int>(ddmG->size(), 0);
-      outValue  = new vector<Complex>(ddmG->size(), 0);
-
-      inEntity = new vector<int>(ddmG->size(), 0);
-      inType   = new vector<int>(ddmG->size(), 0);
-      inValue  = new vector<Complex>(ddmG->size(), 0);
-    }
-
     // Formulations for DDM //
     if(ddmType == emdaType)
-      ddm = new FormulationEMDA(*ddmBorder, fs, k, chi, *ddmG);
+      ddm = new FormulationEMDA(ddmBorder, fs, k, chi, ddmG);
     else if(ddmType == oo2Type)
-      ddm = new FormulationOO2(*ddmBorder, fs, ooA, ooB, *ddmG);
+      ddm = new FormulationOO2(ddmBorder, fs, ooA, ooB, ddmG);
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -275,7 +246,7 @@ void compute(const Options& option){
 
     // Constraint
     if(myId == 0)
-      SystemHelper<Complex>::dirichlet(*system, fs, *source, fSource);
+      SystemHelper<Complex>::dirichlet(*system, fs, source, fSource);
 
     // Assemble
     system->assemble();
@@ -284,11 +255,11 @@ void compute(const Options& option){
     system->solve();
 
     // Get DDM Border Solution //
-    system->getSolution(*solution, 0);
+    system->getSolution(solution, 0);
 
     try{
       if(option.getValue("-disp").size() > 1)
-        displaySolution(*solution, atoi(option.getValue("-disp")[1].c_str()),
+        displaySolution(solution, atoi(option.getValue("-disp")[1].c_str()),
                         step, "u");
     }
     catch(...){
@@ -297,11 +268,11 @@ void compute(const Options& option){
     // Update G //
     if(ddmType == emdaType)
       upDdm  =
-        new FormulationUpdateEMDA(*ddmBorder, fs, k, chi, *solution, *ddmG);
+        new FormulationUpdateEMDA(ddmBorder, fs, k, chi, solution, ddmG);
 
    else if(ddmType == oo2Type)
       upDdm  =
-        new FormulationUpdateOO2(*ddmBorder, fs, ooA, ooB, *solution, *ddmG);
+        new FormulationUpdateOO2(ddmBorder, fs, ooA, ooB, solution, ddmG);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -311,17 +282,16 @@ void compute(const Options& option){
 
     update->assemble();
     update->solve();
-    update->getSolution(*ddmG, 0);
+    update->getSolution(ddmG, 0);
 
     // Serialize ddmG
-    serialize(*ddmG, *outEntity, *outType, *outValue);
+    serialize(ddmG, outEntity, outType, outValue);
 
     // Exchange
-    exchange(myId,
-             *outEntity, *outType, *outValue, *inEntity, *inType, *inValue);
+    exchange(myId, outEntity, outType, outValue, inEntity, inType, inValue);
 
     // ddmG is new ddmG : unserialize
-    unserialize(*ddmG, *inEntity, *inType, *inValue);
+    unserialize(ddmG, inEntity, inType, inValue);
 
     // Write Solution //
     if(step == maxIt - 1){
@@ -339,25 +309,6 @@ void compute(const Options& option){
     delete system;
     delete update;
   }
-
-  // Finalize //
-  delete domain;
-  delete volume;
-  if(source)
-    delete source;
-  delete infinity;
-  delete ddmBorder;
-
-  delete solution;
-  delete ddmG;
-
-  delete outEntity;
-  delete outType;
-  delete outValue;
-
-  delete inEntity;
-  delete inType;
-  delete inValue;
 }
 
 int main(int argc, char** argv){
