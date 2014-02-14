@@ -148,13 +148,17 @@ A) The packages needed to install gmsh are (gmsh has to be install to use cm3app
            for the vega cluster lapack you should use the openblas module that also contains lapack (the module lapack seems not being com;piled with -fPIC:
 ./config/configure.py --with-debugging=0 --with-blas-lib=$BLASDIR/lib$BLASLIB.so --with-lapack-lib=$LAPACK_DIR/liblapack.so --with-mpi-dir=$MPI_HOME --with-pic --with-shared-libraries=1 --with-clanguage=cxx --with-batch --known-mpi-shared-libraries=0
 
+           for nic4 cluster: 
+./config/configure.py --with-debugging=0 --with-blas-lib=$EBROOTOPENBLAS/lib/libopenblas.so --with-lapack-lib=$EBROOTOPENBLAS/lib/libopenblas.so --with-mpi-dir=$EBROOTOPENMPI --with-pic --with-shared-libraries=1 --with-clanguage=cxx --with-batch --known-mpi-shared-libraries=0
+
+
            put --with-debugging=1 for debug
            for more petsc configure options type: ./configure/configure.py -help
            On cluster (6/12 or 4/8 cpu) add --with-batch --known-mpi-shared=0
 
          5b) On Ceci clusters (hmemi, vega, dragon1, hercules and lemaitre2) the configure option create a file that you have to submit to the job manager. Toward this end type (on vega the script is different) 
           cp gmsh/projects/NonLinearSolver/clusterScript/ceci_petsc.sh $PETSC_DIR or on vega cp gmsh/project/NonLinearSolver/clusterScript/vega_petsc.sh $PETSC_DIR
-          sbatch ceci_petsc.sh (vega_petsc.sh)
+          sbatch ceci_petsc.sh (vega_petsc.sh) or nic4_petsc.sh on nic4 
 Then wait until the job end (the last line of the created file "petsc-install.out" has to be "Finish" the file ./reconfigure-linux-gnu-c-opt.py is created that you have to launch by typing:
            ./reconfigure-linux-gnu-c-opt.py
         
@@ -220,7 +224,18 @@ add these ones
       module load openblas/0.2.8/gcc/4.7.0 # contains lapack too
       module load cmake/2.8.12/gcc/4.7.0
       module load openmpi/1.6.4/gcc/4.7.0
-
+	
+        - nic4:
+        function load_module()
+        {
+          module purge
+          module load slurm
+          module load cmake/2.8.12.1
+          module load GCC/4.7.2
+          module load OpenMPI/1.6.4-GCC-4.7.2
+          module load Python/2.7.3-goolf-1.4.10
+          module load OpenBLAS/0.2.6-gompi-1.4.10-LAPACK-3.4.2
+        }
 
         5d) Since PETSC-3.4 it seem that there is an issue when you compile Gmsh. You have error message telling that memcpy, memset,... are not defined. To solve this problem you have to add 
      #include<cstring>
