@@ -50,14 +50,14 @@ FormulationMass<scalar>::FormulationMass(const GroupOfElement& domain,
   // Gradiends
   case 0:{
     GroupOfJacobian jac(domain, gC, "jacobian");
-    localTerms = new TermFieldField(jac, basis, gW);
+    localTerms = new TermFieldField<scalar>(jac, basis, gW);
     break;
   }
 
   // Curls //
   case 1:{
     GroupOfJacobian jac(domain, gC, "invert");
-    localTerms = new TermGradGrad(jac, basis, gW);
+    localTerms = new TermGradGrad<scalar>(jac, basis, gW);
     break;
   }
 
@@ -70,6 +70,20 @@ FormulationMass<scalar>::FormulationMass(const GroupOfElement& domain,
 template<typename scalar>
 FormulationMass<scalar>::~FormulationMass(void){
   delete localTerms;
+}
+
+template<typename scalar>
+scalar FormulationMass<scalar>::
+weak(size_t dofI, size_t dofJ, size_t elementId) const{
+
+  return localTerms->getTerm(dofI, dofJ, elementId);
+}
+
+template<typename scalar>
+scalar FormulationMass<scalar>::
+rhs(size_t equationI, size_t elementId) const{
+
+  return 0;
 }
 
 template<typename scalar>

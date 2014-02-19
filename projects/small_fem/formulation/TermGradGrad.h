@@ -12,7 +12,8 @@
    Term of the Grad Grad type
  */
 
-class TermGradGrad: public Term<double>{
+template<typename scalar>
+class TermGradGrad: public Term<scalar>{
  private:
   typedef const fullMatrix<double>& (Basis::*bFunction)(size_t s)const;
 
@@ -27,11 +28,11 @@ class TermGradGrad: public Term<double>{
   void computeC(const Basis& basis,
                 const bFunction& getFunction,
                 const fullVector<double>& gW,
-                fullMatrix<double>**& cM);
+                fullMatrix<scalar>**& cM);
 
   void computeB(const GroupOfJacobian& goj,
                 size_t nG,
-                fullMatrix<double>**& bM);
+                fullMatrix<scalar>**& bM);
 };
 
 /**
@@ -50,5 +51,14 @@ class TermGradGrad: public Term<double>{
    @fn TermGradGrad::~TermGradGrad
    Deletes this TermGradGrad
 */
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "TermGradGradInclusion.h"
 
 #endif

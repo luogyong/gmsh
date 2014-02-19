@@ -21,7 +21,7 @@ class FormulationStiffness: public Formulation<scalar>{
   const GroupOfElement* ddomain;
 
   // Local Terms //
-  Term<double>* localTerms;
+  Term<scalar>* localTerms;
 
  public:
   FormulationStiffness(const GroupOfElement& domain,

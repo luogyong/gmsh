@@ -34,7 +34,7 @@ FormulationProjection(const GroupOfElement& domain,
   basis.preEvaluateFunctions(gC);
   GroupOfJacobian jac(domain, gC, "jacobian");
 
-  localTerms1 = new TermFieldField(jac, basis, gW);
+  localTerms1 = new TermFieldField<scalar>(jac, basis, gW);
   localTerms2 = new TermProjectionField<scalar>(jac, basis, gW, gC, f);
 }
 
@@ -58,7 +58,7 @@ FormulationProjection(const GroupOfElement& domain,
   basis.preEvaluateFunctions(gC);
   GroupOfJacobian jac(domain, gC, "invert");
 
-  localTerms1 = new TermGradGrad(jac, basis, gW);
+  localTerms1 = new TermGradGrad<scalar>(jac, basis, gW);
   localTerms2 = new TermProjectionGrad<scalar>(jac, basis, gW, gC, g);
 }
 
@@ -97,6 +97,20 @@ template<typename scalar>
 FormulationProjection<scalar>::~FormulationProjection(void){
   delete localTerms2;
   delete localTerms1;
+}
+
+template<typename scalar>
+scalar FormulationProjection<scalar>::weak(size_t dofI, size_t dofJ,
+                                           size_t elementId) const{
+
+  return localTerms1->getTerm(dofI, dofJ, elementId);
+}
+
+template<typename scalar>
+scalar FormulationProjection<scalar>::rhs(size_t equationI,
+                                          size_t elementId) const{
+
+  return localTerms2->getTerm(0, equationI, elementId);
 }
 
 template<typename scalar>

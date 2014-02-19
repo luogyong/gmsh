@@ -36,7 +36,7 @@ FormulationLagrangeField(const GroupOfElement& domain,
 
   GroupOfJacobian jac(domain, gC, "jacobian");
 
-  localTerms = new TermFieldField(jac, basis, gW);
+  localTerms = new TermFieldField<double>(jac, basis, gW);
 }
 
 FormulationLagrangeField::~FormulationLagrangeField(void){

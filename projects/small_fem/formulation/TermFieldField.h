@@ -12,7 +12,8 @@
    A Term of the Field Field type
  */
 
-class TermFieldField: public Term<double>{
+template<typename scalar>
+class TermFieldField: public Term<scalar>{
  public:
   TermFieldField(const GroupOfJacobian& goj,
                  const Basis& basis,
@@ -23,11 +24,11 @@ class TermFieldField: public Term<double>{
  private:
   void computeC(const Basis& basis,
                 const fullVector<double>& gW,
-                fullMatrix<double>**& cM);
+                fullMatrix<scalar>**& cM);
 
   void computeB(const GroupOfJacobian& goj,
                 size_t nG,
-                fullMatrix<double>**& bM);
+                fullMatrix<scalar>**& bM);
 };
 
 /**
@@ -46,5 +47,14 @@ class TermFieldField: public Term<double>{
    @fn TermFieldField::~TermFieldField
    Deletes this TermFieldField
 */
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "TermFieldFieldInclusion.h"
 
 #endif

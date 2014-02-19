@@ -163,29 +163,24 @@ void SystemEigen::solve(void){
   EPSSetTolerances(solver, 1E-12, 1E6);
   EPSSetWhichEigenpairs(solver, EPS_SMALLEST_MAGNITUDE);
 
-  // Use Krylov Schur //
-  EPSSetType(solver, EPSKRYLOVSCHUR);
-  /*
-  // Use Generalized Davidson Solver and LU (MUMPS) preconditioning //
-  KSP linSolver;
-  PC  precond;
-  ST  specT;
+  // Use Krylov Schur Solver and MUMPS //
+  KSP ksp; // Krylov subspace solver
+  PC  pc;  // Preconditioner
+  ST  st;  // Spectral transform
 
-  EPSSetType(solver, "gd");
+  EPSSetType(solver, "krylovschur");
 
-  EPSGetST(solver, &specT);
-  STSetType(specT, "precond");
-  STGetKSP(specT, &linSolver);
+  EPSGetST(solver, &st);
+  STGetKSP(st, &ksp);
 
-  KSPSetType(linSolver, "preonly");
-  KSPGetPC(linSolver, &precond);
-  PCSetType(precond, "lu");
-  PCFactorSetMatSolverPackage(precond, "mumps");
-  */
+  KSPSetType(ksp, "preonly");
+  KSPGetPC(ksp, &pc);
+  PCSetType(pc, "lu");
+  PCFactorSetMatSolverPackage(pc, "mumps");
 
   // Override with PETSc Database //
   EPSSetFromOptions(solver);
-  //STSetFromOptions(specT);
+  STSetFromOptions(st);
 
   // Solve //
   EPSSolve(solver);

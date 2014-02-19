@@ -42,7 +42,7 @@ FormulationEMDA::FormulationEMDA(const GroupOfElement& domain,
   GroupOfJacobian jac(domain, gC, "jacobian");
 
   // Local Terms //
-  localLHS = new TermFieldField(jac, basis, gW);
+  localLHS = new TermFieldField<double>(jac, basis, gW);
   localRHS = new TermProjectionField<Complex>(jac, basis, gW, gC, fs, ddmDof);
 }
 

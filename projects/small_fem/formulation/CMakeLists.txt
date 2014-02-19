@@ -1,7 +1,4 @@
 set(src
-  FormulationMass.cpp
-  FormulationStiffness.cpp
-  FormulationProjection.cpp
   FormulationPoisson.cpp
   FormulationNeumann.cpp
   FormulationSteadySlow.cpp
@@ -14,9 +11,6 @@ set(src
   FormulationOO2.cpp
   FormulationUpdateOO2.cpp
 
-  TermFieldField.cpp
-  TermGradGrad.cpp
-  TermCurlCurl.cpp
   TermProjectionField.cpp
   TermProjectionGrad.cpp
 

@@ -45,7 +45,7 @@ FormulationUpdateEMDA(const GroupOfElement& domain,
   GroupOfJacobian jac(domain, gC, "jacobian");
 
   // Local Terms //
-  lGout = new TermFieldField(jac, basis, gW);
+  lGout = new TermFieldField<double>(jac, basis, gW);
   lGin  = new TermProjectionField<Complex>(jac, basis, gW, gC, fs, oldG);
   lU    = new TermProjectionField<Complex>(jac, basis, gW, gC, fs, sol);
 }

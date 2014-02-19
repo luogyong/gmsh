@@ -22,7 +22,7 @@ class FormulationFieldLagrange: public Formulation<Complex>{
   const GroupOfElement*      goe;
 
   // Local Terms //
-  TermFieldField*              localTerms;
+  TermFieldField<double>*      localTerms;
   TermProjectionField<double>* projectionTerms;
 
  public:

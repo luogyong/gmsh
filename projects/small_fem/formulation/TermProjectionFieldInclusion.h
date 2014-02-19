@@ -81,6 +81,30 @@ TermProjectionField<scalar>::~TermProjectionField(void){
 }
 
 template<typename scalar>
+void TermProjectionField<scalar>::computeC(const Basis& basis,
+                                           const fullVector<double>& gW,
+                                           fullMatrix<scalar>**& cM){
+  const size_t nG = gW.size();
+
+  // Alloc //
+  cM = new fullMatrix<scalar>*[this->nOrientation];
+
+  for(size_t s = 0; s < this->nOrientation; s++)
+    cM[s] = new fullMatrix<scalar>(nG, this->nFunction);
+
+  // Fill //
+  for(size_t s = 0; s < this->nOrientation; s++){
+    // Get functions for this Orientation
+    const fullMatrix<double>& phi = basis.getPreEvaluatedFunctions(s);
+
+    // Loop on Gauss Points
+    for(size_t g = 0; g < nG; g++)
+      for(size_t i = 0; i < this->nFunction; i++)
+        (*cM[s])(g, i) = gW(g) * phi(i, g);
+  }
+}
+
+template<typename scalar>
 void TermProjectionField<scalar>::computeB(const GroupOfJacobian& goj,
                                            const Basis& basis,
                                            const fullMatrix<double>& gC,

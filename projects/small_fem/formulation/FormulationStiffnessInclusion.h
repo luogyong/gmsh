@@ -50,14 +50,14 @@ FormulationStiffness<scalar>::FormulationStiffness(const GroupOfElement& domain,
   // Gradiends
   case 0:{
     GroupOfJacobian jac(domain, gC, "invert");
-    localTerms = new TermGradGrad(jac, basis, gW);
+    localTerms = new TermGradGrad<scalar>(jac, basis, gW);
     break;
   }
 
   // Curls //
   case 1:{
     GroupOfJacobian jac(domain, gC, "jacobian");
-    localTerms = new TermCurlCurl(jac, basis, gW);
+    localTerms = new TermCurlCurl<scalar>(jac, basis, gW);
     break;
   }
 
@@ -70,6 +70,20 @@ FormulationStiffness<scalar>::FormulationStiffness(const GroupOfElement& domain,
 template<typename scalar>
 FormulationStiffness<scalar>::~FormulationStiffness(void){
   delete localTerms;
+}
+
+template<typename scalar>
+scalar FormulationStiffness<scalar>::
+weak(size_t dofI, size_t dofJ, size_t elementId) const{
+
+  return localTerms->getTerm(dofI, dofJ, elementId);
+}
+
+template<typename scalar>
+scalar FormulationStiffness<scalar>::
+rhs(size_t equationI, size_t elementId) const{
+
+  return 0;
 }
 
 template<typename scalar>

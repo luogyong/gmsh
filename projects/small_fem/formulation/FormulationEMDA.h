@@ -25,7 +25,7 @@ class FormulationEMDA: public Formulation<Complex>{
   const GroupOfElement*      goe;
 
   // Local Terms //
-  TermFieldField*               localLHS;
+  TermFieldField<double>*       localLHS;
   TermProjectionField<Complex>* localRHS;
 
  public:

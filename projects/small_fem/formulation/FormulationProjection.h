@@ -21,7 +21,7 @@ class FormulationProjection: public Formulation<scalar>{
   const GroupOfElement* ddomain;
 
   // Local Terms //
-  Term<double>* localTerms1;
+  Term<scalar>* localTerms1;
   Term<scalar>* localTerms2;
 
  public:

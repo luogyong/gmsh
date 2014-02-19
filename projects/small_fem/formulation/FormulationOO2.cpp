@@ -51,8 +51,8 @@ FormulationOO2(const GroupOfElement& domain,
   GroupOfJacobian jacGG(domain, gCGG, "invert");
 
   // Local Terms //
-  localTermsFF = new TermFieldField(jacFF, basis, gWFF);
-  localTermsGG = new TermGradGrad(jacGG, basis, gWGG);
+  localTermsFF = new TermFieldField<double>(jacFF, basis, gWFF);
+  localTermsGG = new TermGradGrad<double>(jacGG, basis, gWGG);
   localTermsPr =
     new TermProjectionField<Complex>(jacFF, basis, gWFF, gCFF, fs, ddmDof);
 }

@@ -26,8 +26,8 @@ class FormulationOO2: public Formulation<Complex>{
   const GroupOfElement*      goe;
 
   // Local Terms //
-  TermFieldField*               localTermsFF;
-  TermGradGrad*                 localTermsGG;
+  TermFieldField<double>*       localTermsFF;
+  TermGradGrad<double>*         localTermsGG;
   TermProjectionField<Complex>* localTermsPr;
 
  public:
