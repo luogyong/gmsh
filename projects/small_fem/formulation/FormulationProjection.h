@@ -43,10 +43,7 @@ class FormulationProjection: public Formulation<scalar>{
   virtual const GroupOfElement& domain(void) const;
 
  private:
-  const Basis& initCommon(const GroupOfElement& domain,
-                          const FunctionSpace& fs,
-                          fullMatrix<double>& gC,
-                          fullVector<double>& gW);
+  int initCommon(const GroupOfElement& domain, const FunctionSpace& fs);
 };
 
 /**

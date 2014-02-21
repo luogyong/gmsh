@@ -5,16 +5,13 @@
 // Damn you gcc: we want 'export' !            //
 /////////////////////////////////////////////////
 
-#include <cmath>
 #include "Exception.h"
 #include "ReferenceSpaceManager.h"
 
 template<typename scalar>
-TermCurlCurl<scalar>::
-TermCurlCurl(const GroupOfJacobian& goj,
-             const Basis& basis,
-             const fullVector<double>& integrationWeights){
-
+TermCurlCurl<scalar>::TermCurlCurl(const GroupOfJacobian& goj,
+                                   const Basis& basis,
+                                   const Quadrature& quadrature){
   // Basis Check //
   bFunction getFunction;
 
@@ -40,12 +37,16 @@ TermCurlCurl(const GroupOfJacobian& goj,
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
   this->nFunction       = basis.getNFunction();
 
+  // Get Integration Data
+  //const fullMatrix<double>& gC = quadrature.getPoints();
+  const fullVector<double>& gW = quadrature.getWeights();
+
   // Compute //
   fullMatrix<scalar>** cM;
   fullMatrix<scalar>** bM;
 
-  computeC(basis, getFunction, integrationWeights, cM);
-  computeB(goj, integrationWeights.size(), bM);
+  computeC(basis, getFunction, gW, cM);
+  computeB(goj, gW.size(), bM);
 
   allocA(this->nFunction * this->nFunction);
   computeA(bM, cM);

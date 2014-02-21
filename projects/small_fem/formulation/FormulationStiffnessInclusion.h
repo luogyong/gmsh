@@ -38,9 +38,7 @@ FormulationStiffness<scalar>::FormulationStiffness(const GroupOfElement& domain,
 
   // Gaussian Quadrature //
   Quadrature gauss(eType, order - 1, 2);
-
   const fullMatrix<double>& gC = gauss.getPoints();
-  const fullVector<double>& gW = gauss.getWeights();
 
   // Derivatives //
   basis.preEvaluateDerivatives(gC);
@@ -50,14 +48,14 @@ FormulationStiffness<scalar>::FormulationStiffness(const GroupOfElement& domain,
   // Gradiends
   case 0:{
     GroupOfJacobian jac(domain, gC, "invert");
-    localTerms = new TermGradGrad<scalar>(jac, basis, gW);
+    localTerms = new TermGradGrad<scalar>(jac, basis, gauss);
     break;
   }
 
   // Curls //
   case 1:{
     GroupOfJacobian jac(domain, gC, "jacobian");
-    localTerms = new TermCurlCurl<scalar>(jac, basis, gW);
+    localTerms = new TermCurlCurl<scalar>(jac, basis, gauss);
     break;
   }
 

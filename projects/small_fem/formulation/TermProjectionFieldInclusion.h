@@ -12,8 +12,7 @@ template<typename scalar>
 TermProjectionField<scalar>::
 TermProjectionField(const GroupOfJacobian& goj,
                     const Basis& basis,
-                    const fullVector<double>& integrationWeights,
-                    const fullMatrix<double>& integrationPoints,
+                    const Quadrature& quadrature,
                     scalar (*f)(fullVector<double>& xyz)){
 
   // Save F and Evaluator //
@@ -21,15 +20,14 @@ TermProjectionField(const GroupOfJacobian& goj,
   this->f        = f;
 
   // Init //
-  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+  init(goj, basis, quadrature, evaluator);
 }
 
 template<typename scalar>
 TermProjectionField<scalar>::
 TermProjectionField(const GroupOfJacobian& goj,
                     const Basis& basis,
-                    const fullVector<double>& integrationWeights,
-                    const fullMatrix<double>& integrationPoints,
+                    const Quadrature& quadrature,
                     const FunctionSpaceScalar& fs,
                     const std::map<Dof, scalar>& dof){
 
@@ -39,17 +37,14 @@ TermProjectionField(const GroupOfJacobian& goj,
   this->dofValue = &dof;
 
   // Init //
-  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+  init(goj, basis, quadrature, evaluator);
 }
 
 template<typename scalar>
-void TermProjectionField<scalar>::
-init(const GroupOfJacobian& goj,
-     const Basis& basis,
-     const fullVector<double>& integrationWeights,
-     const fullMatrix<double>& integrationPoints,
-     const Eval& evaluator){
-
+void TermProjectionField<scalar>::init(const GroupOfJacobian& goj,
+                                       const Basis& basis,
+                                       const Quadrature& quadrature,
+                                       const Eval& evaluator){
   // Basis Check //
   if(basis.getForm() != 0)
     throw Exception("A Field Term must use a 0form basis");
@@ -62,12 +57,16 @@ init(const GroupOfJacobian& goj,
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
   this->nFunction       = basis.getNFunction();
 
+  // Get Integration Data
+  const fullMatrix<double>& gC = quadrature.getPoints();
+  const fullVector<double>& gW = quadrature.getWeights();
+
   // Compute //
   fullMatrix<scalar>** cM;
   fullMatrix<scalar>** bM;
 
-  computeC(basis, integrationWeights, cM);
-  computeB(goj, basis, integrationPoints, evaluator, bM);
+  computeC(basis, gW, cM);
+  computeB(goj, gC, evaluator, bM);
 
   this->allocA(this->nFunction);
   this->computeA(bM, cM);
@@ -106,7 +105,6 @@ void TermProjectionField<scalar>::computeC(const Basis& basis,
 
 template<typename scalar>
 void TermProjectionField<scalar>::computeB(const GroupOfJacobian& goj,
-                                           const Basis& basis,
                                            const fullMatrix<double>& gC,
                                            const Eval& evaluator,
                                            fullMatrix<scalar>**& bM){

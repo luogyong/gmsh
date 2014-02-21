@@ -38,9 +38,7 @@ FormulationMass<scalar>::FormulationMass(const GroupOfElement& domain,
 
   // Gaussian Quadrature //
   Quadrature gauss(eType, order, 2);
-
   const fullMatrix<double>& gC = gauss.getPoints();
-  const fullVector<double>& gW = gauss.getWeights();
 
   // Functions //
   basis.preEvaluateFunctions(gC);
@@ -50,14 +48,14 @@ FormulationMass<scalar>::FormulationMass(const GroupOfElement& domain,
   // Gradiends
   case 0:{
     GroupOfJacobian jac(domain, gC, "jacobian");
-    localTerms = new TermFieldField<scalar>(jac, basis, gW);
+    localTerms = new TermFieldField<scalar>(jac, basis, gauss);
     break;
   }
 
   // Curls //
   case 1:{
     GroupOfJacobian jac(domain, gC, "invert");
-    localTerms = new TermGradGrad<scalar>(jac, basis, gW);
+    localTerms = new TermGradGrad<scalar>(jac, basis, gauss);
     break;
   }
 

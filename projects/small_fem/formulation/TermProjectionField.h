@@ -5,6 +5,7 @@
 
 #include "FunctionSpaceScalar.h"
 #include "GroupOfJacobian.h"
+#include "Quadrature.h"
 #include "Basis.h"
 #include "Term.h"
 
@@ -36,14 +37,12 @@ class TermProjectionField: public Term<scalar>{
  public:
   TermProjectionField(const GroupOfJacobian& goj,
                       const Basis& basis,
-                      const fullVector<double>& integrationWeights,
-                      const fullMatrix<double>& integrationPoints,
+                      const Quadrature& quadrature,
                       scalar (*f)(fullVector<double>& xyz));
 
   TermProjectionField(const GroupOfJacobian& goj,
                       const Basis& basis,
-                      const fullVector<double>& integrationWeights,
-                      const fullMatrix<double>& integrationPoints,
+                      const Quadrature& quadrature,
                       const FunctionSpaceScalar& fs,
                       const std::map<Dof, scalar>& dof);
 
@@ -52,8 +51,7 @@ class TermProjectionField: public Term<scalar>{
  private:
   void init(const GroupOfJacobian& goj,
             const Basis& basis,
-            const fullVector<double>& integrationWeights,
-            const fullMatrix<double>& integrationPoints,
+            const Quadrature& quadrature,
             const Eval& evaluator);
 
   void computeC(const Basis& basis,
@@ -61,7 +59,6 @@ class TermProjectionField: public Term<scalar>{
                 fullMatrix<scalar>**& cM);
 
   void computeB(const GroupOfJacobian& goj,
-                const Basis& basis,
                 const fullMatrix<double>& gC,
                 const Eval& evaluator,
                 fullMatrix<scalar>**& bM);
@@ -74,35 +71,37 @@ class TermProjectionField: public Term<scalar>{
    @fn TermProjectionField<scalar>::TermProjectionField(const GroupOfJacobian&,const Basis&,const fullVector<double>&,const fullMatrix<double>&,scalar(*f)(fullVector<double>& xyz))
    @param goj A GroupOfJacobian
    @param basis A Basis
-   @param integrationWeights A set of integration weights
-   @param integrationPoints A set of integration points (see Quadrature)
+   @param quadrature A Quadrature rule
    @param f A scalar function
 
    Instanciates a new Projection-Field Term:
    @li The geomtry and the Jacobians are given by the GroupOfJacobian
    @li The Basis functions to use are given by the Basis
+   @li The given Quadrature is used to compute the Term
    @li The Basis function must be pre-evaluated at the given integration points
-   (corresponding to the given integration weights)
 
    The projected function is f (0form)
+
+   @todo Evaluate Basis in Term ?????
    **
 
    @fn TermProjectionField<scalar>::TermProjectionField(const GroupOfJacobian&,const Basis&,const fullVector<double>&,const fullMatrix<double>&,const FunctionSpaceScalar&,const std::map<Dof, scalar>&)
    @param goj A GroupOfJacobian
    @param basis A Basis
-   @param integrationWeights A set of integration weights
-   @param integrationPoints A set of integration points (see Quadrature)
+   @param quadrature A Quadrature rule
    @param fs A FunctionSpaceScalar
    @param dof A map of (Dof, value)
 
    Instanciates a new Projection-Field Term:
    @li The geomtry and the Jacobians are given by the GroupOfJacobian
    @li The Basis functions to use are given by the Basis
+   @li The given Quadrature is used to compute the Term
    @li The Basis function must be pre-evaluated at the given integration points
-   (corresponding to the given integration weights)
 
    The projected function is defined by the given FunctionSpace
    and the map (Dof, value)
+
+   @todo Evaluate Basis in Term ?????
    **
 
    @fn TermProjectionField<scalar>::~TermProjectionField

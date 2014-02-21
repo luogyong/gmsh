@@ -12,8 +12,7 @@ template<typename scalar>
 TermProjectionGrad<scalar>::
 TermProjectionGrad(const GroupOfJacobian& goj,
                    const Basis& basis,
-                   const fullVector<double>& integrationWeights,
-                   const fullMatrix<double>& integrationPoints,
+                   const Quadrature& quadrature,
                    fullVector<scalar> (*f)(fullVector<double>& xyz)){
 
   // Save F and Evaluator //
@@ -21,15 +20,14 @@ TermProjectionGrad(const GroupOfJacobian& goj,
   this->f        = f;
 
   // Init //
-  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+  init(goj, basis, quadrature, evaluator);
 }
 
 template<typename scalar>
 TermProjectionGrad<scalar>::
 TermProjectionGrad(const GroupOfJacobian& goj,
                    const Basis& basis,
-                   const fullVector<double>& integrationWeights,
-                   const fullMatrix<double>& integrationPoints,
+                   const Quadrature& quadrature,
                    const FunctionSpaceScalar& fs,
                    const std::map<Dof, scalar>& dof){
 
@@ -39,21 +37,14 @@ TermProjectionGrad(const GroupOfJacobian& goj,
   this->dofValue = &dof;
 
   // Init //
-  init(goj, basis, integrationWeights, integrationPoints, evaluator);
+  init(goj, basis, quadrature, evaluator);
 }
 
 template<typename scalar>
-TermProjectionGrad<scalar>::~TermProjectionGrad(void){
-}
-
-template<typename scalar>
-void TermProjectionGrad<scalar>::
-init(const GroupOfJacobian& goj,
-     const Basis& basis,
-     const fullVector<double>& integrationWeights,
-     const fullMatrix<double>& integrationPoints,
-     const Eval& evaluator){
-
+void TermProjectionGrad<scalar>::init(const GroupOfJacobian& goj,
+                                      const Basis& basis,
+                                      const Quadrature& quadrature,
+                                      const Eval& evaluator){
   // Basis Check //
   BFunction getFunction;
 
@@ -80,18 +71,26 @@ init(const GroupOfJacobian& goj,
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
   this->nFunction       = basis.getNFunction();
 
+  // Get Integration Data
+  const fullMatrix<double>& gC = quadrature.getPoints();
+  const fullVector<double>& gW = quadrature.getWeights();
+
   // Compute //
   fullMatrix<scalar>** cM;
   fullMatrix<scalar>** bM;
 
-  computeC(basis, getFunction, integrationWeights, cM);
-  computeB(goj, basis, integrationPoints, evaluator, bM);
+  computeC(basis, getFunction, gW, cM);
+  computeB(goj, gC, evaluator, bM);
 
   this->allocA(this->nFunction);
   this->computeA(bM, cM);
 
   // Clean up //
   this->clean(bM, cM);
+}
+
+template<typename scalar>
+TermProjectionGrad<scalar>::~TermProjectionGrad(void){
 }
 
 template<typename scalar>
@@ -128,13 +127,10 @@ void TermProjectionGrad<scalar>::computeC(const Basis& basis,
 }
 
 template<typename scalar>
-void TermProjectionGrad<scalar>::
-computeB(const GroupOfJacobian& goj,
-         const Basis& basis,
-         const fullMatrix<double>& gC,
-         const Eval& evaluator,
-         fullMatrix<scalar>**& bM){
-
+void TermProjectionGrad<scalar>::computeB(const GroupOfJacobian& goj,
+                                          const fullMatrix<double>& gC,
+                                          const Eval& evaluator,
+                                          fullMatrix<scalar>**& bM){
   const size_t nG = gC.size1();
   size_t offset = 0;
   size_t j;

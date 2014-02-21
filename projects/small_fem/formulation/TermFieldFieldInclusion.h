@@ -9,11 +9,9 @@
 #include "ReferenceSpaceManager.h"
 
 template<typename scalar>
-TermFieldField<scalar>::
-TermFieldField(const GroupOfJacobian& goj,
-               const Basis& basis,
-               const fullVector<double>& integrationWeights){
-
+TermFieldField<scalar>::TermFieldField(const GroupOfJacobian& goj,
+                                       const Basis& basis,
+                                       const Quadrature& quadrature){
   // Basis Check //
   if(basis.getForm() != 0)
     throw Exception("A Field Field Term must use a 0form basis");
@@ -26,12 +24,16 @@ TermFieldField(const GroupOfJacobian& goj,
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
   this->nFunction       = basis.getNFunction();
 
+  // Get Integration Data
+  //const fullMatrix<double>& gC = quadrature.getPoints();
+  const fullVector<double>& gW = quadrature.getWeights();
+
   // Compute //
   fullMatrix<scalar>** cM;
   fullMatrix<scalar>** bM;
 
-  computeC(basis, integrationWeights, cM);
-  computeB(goj, integrationWeights.size(), bM);
+  computeC(basis, gW, cM);
+  computeB(goj, gW.size(), bM);
 
   allocA(this->nFunction * this->nFunction);
   computeA(bM, cM);

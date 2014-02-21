@@ -2,6 +2,7 @@
 #define _TERMCURLCURL_H_
 
 #include "GroupOfJacobian.h"
+#include "Quadrature.h"
 #include "Basis.h"
 #include "Term.h"
 
@@ -20,7 +21,7 @@ class TermCurlCurl: public Term<scalar>{
  public:
   TermCurlCurl(const GroupOfJacobian& goj,
                const Basis& basis,
-               const fullVector<double>& integrationWeights);
+               const Quadrature& quadrature);
 
   virtual ~TermCurlCurl(void);
 
@@ -39,13 +40,15 @@ class TermCurlCurl: public Term<scalar>{
    @fn TermCurlCurl::TermCurlCurl
    @param goj A GroupOfJacobian
    @param basis A Basis
-   @param integrationWeights A set of integration weights
+   @param quadrature A Quadrature rule
 
    Instanciates a new Curl-Curl Term:
    @li The geomtry and the Jacobians are given by the GroupOfJacobian
    @li The Basis functions to use are given by the Basis
+   @li The given Quadrature is used to compute the Term
    @li The Basis function must be pre-evaluated at the integration points
-   (corresponding to the given integration weights)
+
+   @todo Evaluate Basis in Term ?????
    **
 
    @fn TermCurlCurl::~TermCurlCurl

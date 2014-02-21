@@ -2,6 +2,7 @@
 #define _TERMGRADGRAD_H_
 
 #include "GroupOfJacobian.h"
+#include "Quadrature.h"
 #include "Basis.h"
 #include "Term.h"
 
@@ -15,16 +16,18 @@
 template<typename scalar>
 class TermGradGrad: public Term<scalar>{
  private:
+  // Type def //
   typedef const fullMatrix<double>& (Basis::*bFunction)(size_t s)const;
 
  public:
   TermGradGrad(const GroupOfJacobian& goj,
                const Basis& basis,
-               const fullVector<double>& integrationWeights);
+               const Quadrature& quadrature);
 
   virtual ~TermGradGrad(void);
 
  private:
+  // Matrices
   void computeC(const Basis& basis,
                 const bFunction& getFunction,
                 const fullVector<double>& gW,
@@ -36,16 +39,18 @@ class TermGradGrad: public Term<scalar>{
 };
 
 /**
-   @fn TermGradGrad::TermGradGrad
+   @fn TermGradGrad::TermGradGrad(const GroupOfJacobian&,const Basis&,const Quadrature&)
    @param goj A GroupOfJacobian
    @param basis A Basis
-   @param integrationWeights A set of integration weights
+   @param quadrature A Quadrature rule
 
    Instanciates a new Grad-Grad Term:
    @li The geomtry and the Jacobians are given by the GroupOfJacobian
    @li The Basis functions to use are given by the Basis
+   @li The given Quadrature is used to compute the Term
    @li The Basis function must be pre-evaluated at the integration points
-   (corresponding to the given integration weights)
+
+   @todo Evaluate Basis in Term ?????
    **
 
    @fn TermGradGrad::~TermGradGrad

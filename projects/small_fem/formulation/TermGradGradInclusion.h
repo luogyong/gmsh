@@ -9,11 +9,9 @@
 #include "ReferenceSpaceManager.h"
 
 template<typename scalar>
-TermGradGrad<scalar>::
-TermGradGrad(const GroupOfJacobian& goj,
-             const Basis& basis,
-             const fullVector<double>& integrationWeights){
-
+TermGradGrad<scalar>::TermGradGrad(const GroupOfJacobian& goj,
+                                   const Basis& basis,
+                                   const Quadrature& quadrature){
   // Basis Check //
   bFunction getFunction;
 
@@ -39,12 +37,16 @@ TermGradGrad(const GroupOfJacobian& goj,
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
   this->nFunction       = basis.getNFunction();
 
+  // Get Integration Data
+  //const fullMatrix<double>& gC = quadrature.getPoints();
+  const fullVector<double>& gW = quadrature.getWeights();
+
   // Compute //
   fullMatrix<scalar>** cM;
   fullMatrix<scalar>** bM;
 
-  computeC(basis, getFunction, integrationWeights, cM);
-  computeB(goj, integrationWeights.size(), bM);
+  computeC(basis, getFunction, gW, cM);
+  computeB(goj, gW.size(), bM);
 
   allocA(this->nFunction * this->nFunction);
   computeA(bM, cM);
@@ -107,6 +109,7 @@ void TermGradGrad<scalar>::computeB(const GroupOfJacobian& goj,
   size_t offset = 0;
   size_t j;
   size_t k;
+  //double xyz[3];
 
   // Alloc //
   bM = new fullMatrix<scalar>*[this->nOrientation];
@@ -134,6 +137,7 @@ void TermGradGrad<scalar>::computeB(const GroupOfJacobian& goj,
       for(size_t g = 0; g < nG; g++){
         for(size_t a = 0; a < 3; a++){
           for(size_t b = 0; b < 3; b++){
+            // Jacobians
             (*bM[s])(j, k) = 0;
 
             for(size_t i = 0; i < 3; i++)

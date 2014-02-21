@@ -25,17 +25,23 @@ FormulationProjection(const GroupOfElement& domain,
     throw Exception("FormulationProjection: %s %s",
                     "projection of a scalar function requires",
                     "a 0 form function space");
-  // Init //
-  fullMatrix<double> gC;
-  fullVector<double> gW;
-  const Basis& basis = initCommon(domain, fs, gC, gW);
+
+  // Init and type //
+  int eType = initCommon(domain, fs);
+
+  // Basis
+  const Basis& basis = fs.getBasis(eType);
+
+  // Gaussian Quadrature //
+  Quadrature gauss(eType, basis.getOrder(), 2);
+  const fullMatrix<double>& gC = gauss.getPoints();
 
   // Local Terms (0form) //
   basis.preEvaluateFunctions(gC);
   GroupOfJacobian jac(domain, gC, "jacobian");
 
-  localTerms1 = new TermFieldField<scalar>(jac, basis, gW);
-  localTerms2 = new TermProjectionField<scalar>(jac, basis, gW, gC, f);
+  localTerms1 = new TermFieldField<scalar>(jac, basis, gauss);
+  localTerms2 = new TermProjectionField<scalar>(jac, basis, gauss, f);
 }
 
 template<typename scalar>
@@ -49,28 +55,29 @@ FormulationProjection(const GroupOfElement& domain,
     throw Exception("FormulationProjection: %s %s",
                     "projection of a vector function requires",
                     "a 1 form function space");
-  // Init //
-  fullMatrix<double> gC;
-  fullVector<double> gW;
-  const Basis& basis = initCommon(domain, fs, gC, gW);
+
+  // Init and type //
+  int eType = initCommon(domain, fs);
+
+  // Basis
+  const Basis& basis = fs.getBasis(eType);
+
+  // Gaussian Quadrature //
+  Quadrature gauss(eType, basis.getOrder(), 2);
+  const fullMatrix<double>& gC = gauss.getPoints();
 
   // Local Terms (1form) //
   basis.preEvaluateFunctions(gC);
   GroupOfJacobian jac(domain, gC, "invert");
 
-  localTerms1 = new TermGradGrad<scalar>(jac, basis, gW);
-  localTerms2 = new TermProjectionGrad<scalar>(jac, basis, gW, gC, g);
+  localTerms1 = new TermGradGrad<scalar>(jac, basis, gauss);
+  localTerms2 = new TermProjectionGrad<scalar>(jac, basis, gauss, g);
 }
 
 template<typename scalar>
-const Basis& FormulationProjection<scalar>::
+int FormulationProjection<scalar>::
 initCommon(const GroupOfElement& domain,
-           const FunctionSpace& fs,
-           fullMatrix<double>& gC,
-           fullVector<double>& gW){
-
-  // Save Domain //
-  ddomain = &domain;
+           const FunctionSpace& fs){
 
   // Check GroupOfElement Stats: Uniform Mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();
@@ -79,18 +86,14 @@ initCommon(const GroupOfElement& domain,
   if(!uniform.first)
     throw Exception("FormulationProjection needs a uniform mesh");
 
+  // Save Domain //
+  ddomain = &domain;
+
   // Save fspace //
   fspace = &fs;
-  const Basis& basis = fs.getBasis(eType);
 
-  // Gaussian Quadrature //
-  Quadrature gauss(eType, basis.getOrder(), 2);
-
-  gC = gauss.getPoints();
-  gW = gauss.getWeights();
-
-  // Return Basis //
-  return basis;
+  // Return Type //
+  return eType;
 }
 
 template<typename scalar>

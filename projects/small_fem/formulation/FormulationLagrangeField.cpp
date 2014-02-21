@@ -29,14 +29,13 @@ FormulationLagrangeField(const GroupOfElement& domain,
   // Gaussian Quadrature //
   Quadrature gaussFF(eType, order, 2);
   const fullMatrix<double>& gC = gaussFF.getPoints();
-  const fullVector<double>& gW = gaussFF.getWeights();
 
   // Local Terms //
   basis.preEvaluateFunctions(gC);
 
   GroupOfJacobian jac(domain, gC, "jacobian");
 
-  localTerms = new TermFieldField<double>(jac, basis, gW);
+  localTerms = new TermFieldField<double>(jac, basis, gaussFF);
 }
 
 FormulationLagrangeField::~FormulationLagrangeField(void){

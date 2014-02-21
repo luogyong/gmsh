@@ -34,9 +34,7 @@ FormulationUpdateEMDA(const GroupOfElement& domain,
 
   // Gaussian Quadrature //
   Quadrature gauss(eType, basis.getOrder(), 2);
-
   const fullMatrix<double>& gC = gauss.getPoints();
-  const fullVector<double>& gW = gauss.getWeights();
 
   // Pre-evalution //
   basis.preEvaluateFunctions(gC);
@@ -45,9 +43,9 @@ FormulationUpdateEMDA(const GroupOfElement& domain,
   GroupOfJacobian jac(domain, gC, "jacobian");
 
   // Local Terms //
-  lGout = new TermFieldField<double>(jac, basis, gW);
-  lGin  = new TermProjectionField<Complex>(jac, basis, gW, gC, fs, oldG);
-  lU    = new TermProjectionField<Complex>(jac, basis, gW, gC, fs, sol);
+  lGout = new TermFieldField<double>(jac, basis, gauss);
+  lGin  = new TermProjectionField<Complex>(jac, basis, gauss, fs, oldG);
+  lU    = new TermProjectionField<Complex>(jac, basis, gauss, fs, sol);
 }
 
 FormulationUpdateEMDA::~FormulationUpdateEMDA(void){

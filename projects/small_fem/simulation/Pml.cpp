@@ -7,7 +7,7 @@
 #include "SystemHelper.h"
 
 #include "FormulationSteadyWave.h"
-#include "FormulationNeumann.h"
+#include "FormulationPML.h"
 
 #include "Timer.h"
 #include "SmallFem.h"
@@ -21,6 +21,10 @@ complex<double> fSourceScal(fullVector<double>& xyz){
   //                             (xyz(2) * 4.2) * (xyz(2) * 4.2))), 0);
 }
 
+complex<double> fInfinityScal(fullVector<double>& xyz){
+  return complex<double>(0, 0);
+}
+
 void compute(const Options& option){
   // Start Timer //
   Timer timer, assemble, solve;
@@ -29,14 +33,15 @@ void compute(const Options& option){
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
   GroupOfElement volume     = msh.getFromPhysical(7);
+  GroupOfElement outerSpace = msh.getFromPhysical(8);
   GroupOfElement source     = msh.getFromPhysical(5);
-  GroupOfElement freeSpace  = msh.getFromPhysical(6);
+  GroupOfElement infinity   = msh.getFromPhysical(4);
 
   // Full Domain //
   GroupOfElement domain(msh);
   domain.add(volume);
+  domain.add(outerSpace);
   domain.add(source);
-  domain.add(freeSpace);
 
   // Get Parameters //
   const double k     = atof(option.getValue("-k")[1].c_str());
@@ -47,14 +52,15 @@ void compute(const Options& option){
   FunctionSpaceScalar fs(domain, order);
 
   FormulationSteadyWave<complex<double> > wave(volume, fs, k);
-  FormulationNeumann neumann(freeSpace, fs, k);
+  FormulationPML pml(outerSpace, fs, k);
 
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
-  sys.addFormulation(neumann);
+  sys.addFormulation(pml);
 
-  SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
+  SystemHelper<complex<double> >::dirichlet(sys, fs, source,   fSourceScal);
+  SystemHelper<complex<double> >::dirichlet(sys, fs, infinity, fInfinityScal);
 
   cout << "Free Space (Order: "  << order
        << " --- Wavenumber: "    << k

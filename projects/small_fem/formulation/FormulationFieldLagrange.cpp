@@ -30,15 +30,14 @@ FormulationFieldLagrange(const GroupOfElement& domain,
   // Gaussian Quadrature //
   Quadrature gaussFF(eType, order, 2);
   const fullMatrix<double>& gC = gaussFF.getPoints();
-  const fullVector<double>& gW = gaussFF.getWeights();
 
   // Local Terms //
   basis.preEvaluateFunctions(gC);
 
   GroupOfJacobian jac(domain, gC, "jacobian");
 
-  localTerms      = new TermFieldField<double>(jac, basis, gW);
-  projectionTerms = new TermProjectionField<double>(jac, basis, gW, gC, f);
+  localTerms      = new TermFieldField<double>(jac, basis, gaussFF);
+  projectionTerms = new TermProjectionField<double>(jac, basis, gaussFF, f);
 }
 
 FormulationFieldLagrange::~FormulationFieldLagrange(void){

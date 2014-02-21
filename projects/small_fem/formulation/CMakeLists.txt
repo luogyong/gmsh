@@ -2,6 +2,7 @@ set(src
   FormulationPoisson.cpp
   FormulationNeumann.cpp
   FormulationSteadySlow.cpp
+  FormulationPML.cpp
 
   FormulationLagrangeField.cpp
   FormulationFieldLagrange.cpp

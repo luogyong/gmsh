@@ -33,10 +33,7 @@ FormulationPoisson::FormulationPoisson(const GroupOfElement& domain,
   Quadrature gaussFF(eType, order, 2);
 
   const fullMatrix<double>& gCL = gaussGradGrad.getPoints();
-  const fullVector<double>& gWL = gaussGradGrad.getWeights();
-
   const fullMatrix<double>& gCR = gaussFF.getPoints();
-  const fullVector<double>& gWR = gaussFF.getWeights();
 
   // Local Terms //
   basis.preEvaluateDerivatives(gCL);
@@ -45,8 +42,8 @@ FormulationPoisson::FormulationPoisson(const GroupOfElement& domain,
   GroupOfJacobian jacL(domain, gCL, "invert");
   GroupOfJacobian jacR(domain, gCR, "jacobian");
 
-  localTermsL = new TermGradGrad<double>(jacL, basis, gWL);
-  localTermsR = new TermProjectionField<double>(jacR, basis, gWR, gCR, fSource);
+  localTermsL = new TermGradGrad<double>(jacL, basis, gaussGradGrad);
+  localTermsR = new TermProjectionField<double>(jacR, basis, gaussFF, fSource);
 }
 
 FormulationPoisson::~FormulationPoisson(void){
