@@ -12,6 +12,29 @@ template<typename scalar>
 TermGradGrad<scalar>::TermGradGrad(const GroupOfJacobian& goj,
                                    const Basis& basis,
                                    const Quadrature& quadrature){
+  // Pre-eval //
+  preEvalF(goj, quadrature, 1);
+
+  // Init //
+  init(goj, basis, quadrature);
+}
+
+template<typename scalar>
+TermGradGrad<scalar>::TermGradGrad(const GroupOfJacobian& goj,
+                                   const Basis& basis,
+                                   const Quadrature& quadrature,
+                                   scalar (*f)(const fullVector<double>& xyz)){
+  // Pre-eval //
+  preEvalF(goj, quadrature, f);
+
+  // Init //
+  init(goj, basis, quadrature);
+}
+
+template<typename scalar>
+void TermGradGrad<scalar>::init(const GroupOfJacobian& goj,
+                                const Basis& basis,
+                                const Quadrature& quadrature){
   // Basis Check //
   bFunction getFunction;
 
@@ -53,6 +76,57 @@ TermGradGrad<scalar>::TermGradGrad(const GroupOfJacobian& goj,
 
   // Clean up //
   clean(bM, cM);
+}
+
+template<typename scalar>
+void TermGradGrad<scalar>::preEvalF(const GroupOfJacobian& goj,
+                                    const Quadrature& quadrature,
+                                    scalar f){
+  // Data //
+  const size_t nPoint   = quadrature.getPoints().size1();
+  const size_t nElement = goj.getAllElements().getAll().size();
+  const size_t size     = nPoint * nElement;
+
+  // Alloc //
+  alpha.resize(size);
+
+  // Populate //
+  for(size_t i = 0; i < size; i++)
+    alpha[i] = f;
+}
+
+template<typename scalar>
+void TermGradGrad<scalar>::preEvalF(const GroupOfJacobian& goj,
+                                    const Quadrature& quadrature,
+                                    scalar (*f)(const fullVector<double>& xyz)){
+  // Data //
+  const fullMatrix<double>&                gC = quadrature.getPoints();
+  const std::vector<const MElement*>& element = goj.getAllElements().getAll();
+  const size_t nPoint                         = gC.size1();
+  const size_t nElement                       = element.size();
+
+  // Tmp //
+  scalar             fxyz;
+  double             pxyz[3];
+  fullVector<double> xyz(3);
+
+  // Alloc //
+  alpha.resize(nPoint * nElement);
+
+  // Populate //
+  for(size_t e = 0; e < nElement; e++){
+    for(size_t g = 0; g < nPoint; g++){
+      // Compute f in the *physical* coordinate
+      ReferenceSpaceManager::
+        mapFromABCtoXYZ(*element[e], gC(g, 0), gC(g, 1), gC(g, 2), pxyz);
+
+        xyz(0) = pxyz[0];
+        xyz(1) = pxyz[1];
+        xyz(2) = pxyz[2];
+
+        alpha[e * nPoint + g] = f(xyz);
+    }
+  }
 }
 
 template<typename scalar>
@@ -109,7 +183,6 @@ void TermGradGrad<scalar>::computeB(const GroupOfJacobian& goj,
   size_t offset = 0;
   size_t j;
   size_t k;
-  //double xyz[3];
 
   // Alloc //
   bM = new fullMatrix<scalar>*[this->nOrientation];
@@ -144,7 +217,7 @@ void TermGradGrad<scalar>::computeB(const GroupOfJacobian& goj,
               (*bM[s])(j, k) +=
                 (*invJac[g]->first)(i, a) * (*invJac[g]->first)(i, b);
 
-            (*bM[s])(j, k) *= fabs(invJac[g]->second);
+            (*bM[s])(j, k) *= alpha[e * nG + g] * fabs(invJac[g]->second);
 
             k++;
           }
