@@ -26,13 +26,12 @@ class FormulationPoisson: public Formulation<double>{
   TermGradGrad<double>*        localTermsL;
   TermProjectionField<double>* localTermsR;
 
-  // Source Term //
-  double (*fSource)(fullVector<double>& xyz);
-
  public:
   FormulationPoisson(const GroupOfElement& domain,
                      const FunctionSpaceScalar& fs,
-                     double (*f)(fullVector<double>& xyz));
+                     double (*fSource)  (fullVector<double>& xyz),
+                     void   (*fMaterial)(fullVector<double>& xyz,
+                                         fullMatrix<double>& tensor));
 
   virtual ~FormulationPoisson(void);
 
@@ -48,7 +47,8 @@ class FormulationPoisson: public Formulation<double>{
    @fn FormulationPoisson::FormulationPoisson
    @param domain A GroupOfElement for the domain
    @param fs A FunctionSpace used for both test and unknown field
-   @param f A function for the source term
+   @param fSource A scalar function for the source term
+   @param fMaterila A tensorial function for the material
 
    Instantiates a new FormulationPoisson
    **

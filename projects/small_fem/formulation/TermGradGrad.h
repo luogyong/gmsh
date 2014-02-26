@@ -17,10 +17,10 @@ template<typename scalar>
 class TermGradGrad: public Term<scalar>{
  private:
   // Type def //
-  typedef const fullMatrix<double>& (Basis::*bFunction)(size_t s)const;
+  typedef const fullMatrix<double>& (Basis::*BFunction)(size_t s) const;
 
  private:
-  std::vector<scalar> alpha; //Pre-evaluated multiplicative term
+  std::vector<fullMatrix<scalar> > TJac; //Pre-evaluated tensor * jacobian
 
  public:
   TermGradGrad(const GroupOfJacobian& goj,
@@ -30,7 +30,7 @@ class TermGradGrad: public Term<scalar>{
   TermGradGrad(const GroupOfJacobian& goj,
                const Basis& basis,
                const Quadrature& quadrature,
-               scalar (*f)(const fullVector<double>& xyz));
+               void  (*f)(fullVector<double>& xyz, fullMatrix<scalar>& T));
 
   virtual ~TermGradGrad(void);
 
@@ -40,24 +40,23 @@ class TermGradGrad: public Term<scalar>{
             const Basis& basis,
             const Quadrature& quadrature);
 
-  // Pre Eval Function
-  void preEvalF(const GroupOfJacobian& goj,
-               const Quadrature& quadrature,
-               scalar f);
-
-  void preEvalF(const GroupOfJacobian& goj,
-               const Quadrature& quadrature,
-               scalar (*f)(const fullVector<double>& xyz));
-
   // Matrices
   void computeC(const Basis& basis,
-                const bFunction& getFunction,
+                const BFunction& getFunction,
                 const fullVector<double>& gW,
                 fullMatrix<scalar>**& cM);
 
   void computeB(const GroupOfJacobian& goj,
                 size_t nG,
                 fullMatrix<scalar>**& bM);
+
+  // Tensor Pre Evaluator
+  void preEvalDummy(const GroupOfJacobian& goj,
+                    const Quadrature& quadrature);
+
+  void preEvalT(const GroupOfJacobian& goj,
+                const Quadrature& quadrature,
+                void  (*f)(fullVector<double>& xyz, fullMatrix<scalar>& T));
 };
 
 /**
@@ -75,18 +74,18 @@ class TermGradGrad: public Term<scalar>{
    @todo Evaluate Basis in Term ?????
    **
 
-   @fn TermGradGrad::TermGradGrad(const GroupOfJacobian&,const Basis&,const Quadrature&,scalar(*f)(const fullVector<double>&)))
+   @fn TermGradGrad::TermGradGrad(const GroupOfJacobian&,const Basis&,const Quadrature&,void(*f)(const fullVector<double>&,const fullMatrix<scalar>&)))
    @param goj A GroupOfJacobian
    @param basis A Basis
    @param quadrature A Quadrature rule
-   @param f A multiplicative function
+   @param f A multiplicative tensorial function
 
    Instanciates a new Grad-Grad Term:
    @li The geomtry and the Jacobians are given by the GroupOfJacobian
    @li The Basis functions to use are given by the Basis
    @li The given Quadrature is used to compute the Term
    @li The Basis function must be pre-evaluated at the integration points
-   @li The given function is a multiplicative term for the whole Term
+   @li The given function is a multiplicative tensor for the whole Term
 
    @todo Evaluate Basis in Term ?????
    **

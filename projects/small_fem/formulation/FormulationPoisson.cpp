@@ -7,9 +7,12 @@
 using namespace std;
 
 // Poisson //
-FormulationPoisson::FormulationPoisson(const GroupOfElement& domain,
-                                       const FunctionSpaceScalar& fs,
-                                       double (*f)(fullVector<double>& xyz)){
+FormulationPoisson::
+FormulationPoisson(const GroupOfElement& domain,
+                   const FunctionSpaceScalar& fs,
+                   double (*fSource)(fullVector<double>& xyz),
+                   void   (*fMaterial)(fullVector<double>& xyz,
+                                       fullMatrix<double>& tensor)){
   // Save Domain //
   goe = &domain;
 
@@ -25,9 +28,6 @@ FormulationPoisson::FormulationPoisson(const GroupOfElement& domain,
   const size_t order = basis.getOrder();
   fspace             = &fs;
 
-  // Source Term //
-  fSource = f;
-
   // Gaussian Quadrature //
   Quadrature gaussGradGrad(eType, order - 1, 2);
   Quadrature gaussFF(eType, order, 2);
@@ -42,7 +42,7 @@ FormulationPoisson::FormulationPoisson(const GroupOfElement& domain,
   GroupOfJacobian jacL(domain, gCL, "invert");
   GroupOfJacobian jacR(domain, gCR, "jacobian");
 
-  localTermsL = new TermGradGrad<double>(jacL, basis, gaussGradGrad);
+  localTermsL = new TermGradGrad<double>(jacL, basis, gaussGradGrad, fMaterial);
   localTermsR = new TermProjectionField<double>(jacR, basis, gaussFF, fSource);
 }
 

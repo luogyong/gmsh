@@ -4,11 +4,16 @@ Group{
   OmegaE  = Region[7];
 }
 
+Function{
+  F[] = 1;
+  D[] = TensorDiag[1, 2, 0.];
+}
+
 Constraint{
   { Name ElectricScalarPotential ;
     Case {
-      { Region Anode    ; Value -1. ; }
-      { Region Cathode  ; Value +2. ; }
+      { Region Anode    ; Value 0/*-1.*/ ; }
+      { Region Cathode  ; Value 0/*+2.*/ ; }
     }
   }
 }
@@ -52,7 +57,10 @@ Formulation {
       { Name v ; Type Local  ; NameOfSpace Hgrad_v ; }
     }
     Equation {
-      Galerkin { [Dof{Grad v} , {Grad v} ] ;
+      Galerkin { [-D[] * Dof{Grad v} , {Grad v}] ;
+                 In OmegaE ; Jacobian JVol ; Integration I1 ; }
+
+      Galerkin { [F[] , {v}] ;
                  In OmegaE ; Jacobian JVol ; Integration I1 ; }
     }
   }

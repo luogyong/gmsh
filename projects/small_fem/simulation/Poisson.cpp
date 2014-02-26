@@ -23,6 +23,13 @@ double fSource(fullVector<double>& xyz){
   return 1;
 }
 
+void fMaterial(fullVector<double>& xyz, fullMatrix<double>& tensor){
+  tensor.scale(0);
+  tensor(0, 0) = 1;
+  tensor(1, 1) = 2;
+  tensor(2, 2) = 1;
+}
+
 void compute(const Options& option){
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
@@ -43,7 +50,7 @@ void compute(const Options& option){
   FunctionSpaceScalar fs(domain, order);
 
   // Compute //
-  FormulationPoisson poisson(volume, fs, fSource);
+  FormulationPoisson poisson(volume, fs, fSource, fMaterial);
 
   System<double> sysPoisson;
   sysPoisson.addFormulation(poisson);
