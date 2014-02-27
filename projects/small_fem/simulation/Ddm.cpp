@@ -297,7 +297,7 @@ void compute(const Options& option){
     if(step == maxIt - 1){
       stringstream feSolName;
       FEMSolution<Complex> feSol;
-      system->getSolution(feSol);
+      system->getSolution(feSol, fs, volume);
 
       feSolName << "ddm" << myId;
       feSol.write(feSolName.str());

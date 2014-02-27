@@ -128,9 +128,12 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
-    FEMSolution<Complex> feSol;
-    sys.getSolution(feSol);
-    feSol.write("pml");
+    FEMSolution<Complex> feSolIn;
+    FEMSolution<Complex> feSolOut;
+    sys.getSolution(feSolIn,  fs, volume);
+    sys.getSolution(feSolOut, fs, outerSpace);
+    feSolIn.write("pmlIn");
+    feSolOut.write("pmlOut");
   }
 
   // Timer -- Finalize -- Return //

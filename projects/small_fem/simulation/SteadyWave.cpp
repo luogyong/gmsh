@@ -126,7 +126,7 @@ void compute(const Options& option){
   }
   catch(...){
     FEMSolution<double> feSol;
-    sys.getSolution(feSol);
+    sys.getSolution(feSol, *fs, volume);
     feSol.write("swave");
   }
 

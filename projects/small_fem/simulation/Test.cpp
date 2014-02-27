@@ -102,7 +102,7 @@ void compute(const Options& option){
       stringstream stream;
       stream << "projection_Mesh" << domain.getNumber() << "_Order" << order[j];
 
-      sysProj.getSolution(feSol);
+      sysProj.getSolution(feSol, fSpace, domain);
       feSol.write(stream.str());
     }
   }

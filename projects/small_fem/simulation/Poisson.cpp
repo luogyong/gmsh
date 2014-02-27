@@ -71,7 +71,7 @@ void compute(const Options& option){
   }
   catch(...){
     FEMSolution<double> feSol;
-    sysPoisson.getSolution(feSol);
+    sysPoisson.getSolution(feSol, fs, volume);
     feSol.write("poisson");
   }
 }

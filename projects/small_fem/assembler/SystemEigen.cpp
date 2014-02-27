@@ -222,7 +222,7 @@ bool SystemEigen::isGeneral(void) const{
   return general;
 }
 
-void SystemEigen::getEigenValues(fullVector<std::complex<double> >& eig) const{
+void SystemEigen::getEigenValues(fullVector<complex<double> >& eig) const{
   eig.setAsProxy(*eigenValue, 0, eigenValue->size());
 }
 
@@ -244,38 +244,33 @@ size_t SystemEigen::getNComputedSolution(void) const{
   return nEigenValues;
 }
 
-void SystemEigen::getSolution(fullVector<std::complex<double> >& sol,
+void SystemEigen::getSolution(fullVector<complex<double> >& sol,
                               size_t nSol) const{
   sol.setAsProxy((*eigenVector)[nSol], 0, (*eigenVector)[nSol].size());
 }
 
-void SystemEigen::getSolution(std::map<Dof, std::complex<double> >& sol,
+void SystemEigen::getSolution(map<Dof, complex<double> >& sol,
                               size_t nSol) const{
   // Get All Dofs
-  std::map<Dof, std::complex<double> >::iterator it  = sol.begin();
-  std::map<Dof, std::complex<double> >::iterator end = sol.end();
+  map<Dof, complex<double> >::iterator it  = sol.begin();
+  map<Dof, complex<double> >::iterator end = sol.end();
 
   // Loop on Dofs and set Values
   for(; it != end; it++)
     it->second = (*eigenVector)[nSol](dofM.getGlobalId(it->first));
 }
 
-void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol) const{
+void SystemEigen::getSolution(FEMSolution<complex<double> >& feSol,
+                              const FunctionSpace& fs,
+                              const GroupOfElement& domain) const{
   // Solved ?
   if(!solved)
     throw Exception("System: addSolution -- System not solved");
 
   // Coefficients //
-  // FunctionSpace & Domain
-  const FunctionSpace&  fs  = formulation.front()->field();
-  const GroupOfElement& goe = formulation.front()->domain();
-
-  std::cout << "WARNING: SystemEigen::getSolution(FEMSolution) "
-            << "uses first formulation stuffs" << std::endl << std::flush;
-
   // Get Dofs
   set<Dof> dof;
-  fs.getKeys(goe, dof);
+  fs.getKeys(domain, dof);
 
   // Get Coefficient
   const set<Dof>::iterator   end = dof.end();
@@ -291,11 +286,11 @@ void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol) const{
     getSolution(coef, i);
 
     // FEMSolution
-    feSol.addCoefficients(i, 0, goe, fs, coef);
+    feSol.addCoefficients(i, 0, domain, fs, coef);
   }
 }
 
-void SystemEigen::writeMatrix(std::string fileName,
-                              std::string matrixName) const{
+void SystemEigen::writeMatrix(string fileName,
+                              string matrixName) const{
   throw Exception("SystemEigen::writeMatrix -- not implemented");
 }

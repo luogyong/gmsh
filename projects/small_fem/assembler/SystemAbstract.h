@@ -53,7 +53,9 @@ class SystemAbstract{
   virtual size_t getNComputedSolution(void)                           const = 0;
   virtual void   getSolution(fullVector<scalar>& sol, size_t nSol)    const = 0;
   virtual void   getSolution(std::map<Dof, scalar>& sol, size_t nSol) const = 0;
-  virtual void   getSolution(FEMSolution<scalar>& feSol)              const = 0;
+  virtual void   getSolution(FEMSolution<scalar>& feSol,
+                             const FunctionSpace& fs,
+                             const GroupOfElement& domain)            const = 0;
 
   virtual void writeMatrix(std::string fileName,
                            std::string matrixName) const = 0;
@@ -130,10 +132,13 @@ class SystemAbstract{
    the nSolth solution of this SystemAbstract
    **
 
-   @fn SystemAbstract::getSolution(FEMSolution<scalar>& feSol) const = 0
+   @fn systemAbstract::getSolution(FEMSolution<scalar>&,const FunctionSpace&,const GroupOfElement&)const = 0
    @param feSol A FEMSolution
+   @param fs A FunctionSpace
+   @param domain A Domain
 
-   Adds to the given FEMSolution the computed finite element solutions.
+   Adds to the given FEMSolution the computed finite element solutions,
+   for the given FunctionSpace and the given domain.
    If no solution has been computed, and Exception is throw.
    **
 

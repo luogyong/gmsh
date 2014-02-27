@@ -27,7 +27,9 @@ class System: public SystemAbstract<scalar>{
   virtual size_t getNComputedSolution(void)                           const;
   virtual void   getSolution(fullVector<scalar>& sol, size_t nSol)    const;
   virtual void   getSolution(std::map<Dof, scalar>& sol, size_t nSol) const;
-  virtual void   getSolution(FEMSolution<scalar>& feSol)              const;
+  virtual void   getSolution(FEMSolution<scalar>& feSol,
+                             const FunctionSpace& fs,
+                             const GroupOfElement& domain)            const;
 
   virtual void assemble(void);
   virtual void solve(void);

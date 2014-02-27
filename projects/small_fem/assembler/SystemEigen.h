@@ -46,7 +46,9 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
                              size_t nSol)                               const;
   virtual void   getSolution(std::map<Dof, std::complex<double> >& sol,
                              size_t nSol)                               const;
-  virtual void   getSolution(FEMSolution<std::complex<double> >& feSol) const;
+  virtual void   getSolution(FEMSolution<std::complex<double> >& feSol,
+                             const FunctionSpace& fs,
+                             const GroupOfElement& domain)              const;
 
   bool isGeneral(void) const;
   void getEigenValues(fullVector<std::complex<double> >& eig) const;

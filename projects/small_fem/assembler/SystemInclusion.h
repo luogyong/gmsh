@@ -118,22 +118,17 @@ void System<scalar>::getSolution(std::map<Dof, scalar>& sol, size_t nSol) const{
 }
 
 template<typename scalar>
-void System<scalar>::getSolution(FEMSolution<scalar>& feSol) const{
+void System<scalar>::getSolution(FEMSolution<scalar>& feSol,
+                                 const FunctionSpace& fs,
+                                 const GroupOfElement& domain) const{
   // Solved ?
   if(!this->solved)
     throw Exception("System: addSolution -- System not solved");
 
   // Coefficients //
-  // FunctionSpace & Domain
-  const FunctionSpace&  fs  = this->formulation.front()->field();
-  const GroupOfElement& goe = this->formulation.front()->domain();
-
-  std::cout << "WARNING: System::getSolution(FEMSolution) "
-            << "uses first formulation stuffs" << std::endl << std::flush;
-
   // Get Dofs
   std::set<Dof> dof;
-  fs.getKeys(goe, dof);
+  fs.getKeys(domain, dof);
 
   // Get Coefficient
   const std::set<Dof>::iterator  end = dof.end();
@@ -147,7 +142,7 @@ void System<scalar>::getSolution(FEMSolution<scalar>& feSol) const{
   getSolution(coef, 0);
 
   // FEMSolution //
-  feSol.addCoefficients(0, 0, goe, fs, coef);
+  feSol.addCoefficients(0, 0, domain, fs, coef);
 }
 
 template<typename scalar>
