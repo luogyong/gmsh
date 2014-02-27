@@ -73,7 +73,7 @@ class TermProjectionGrad: public Term<scalar>{
 };
 
 /**
-   @fn TermProjectionGrad<scalar>::TermProjectionGrad(const GroupOfJacobian&,const Basis&,const fullVector<double>&,const fullMatrix<double>&,fullVector<scalar>(*f)(fullVector<double>& xyz))
+   @fn TermProjectionGrad<scalar>::TermProjectionGrad(const GroupOfJacobian& goj,const Basis& basis,const Quadrature& quadrature,fullVector<scalar> (*f)(fullVector<double>& xyz))
    @param goj A GroupOfJacobian
    @param basis A Basis
    @param quadrature A Quadrature rule
@@ -90,7 +90,7 @@ class TermProjectionGrad: public Term<scalar>{
    @todo Evaluate Basis in Term ?????
    **
 
-   @fn TermProjectionGrad<scalar>::TermProjectionGrad(const GroupOfJacobian&,const Basis&,const fullVector<double>&,const fullMatrix<double>&,const FunctionSpaceScalar&,const std::map<Dof, scalar>&)
+   @fn TermProjectionGrad<scalar>::TermProjectionGrad(const GroupOfJacobian& goj,const Basis& basis,const Quadrature& quadrature,const FunctionSpaceScalar& fs,const std::map<Dof, scalar>& dof)
    @param goj A GroupOfJacobian
    @param basis A Basis
    @param quadrature A Quadrature rule

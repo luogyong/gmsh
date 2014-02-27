@@ -132,7 +132,7 @@ class SystemAbstract{
    the nSolth solution of this SystemAbstract
    **
 
-   @fn systemAbstract::getSolution(FEMSolution<scalar>&,const FunctionSpace&,const GroupOfElement&)const = 0
+   @fn SystemAbstract::getSolution(FEMSolution<scalar>&,const FunctionSpace&,const GroupOfElement&) const = 0
    @param feSol A FEMSolution
    @param fs A FunctionSpace
    @param domain A Domain

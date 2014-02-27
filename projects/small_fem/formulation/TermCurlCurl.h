@@ -59,7 +59,7 @@ class TermCurlCurl: public Term<scalar>{
 };
 
 /**
-   @fn TermCurlCurl::TermCurlCurl(const GroupOfJacobian&,const Basis&,const Quadrature&)
+   @fn TermCurlCurl::TermCurlCurl(const GroupOfJacobian& goj,const Basis& basis,const Quadrature& quadrature)
    @param goj A GroupOfJacobian
    @param basis A Basis
    @param quadrature A Quadrature rule
@@ -73,7 +73,7 @@ class TermCurlCurl: public Term<scalar>{
    @todo Evaluate Basis in Term ?????
    **
 
-   @fn TermCurlCurl::TermCurlCurl(const GroupOfJacobian&,const Basis&,const Quadrature&,void(*f)(fullVector<double>&,fullMatrix<scalar>&))
+   @fn TermCurlCurl::TermCurlCurl(const GroupOfJacobian& goj,const Basis& basis,const Quadrature& quadrature,void(*f)(fullVector<double>& xyz,fullMatrix<scalar>& T))
    @param goj A GroupOfJacobian
    @param basis A Basis
    @param quadrature A Quadrature rule

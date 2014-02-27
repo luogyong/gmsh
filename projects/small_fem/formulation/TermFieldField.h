@@ -55,7 +55,7 @@ class TermFieldField: public Term<scalar>{
 };
 
 /**
-   @fn TermFieldField::TermFieldField
+   @fn TermFieldField::TermFieldField(const GroupOfJacobian& goj,const Basis& basis,const Quadrature& quadrature)
    @param goj A GroupOfJacobian
    @param basis A Basis
    @param quadrature A Quadrature rule
@@ -69,7 +69,7 @@ class TermFieldField: public Term<scalar>{
    @todo Evaluate Basis in Term ?????
    **
 
-   @fn TermFieldField::TermFieldField
+   @fn TermFieldField::TermFieldField(const GroupOfJacobian& goj,const Basis& basis,const  Quadrature& quadrature,scalar (*f)(fullVector<double>& xyz))
    @param goj A GroupOfJacobian
    @param basis A Basis
    @param quadrature A Quadrature rule

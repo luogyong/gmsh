@@ -244,12 +244,12 @@ size_t SystemEigen::getNComputedSolution(void) const{
   return nEigenValues;
 }
 
-void SystemEigen::getSolution(fullVector<complex<double> >& sol,
+void SystemEigen::getSolution(fullVector<std::complex<double> >& sol,
                               size_t nSol) const{
   sol.setAsProxy((*eigenVector)[nSol], 0, (*eigenVector)[nSol].size());
 }
 
-void SystemEigen::getSolution(map<Dof, complex<double> >& sol,
+void SystemEigen::getSolution(std::map<Dof, std::complex<double> >& sol,
                               size_t nSol) const{
   // Get All Dofs
   map<Dof, complex<double> >::iterator it  = sol.begin();
@@ -260,7 +260,7 @@ void SystemEigen::getSolution(map<Dof, complex<double> >& sol,
     it->second = (*eigenVector)[nSol](dofM.getGlobalId(it->first));
 }
 
-void SystemEigen::getSolution(FEMSolution<complex<double> >& feSol,
+void SystemEigen::getSolution(FEMSolution<std::complex<double> >& feSol,
                               const FunctionSpace& fs,
                               const GroupOfElement& domain) const{
   // Solved ?

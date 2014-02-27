@@ -48,7 +48,7 @@ class FormulationPoisson: public Formulation<double>{
    @param domain A GroupOfElement for the domain
    @param fs A FunctionSpace used for both test and unknown field
    @param fSource A scalar function for the source term
-   @param fMaterila A tensorial function for the material
+   @param fMaterial A tensorial function for the material
 
    Instantiates a new FormulationPoisson
    **
