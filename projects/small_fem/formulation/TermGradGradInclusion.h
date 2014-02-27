@@ -5,6 +5,10 @@
 // Damn you gcc: we want 'export' !            //
 /////////////////////////////////////////////////
 
+/////////////////////////////////////////////////
+// WARNING: Jacobian matrices are transposed ! //
+/////////////////////////////////////////////////
+
 #include "Exception.h"
 #include "ReferenceSpaceManager.h"
 
@@ -158,7 +162,7 @@ void TermGradGrad<scalar>::computeB(const GroupOfJacobian& goj,
       k = 0;
 
       for(size_t g = 0; g < nG; g++){
-        // Get alpha
+        // Get TJac
         const fullMatrix<scalar>& myTJac = this->TJac[e * nG + g];
 
         for(size_t a = 0; a < 3; a++){
@@ -167,8 +171,9 @@ void TermGradGrad<scalar>::computeB(const GroupOfJacobian& goj,
             (*bM[s])(j, k) = 0;
 
             for(size_t i = 0; i < 3; i++)
+              // Waring Jacobian matrices are transposed in Gmsh
               (*bM[s])(j, k) += myTJac(i, a) * (*invJac[g]->first)(i, b);
-            //(*invJac[g]->first)(i, a) * (*invJac[g]->first)(i, b);
+                //(*invJac[g]->first)(i, a) * (*invJac[g]->first)(i, b);
 
             (*bM[s])(j, k) *= fabs(invJac[g]->second);
 
@@ -271,8 +276,6 @@ void TermGradGrad<scalar>::preEvalT(const GroupOfJacobian& goj,
 
         f(xyz, T);
 
-        //T.print();
-
         // Get (invert) Jacobians for element 'e' at point 'g'
         const fullMatrix<double>& J =
           *goj.getJacobian(e).getInvertJacobianMatrix()[g]->first;
@@ -280,7 +283,7 @@ void TermGradGrad<scalar>::preEvalT(const GroupOfJacobian& goj,
         // Get Reference to TJac[e][g]
         fullMatrix<scalar>& myTJac = TJac[e * nPoint + g];
 
-        // A = T * J
+        // A = T * J -- (Taking that Jacobian matrix is transposed in Gmsh)
         // Hand done since template and 3x3 matrices (BLAS not needed)
         for(int i = 0; i < 3; i++)
           for(int j = 0; j < 3; j++)

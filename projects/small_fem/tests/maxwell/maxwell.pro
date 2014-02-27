@@ -7,6 +7,10 @@ Group{
 
 Function{
   k = 5;
+
+  Eps[] = TensorDiag[1, 1, 1];
+  Nu[]  = TensorDiag[1, 2, 1];
+
   fs[GammaS] = Vector [0., -1., 0.];
   fc[GammaC] = Vector [0.,  0., 0.];
 }
@@ -123,9 +127,9 @@ Formulation {
       { Name e; Type Local;  NameOfSpace Hcurl_e; }
     }
     Equation {
-      Galerkin { [ Dof{d e} , {d e} ];
+      Galerkin { [ Nu[] * Dof{d e} , {d e} ];
 	In Omega; Integration IOrder2; Jacobian JVol;  }
-      Galerkin { [ -k^2 * Dof{e} , {e} ];
+      Galerkin { [ -k^2 * Eps[] * Dof{e} , {e} ];
 	In Omega; Integration IOrder4; Jacobian JVol;  }
     }
   }
