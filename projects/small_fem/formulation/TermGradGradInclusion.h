@@ -197,10 +197,12 @@ void TermGradGrad<scalar>::preEvalDummy(const GroupOfJacobian& goj,
   // Alloc //
   TJac.resize(size);
 
+  #pragma omp parallel for // First touch
   for(size_t i = 0; i < size; i++)
     TJac[i].resize(3, 3);
 
   // Populate //
+  #pragma omp parallel for
   for(size_t e = 0; e < nElement; e++){
     for(size_t g = 0; g < nPoint; g++){
       // Get (invert) Jacobians for element 'e' at point 'g'
@@ -232,10 +234,6 @@ void TermGradGrad<scalar>::preEvalT(const GroupOfJacobian& goj,
                                     const Quadrature& quadrature,
                                     void  (*f)(fullVector<double>& xyz,
                                                fullMatrix<scalar>&   T)){
-  // Temps //
-  fullVector<double>  xyz(3);
-  double             pxyz[3];
-
   // Data //
   const fullMatrix<double>&                gC = quadrature.getPoints();
   const std::vector<const MElement*>  element = goj.getAllElements().getAll();
@@ -243,41 +241,52 @@ void TermGradGrad<scalar>::preEvalT(const GroupOfJacobian& goj,
   const size_t                       nElement = element.size();
   const size_t                           size = nElement * nPoint;
 
-  // Tensor //
-  fullMatrix<scalar> T(3, 3);
-
   // Alloc //
   TJac.resize(size);
 
+  #pragma omp parallel for // First touch
   for(size_t i = 0; i < size; i++)
     TJac[i].resize(3, 3, true); // Alloc 3x3 null matrices
 
   // Populate //
-  for(size_t e = 0; e < nElement; e++){
-    for(size_t g = 0; g < nPoint; g++){
-      // Compute Tensor in the *physical* coordinate
-      ReferenceSpaceManager::
-        mapFromABCtoXYZ(*element[e], gC(g, 0), gC(g, 1), gC(g, 2), pxyz);
+  #pragma omp parallel
+  {
+    // Temps (one for each thread) //
+    fullVector<double>  xyz(3);
+    double             pxyz[3];
 
-      xyz(0) = pxyz[0];
-      xyz(1) = pxyz[1];
-      xyz(2) = pxyz[2];
+    // Tensor (one for each thread) //
+    fullMatrix<scalar> T(3, 3);
 
-      f(xyz, T);
+    #pragma omp for
+    for(size_t e = 0; e < nElement; e++){
+      for(size_t g = 0; g < nPoint; g++){
+        // Compute Tensor in the *physical* coordinate
+        ReferenceSpaceManager::
+          mapFromABCtoXYZ(*element[e], gC(g, 0), gC(g, 1), gC(g, 2), pxyz);
 
-      // Get (invert) Jacobians for element 'e' at point 'g'
-      const fullMatrix<double>& J =
-        *goj.getJacobian(e).getInvertJacobianMatrix()[g]->first;
+        xyz(0) = pxyz[0];
+        xyz(1) = pxyz[1];
+        xyz(2) = pxyz[2];
 
-      // Get Reference to TJac[e][g]
-      fullMatrix<scalar>& myTJac = TJac[e * nPoint + g];
+        f(xyz, T);
 
-      // A = T * J
-      // hand done since template programing and 3x3 matrices (BLAS not needed)
-      for(int i = 0; i < 3; i++)
-        for(int j = 0; j < 3; j++)
-          for(int k = 0; k < 3; k++)
-            myTJac(i, j) += T(i, k) * J(k, j);
+        //T.print();
+
+        // Get (invert) Jacobians for element 'e' at point 'g'
+        const fullMatrix<double>& J =
+          *goj.getJacobian(e).getInvertJacobianMatrix()[g]->first;
+
+        // Get Reference to TJac[e][g]
+        fullMatrix<scalar>& myTJac = TJac[e * nPoint + g];
+
+        // A = T * J
+        // Hand done since template and 3x3 matrices (BLAS not needed)
+        for(int i = 0; i < 3; i++)
+          for(int j = 0; j < 3; j++)
+            for(int k = 0; k < 3; k++)
+              myTJac(i, j) += T(i, k) * J(k, j);
+      }
     }
   }
 }

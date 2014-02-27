@@ -12,6 +12,29 @@ template<typename scalar>
 TermFieldField<scalar>::TermFieldField(const GroupOfJacobian& goj,
                                        const Basis& basis,
                                        const Quadrature& quadrature){
+  // Dummy Pre evaluation //
+  preEvalDummy(goj, quadrature);
+
+  // Init //
+  init(goj, basis, quadrature);
+}
+
+template<typename scalar>
+TermFieldField<scalar>::TermFieldField(const GroupOfJacobian& goj,
+                                       const Basis& basis,
+                                       const Quadrature& quadrature,
+                                       scalar (*f)(fullVector<double>& xyz)){
+  // Function Pre evaluation //
+  preEvalF(goj, quadrature, f);
+
+  // Init //
+  init(goj, basis, quadrature);
+}
+
+template<typename scalar>
+void TermFieldField<scalar>::init(const GroupOfJacobian& goj,
+                                  const Basis& basis,
+                                  const Quadrature& quadrature){
   // Basis Check //
   if(basis.getForm() != 0)
     throw Exception("A Field Field Term must use a 0form basis");
@@ -104,7 +127,7 @@ void TermFieldField<scalar>::computeB(const GroupOfJacobian& goj,
 
       // Loop on Gauss Points
       for(size_t g = 0; g < nG; g++)
-        (*bM[s])(j, g) = fabs(jacM[g]->second);;
+        (*bM[s])(j, g) = alpha[e * nG + g] * fabs(jacM[g]->second);
 
       // Next Element in Orientation[s]
       j++;
@@ -112,5 +135,59 @@ void TermFieldField<scalar>::computeB(const GroupOfJacobian& goj,
 
     // New Offset
     offset += (*this->orientationStat)[s];
+  }
+}
+
+template<typename scalar>
+void TermFieldField<scalar>::preEvalDummy(const GroupOfJacobian& goj,
+                                          const Quadrature& quadrature){
+  // Data //
+  const size_t nPoint   = quadrature.getPoints().size1();
+  const size_t nElement = goj.getAllElements().getAll().size();
+  const size_t     size = nElement * nPoint;
+
+  // Alloc //
+  alpha.resize(size);
+
+  // Populate //
+  #pragma omp parallel for // First touch
+  for(size_t i = 0; i < size; i++)
+    alpha[i] = 1;
+}
+
+template<typename scalar>
+void TermFieldField<scalar>::preEvalF(const GroupOfJacobian& goj,
+                                      const Quadrature& quadrature,
+                                      scalar (*f)(fullVector<double>& xyz)){
+  // Data //
+  const fullMatrix<double>&                gC = quadrature.getPoints();
+  const std::vector<const MElement*>  element = goj.getAllElements().getAll();
+  const size_t                       nPoint   = gC.size1();
+  const size_t                       nElement = element.size();
+
+  // Alloc //
+  alpha.resize(nPoint * nElement);
+
+  // Populate //
+  #pragma omp parallel
+  {
+    // Temps (one for each thread) //
+    fullVector<double>  xyz(3);
+    double             pxyz[3];
+
+    #pragma omp for
+    for(size_t e = 0; e < nElement; e++){
+      for(size_t g = 0; g < nPoint; g++){
+        // Compute 'f' in the *physical* coordinate
+        ReferenceSpaceManager::
+          mapFromABCtoXYZ(*element[e], gC(g, 0), gC(g, 1), gC(g, 2), pxyz);
+
+        xyz(0) = pxyz[0];
+        xyz(1) = pxyz[1];
+        xyz(2) = pxyz[2];
+
+        alpha[e * nPoint + g] = f(xyz);
+      }
+    }
   }
 }

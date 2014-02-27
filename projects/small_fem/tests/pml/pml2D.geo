@@ -2,37 +2,35 @@ r = 1;
 R = 10;
 D = 8;
 
-d   = 2;
-clr =      r / d;
-clR =      R / d;
-clD = (R + D) / d;
+d  = 5;
+cl = r / d;
 
-Point(0) = { 0,  0, 0, clr};
+Point(0) = { 0,  0, 0, cl};
 
-Point(1) = {+r,  0, 0, clr};
-Point(2) = { 0, +r, 0, clr};
-Point(3) = {-r,  0, 0, clr};
-Point(4) = { 0, -r, 0, clr};
+Point(1) = {+r,  0, 0, cl};
+Point(2) = { 0, +r, 0, cl};
+Point(3) = {-r,  0, 0, cl};
+Point(4) = { 0, -r, 0, cl};
 
 Circle(1) = {1, 0, 2};
 Circle(2) = {2, 0, 3};
 Circle(3) = {3, 0, 4};
 Circle(4) = {4, 0, 1};
 
-Point(11) = {+R, -R, 0, clR};
-Point(12) = {+R, +R, 0, clR};
-Point(13) = {-R, +R, 0, clR};
-Point(14) = {-R, -R, 0, clR};
+Point(11) = {+R, -R, 0, cl};
+Point(12) = {+R, +R, 0, cl};
+Point(13) = {-R, +R, 0, cl};
+Point(14) = {-R, -R, 0, cl};
 
 Line(11) = {11, 12};
 Line(12) = {12, 13};
 Line(13) = {13, 14};
 Line(14) = {14, 11};
 
-Point(21) = {+R + D, -R - D, 0, clD};
-Point(22) = {+R + D, +R + D, 0, clD};
-Point(23) = {-R - D, +R + D, 0, clD};
-Point(24) = {-R - D, -R - D, 0, clD};
+Point(21) = {+R + D, -R - D, 0, cl};
+Point(22) = {+R + D, +R + D, 0, cl};
+Point(23) = {-R - D, +R + D, 0, cl};
+Point(24) = {-R - D, -R - D, 0, cl};
 
 Line(21) = {21, 22};
 Line(22) = {22, 23};
