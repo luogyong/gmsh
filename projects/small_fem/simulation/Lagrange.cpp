@@ -87,9 +87,17 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
-    FEMSolution<complex<double> > feSol;
-    sys.getSolution(feSol, fs, volume);
-    feSol.write("lagr");
+    FEMSolution<complex<double> > feSolVol;
+    FEMSolution<complex<double> > feSolSrc;
+    FEMSolution<complex<double> > feSolMul;
+
+    sys.getSolution(feSolVol, fs,       volume);
+    sys.getSolution(feSolSrc, fs,       source);
+    sys.getSolution(feSolMul, lagrange, source);
+
+    feSolVol.write("lagrVol");
+    feSolSrc.write("lagrSrc");
+    feSolMul.write("lagrMul");
   }
 
   // Timer -- Finalize -- Return //
