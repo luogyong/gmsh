@@ -146,7 +146,10 @@ A) The packages needed to install gmsh are (gmsh has to be install to use cm3app
 ./config/configure.py --with-debugging=0 --download-f-blas-lapack=1 --with-mpi-dir=$MPI_HOME --with-pic --with-shared-libraries=1 --with-clanguage=cxx --with-batch --known-mpi-shared-libraries=0
 
            for nic4 and the vega cluster lapack you should use the openblas module that also contains lapack (the module lapack seems not being compiled with -fPIC:
-./config/configure.py --with-debugging=0 --with-blas-lib=$BLASDIR/lib$BLASLIB.so --with-lapack-lib=$LAPACK_DIR/liblapack.so --with-mpi-dir=$MPI_HOME --with-pic --with-shared-libraries=1 --with-clanguage=cxx --with-batch --known-mpi-shared-libraries=0
+./config/configure.py --with-debugging=0 --with-blas-lib=$BLASDIR/lib$BLASLIB.so --with-lapack-lib=$LAPACKDIR/liblapack.so --with-mpi-dir=$MPI_HOME --with-pic --with-shared-libraries=1 --with-clanguage=cxx --with-batch --known-mpi-shared-libraries=0
+
+           for nic4 with multiscale
+ ./config/configure.py --with-debugging=0 --with-blas-lib=$BLASDIR/lib$BLASLIB.so --with-lapack-lib=$LAPACKDIR/lib$LAPACKLIB.so --download-mumps=yes --download-scalapack=yes --download-blacs=yes --with-mpi-dir=$MPI_HOME --with-pic --with-shared-libraries=1 --with-clanguage=cxx --with-batch --known-mpi-shared-libraries=0  --download-parmetis=yes --download-metis=yes --download-superlu_dist=yes
        
            for nic4 cluster (easybuild): 
 ./config/configure.py --with-debugging=0 --with-blas-lib=$EBROOTOPENBLAS/lib/libopenblas.so --with-lapack-lib=$EBROOTOPENBLAS/lib/libopenblas.so --with-mpi-dir=$EBROOTOPENMPI --with-pic --with-shared-libraries=1 --with-clanguage=cxx --with-batch --known-mpi-shared-libraries=0
@@ -162,9 +165,13 @@ A) The packages needed to install gmsh are (gmsh has to be install to use cm3app
 Then wait until the job end (the last line of the created file "petsc-install.out" has to be "Finish" the file ./reconfigure-linux-gnu-c-opt.py is created that you have to launch by typing:
            ./reconfigure-linux-gnu-c-opt.py
 
+           for petsc-3.4.3 there is a mistake in petscsys.h. You should add before the definition of #undef __FUNCT__ #define __FUNCT__ "PetscMemcpy" the following include:
+
+               #include <string.h>
+
+
         
         5c) This is a macro that load all the required module on ceci cluster. Be aware that the macro is cluster dependant as the version of the mpackages var from one cluster to others. "module avail" will list all the available modules (including different compiler and MPI versions) so you may change this macro to fit your needs. You can put it on your .bashrc and then bash; load_module will load the required module
-            - nic4:
 
             - dragon1:
 	function load_module()
