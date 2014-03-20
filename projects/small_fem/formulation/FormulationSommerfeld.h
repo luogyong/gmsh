@@ -1,5 +1,5 @@
-#ifndef _FORMULATIONNEUMANN_H_
-#define _FORMULATIONNEUMANN_H_
+#ifndef _FORMULATIONSOMMERFELD_H_
+#define _FORMULATIONSOMMERFELD_H_
 
 #include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
@@ -7,13 +7,13 @@
 #include "Formulation.h"
 
 /**
-   @class FormulationNeumann
-   @brief Neumann Formulation
+   @class FormulationSommerfeld
+   @brief Sommerfeld radiation formulation
 
-   Neumann Formulation
+   Weak formulation for the Sommerfeld radiation condition
  */
 
-class FormulationNeumann: public Formulation<Complex>{
+class FormulationSommerfeld: public Formulation<Complex>{
  private:
   // Wavenumber //
   double k;
@@ -26,11 +26,11 @@ class FormulationNeumann: public Formulation<Complex>{
   TermFieldField<double>* localTerms;
 
  public:
-  FormulationNeumann(const GroupOfElement& domain,
-                     const FunctionSpaceScalar& fs,
-                     double k);
+  FormulationSommerfeld(const GroupOfElement& domain,
+                        const FunctionSpaceScalar& fs,
+                        double k);
 
-  virtual ~FormulationNeumann(void);
+  virtual ~FormulationSommerfeld(void);
 
   virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
   virtual Complex rhs(size_t equationI, size_t elementId)          const;
@@ -41,16 +41,16 @@ class FormulationNeumann: public Formulation<Complex>{
 };
 
 /**
-   @fn FormulationNeumann::FormulationNeumann
+   @fn FormulationSommerfeld::FormulationSommerfeld
    @param domain A GroupOfElement for the domain
    @param fs A FunctionSpace for both the unknown and test field
    @param k A real number
 
-   Instantiates a new FormulationNeumann with wavenumber k
+   Instantiates a new FormulationSommerfeld with wavenumber k
    **
 
-   @fn FormulationNeumann::~FormulationNeumann
-   Deletes this FormulationNeumann
+   @fn FormulationSommerfeld::~FormulationSommerfeld
+   Deletes this FormulationSommerfeld
 */
 
 #endif

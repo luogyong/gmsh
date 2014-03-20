@@ -7,7 +7,7 @@
 #include "SystemHelper.h"
 
 #include "FormulationSteadyWave.h"
-#include "FormulationNeumann.h"
+#include "FormulationSommerfeld.h"
 
 #include "Timer.h"
 #include "SmallFem.h"
@@ -47,12 +47,12 @@ void compute(const Options& option){
   FunctionSpaceScalar fs(domain, order);
 
   FormulationSteadyWave<complex<double> > wave(volume, fs, k);
-  FormulationNeumann neumann(freeSpace, fs, k);
+  FormulationSommerfeld                   sommerfeld(freeSpace, fs, k);
 
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
-  sys.addFormulation(neumann);
+  sys.addFormulation(sommerfeld);
 
   SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
 

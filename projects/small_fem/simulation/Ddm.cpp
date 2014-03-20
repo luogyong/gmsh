@@ -8,7 +8,7 @@
 
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
-#include "FormulationNeumann.h"
+#include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
@@ -202,7 +202,7 @@ void compute(const Options& option){
 
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, fs, k);
-  FormulationNeumann             neumann(infinity, fs, k);
+  FormulationSommerfeld          sommerfeld(infinity, fs, k);
 
   // Ddm Formulation Pointers //
   Formulation<Complex>* ddm;
@@ -241,7 +241,7 @@ void compute(const Options& option){
     // Terms
     system = new System<Complex>;
     system->addFormulation(wave);
-    system->addFormulation(neumann);
+    system->addFormulation(sommerfeld);
     system->addFormulation(*ddm);
 
     // Constraint

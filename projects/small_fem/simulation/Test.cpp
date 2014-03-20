@@ -25,7 +25,7 @@
 #include "System.h"
 #include "SystemHelper.h"
 
-#include "FormulationNeumann.h"
+#include "FormulationSommerfeld.h"
 #include "FormulationEMDA.h"
 #include "FormulationProjection.h"
 

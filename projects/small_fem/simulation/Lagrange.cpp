@@ -5,7 +5,7 @@
 #include "Mesh.h"
 #include "System.h"
 
-#include "FormulationNeumann.h"
+#include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
 #include "FormulationFieldLagrange.h"
 #include "FormulationLagrangeField.h"
@@ -48,7 +48,7 @@ void compute(const Options& option){
   FunctionSpaceScalar fs(domain, order);
 
   FormulationSteadyWave<complex<double> > wave(volume, fs, k);
-  FormulationNeumann neumann(freeSpace, fs, k);
+  FormulationSommerfeld                   sommerfeld(freeSpace, fs, k);
 
   // Lagrange //
   FunctionSpaceScalar lagrange(domain, order);
@@ -59,7 +59,7 @@ void compute(const Options& option){
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
-  sys.addFormulation(neumann);
+  sys.addFormulation(sommerfeld);
   sys.addFormulation(fieldLagrange);
   sys.addFormulation(lagrangeField);
 

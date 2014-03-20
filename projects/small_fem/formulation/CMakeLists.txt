@@ -1,6 +1,6 @@
 set(src
   FormulationPoisson.cpp
-  FormulationNeumann.cpp
+  FormulationSommerfeld.cpp
   FormulationSteadySlow.cpp
   FormulationPML.cpp
 

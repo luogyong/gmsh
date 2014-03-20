@@ -2,13 +2,13 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "FormulationNeumann.h"
+#include "FormulationSommerfeld.h"
 
 using namespace std;
 
-FormulationNeumann::FormulationNeumann(const GroupOfElement& domain,
-                                       const FunctionSpaceScalar& fs,
-                                       double k){
+FormulationSommerfeld::FormulationSommerfeld(const GroupOfElement& domain,
+                                             const FunctionSpaceScalar& fs,
+                                             double k){
   // Save Domain //
   goe = &domain;
 
@@ -17,7 +17,7 @@ FormulationNeumann::FormulationNeumann(const GroupOfElement& domain,
   size_t               eType = uniform.second;
 
   if(!uniform.first)
-    throw Exception("FormulationNeumann needs a uniform mesh");
+    throw Exception("FormulationSommerfeld needs a uniform mesh");
 
   // Wavenumber //
   this->k = k;
@@ -39,27 +39,27 @@ FormulationNeumann::FormulationNeumann(const GroupOfElement& domain,
   localTerms = new TermFieldField<double>(jac, basis, gaussFF);
 }
 
-FormulationNeumann::~FormulationNeumann(void){
+FormulationSommerfeld::~FormulationSommerfeld(void){
   delete localTerms;
 }
 
-Complex FormulationNeumann::
+Complex FormulationSommerfeld::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
   return Complex(0, -1 * k * localTerms->getTerm(dofI, dofJ, elementId));
 }
 
-Complex FormulationNeumann::rhs(size_t equationI, size_t elementId) const{
+Complex FormulationSommerfeld::rhs(size_t equationI, size_t elementId) const{
   return Complex(0, 0);
 }
 
-const FunctionSpace& FormulationNeumann::field(void) const{
+const FunctionSpace& FormulationSommerfeld::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationNeumann::test(void) const{
+const FunctionSpace& FormulationSommerfeld::test(void) const{
   return *fspace;
 }
 
-const GroupOfElement& FormulationNeumann::domain(void) const{
+const GroupOfElement& FormulationSommerfeld::domain(void) const{
   return *goe;
 }
