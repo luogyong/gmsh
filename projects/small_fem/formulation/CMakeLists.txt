@@ -12,6 +12,12 @@ set(src
   FormulationOO2.cpp
   FormulationUpdateOO2.cpp
 
+  FormulationOSRCOne.cpp
+  FormulationOSRCTwo.cpp
+  FormulationOSRCThree.cpp
+  FormulationOSRCFour.cpp
+  FormulationUpdateOSRC.cpp
+
   TermProjectionField.cpp
   TermProjectionGrad.cpp
 

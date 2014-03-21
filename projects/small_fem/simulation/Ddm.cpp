@@ -13,6 +13,12 @@
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
 
+#include "FormulationOSRCOne.h"
+#include "FormulationOSRCTwo.h"
+#include "FormulationOSRCThree.h"
+#include "FormulationOSRCFour.h"
+#include "FormulationUpdateOSRC.h"
+
 using namespace std;
 
 Complex fSource(fullVector<double>& xyz){
@@ -136,6 +142,7 @@ void compute(const Options& option){
   // DDM Formulations //
   const string emdaType("emda");
   const string oo2Type("oo2");
+  const string osrcType("osrc");
 
   // Variables
   const double Pi = atan(1.0) * 4;
@@ -143,6 +150,7 @@ void compute(const Options& option){
   double chi      = 0;
   Complex ooA     = 0;
   Complex ooB     = 0;
+  Complex keps    = Complex(k, k / 4);
 
   // EMDA Stuff
   if(ddmType == emdaType)
@@ -199,6 +207,7 @@ void compute(const Options& option){
 
   // Function Space //
   FunctionSpaceScalar fs(domain, order);
+  FunctionSpaceScalar phi(ddmBorder, order); // OSRC
 
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, fs, k);
@@ -206,6 +215,10 @@ void compute(const Options& option){
 
   // Ddm Formulation Pointers //
   Formulation<Complex>* ddm;
+  Formulation<Complex>* ddmTwo   = NULL; // OSRC
+  Formulation<Complex>* ddmThree = NULL; // OSRC
+  Formulation<Complex>* ddmFour  = NULL; // OSRC
+
   Formulation<Complex>* upDdm;
 
   // System Pointers //
@@ -215,9 +228,11 @@ void compute(const Options& option){
   // Solution Maps //
   map<Dof, Complex> ddmG;
   map<Dof, Complex> solution;
+  map<Dof, Complex> solPhi;  // OSRC
 
-  initMap(fs, ddmBorder, solution);
-  initMap(fs, ddmBorder, ddmG);
+  initMap(phi, ddmBorder, solPhi); // OSRC
+  initMap(fs,  ddmBorder, solution);
+  initMap(fs,  ddmBorder, ddmG);
 
   // MPI Buffers //
   vector<int>     outEntity(ddmG.size(), 0);
@@ -232,8 +247,17 @@ void compute(const Options& option){
     // Formulations for DDM //
     if(ddmType == emdaType)
       ddm = new FormulationEMDA(ddmBorder, fs, k, chi, ddmG);
+
     else if(ddmType == oo2Type)
       ddm = new FormulationOO2(ddmBorder, fs, ooA, ooB, ddmG);
+
+    else if(ddmType == osrcType){
+      ddm      = new FormulationOSRCOne(ddmBorder, fs, k, ddmG);      // u.u'
+      ddmTwo   = new FormulationOSRCTwo(ddmBorder, phi, fs, k, keps); // phi.u'
+      ddmThree = new FormulationOSRCThree(ddmBorder, phi, keps);      // phi.ph'
+      ddmFour  = new FormulationOSRCFour(ddmBorder, fs, phi);         // u.phi'
+    }
+
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -243,6 +267,12 @@ void compute(const Options& option){
     system->addFormulation(wave);
     system->addFormulation(sommerfeld);
     system->addFormulation(*ddm);
+
+    if(ddmType == osrcType){
+      system->addFormulation(*ddmTwo);
+      system->addFormulation(*ddmThree);
+      system->addFormulation(*ddmFour);
+    }
 
     // Constraint
     if(myId == 0)
@@ -257,6 +287,10 @@ void compute(const Options& option){
     // Get DDM Border Solution //
     system->getSolution(solution, 0);
 
+    // Get Phi DDM Border //
+    if(ddmType == osrcType)
+      system->getSolution(solPhi, 1);
+
     try{
       if(option.getValue("-disp").size() > 1)
         displaySolution(solution, atoi(option.getValue("-disp")[1].c_str()),
@@ -270,9 +304,13 @@ void compute(const Options& option){
       upDdm  =
         new FormulationUpdateEMDA(ddmBorder, fs, k, chi, solution, ddmG);
 
-   else if(ddmType == oo2Type)
+    else if(ddmType == oo2Type)
       upDdm  =
         new FormulationUpdateOO2(ddmBorder, fs, ooA, ooB, solution, ddmG);
+
+    else if(ddmType == osrcType)
+      upDdm  =
+        new FormulationUpdateOSRC(ddmBorder, fs, k, solution, solPhi, ddmG);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -308,6 +346,12 @@ void compute(const Options& option){
     delete ddm;
     delete system;
     delete update;
+
+    if(ddmType == osrcType){
+      delete ddmTwo;
+      delete ddmThree;
+      delete ddmFour;
+    }
   }
 }
 
