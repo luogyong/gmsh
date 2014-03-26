@@ -8,15 +8,11 @@
 
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
+#include "FormulationOSRC.h"
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
-
-#include "FormulationOSRCOne.h"
-#include "FormulationOSRCTwo.h"
-#include "FormulationOSRCThree.h"
-#include "FormulationOSRCFour.h"
 #include "FormulationUpdateOSRC.h"
 
 using namespace std;
@@ -220,12 +216,9 @@ void compute(const Options& option){
   FormulationSommerfeld          sommerfeld(infinity, fs, k);
 
   // Ddm Formulation Pointers //
-  Formulation<Complex>* ddm;
-  Formulation<Complex>* ddmTwo   = NULL; // OSRC
-  Formulation<Complex>* ddmThree = NULL; // OSRC
-  Formulation<Complex>* ddmFour  = NULL; // OSRC
-
-  Formulation<Complex>* upDdm;
+  Formulation<Complex>*            ddm = NULL;
+  Formulation<Complex>*          upDdm = NULL;
+  CoupledFormulation<Complex>* ddmOSRC = NULL; // OSRC
 
   // System Pointers //
   System<Complex>* system;
@@ -253,16 +246,10 @@ void compute(const Options& option){
     // Formulations for DDM //
     if(ddmType == emdaType)
       ddm = new FormulationEMDA(ddmBorder, fs, k, chi, ddmG);
-
     else if(ddmType == oo2Type)
       ddm = new FormulationOO2(ddmBorder, fs, ooA, ooB, ddmG);
-
-    else if(ddmType == osrcType){
-      ddm      = new FormulationOSRCOne(ddmBorder, fs, k, ddmG);      // u.u'
-      ddmTwo   = new FormulationOSRCTwo(ddmBorder, phi, fs, k, keps); // phi.u'
-      ddmThree = new FormulationOSRCThree(ddmBorder, phi, keps);      // phi.ph'
-      ddmFour  = new FormulationOSRCFour(ddmBorder, fs, phi);         // u.phi'
-    }
+    else if(ddmType == osrcType)
+      ddmOSRC  = new FormulationOSRC(ddmBorder, fs, phi, k, keps, ddmG);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -272,13 +259,11 @@ void compute(const Options& option){
     system = new System<Complex>;
     system->addFormulation(wave);
     system->addFormulation(sommerfeld);
-    system->addFormulation(*ddm);
 
-    if(ddmType == osrcType){
-      system->addFormulation(*ddmTwo);
-      system->addFormulation(*ddmThree);
-      system->addFormulation(*ddmFour);
-    }
+    if(ddmType == osrcType)
+      system->addFormulation(*ddmOSRC);
+    else
+      system->addFormulation(*ddm);
 
     // Constraint
     if(myId == 0)
@@ -348,16 +333,15 @@ void compute(const Options& option){
     }
 
     // Clean //
-    delete upDdm;
-    delete ddm;
+    if(upDdm)
+      delete upDdm;
+    if(ddm)
+      delete ddm;
+    if(ddmOSRC)
+      delete ddmOSRC;
+
     delete system;
     delete update;
-
-    if(ddmType == osrcType){
-      delete ddmTwo;
-      delete ddmThree;
-      delete ddmFour;
-    }
   }
 }
 

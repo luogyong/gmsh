@@ -11,9 +11,9 @@
 
 /**
    @class FormulationUpdateOSRC
-   @brief Update Formulation for FormulationOSRC{One,Two,Three,Four}
+   @brief Update Formulation for FormulationOSRC
 
-   Update Formulation for FormulationOSRC{One,Two,Three,Four}
+   Update Formulation for FormulationOSRC
 */
 
 class FormulationUpdateOSRC: public Formulation<Complex>{
@@ -52,14 +52,15 @@ class FormulationUpdateOSRC: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
-
- private:
-  static double pade_aj(int j, int N);
-  static double pade_bj(int j, int N);
-
-  static Complex padeC0(int N, double theta);
-  static Complex padeAj(int j, int N, double theta);
-  static Complex padeBj(int j, int N, double theta);
 };
+
+/**
+   @fn FormulationUpdateOSRC::FormulationUpdateOSRC
+   @todo TODO
+   **
+
+   @fn FormulationUpdateOSRC::~FormulationUpdateOSRC
+   Deletes this FormulationUpdateOSRC
+*/
 
 #endif

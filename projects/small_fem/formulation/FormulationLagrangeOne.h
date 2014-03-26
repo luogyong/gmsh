@@ -53,7 +53,7 @@ class FormulationLagrangeOne: public Formulation<Complex>{
 
 /**
    @fn FormulationLagrangeOne::~FormulationLagrangeOne
-   Deletes this FormulationFieldLagrange
+   Deletes this FormulationLagrangeOne
 */
 
 #endif

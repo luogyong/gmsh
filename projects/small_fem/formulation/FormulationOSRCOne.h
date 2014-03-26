@@ -1,44 +1,51 @@
 #ifndef _FORMULATIONOSRCONE_H_
 #define _FORMULATIONOSRCONE_H_
 
-#include <map>
-
 #include "SmallFem.h"
-#include "Formulation.h"
-#include "GroupOfElement.h"
 #include "FunctionSpaceScalar.h"
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
 
+#include "Formulation.h"
+#include "FormulationOSRC.h"
+
 /**
    @class FormulationOSRCOne
-   @brief FormulationOSRCOne
+   @brief Helping class for FormulationOSRC (uncoupled with field as unknowns)
 
-   FormulationOSRCOne
+   Helping class for FormulationOSRC (field is unknown and tested by itself)
+
+   FormulationOSRC is a friend of FormulationOSRCOne
  */
 
 class FormulationOSRCOne: public Formulation<Complex>{
  private:
+  friend class FormulationOSRC;
+
+ private:
   // Wavenumber //
   double k;
-
-  // Function Space & Domain //
-  const FunctionSpaceScalar* fspace;
-  const GroupOfElement*      ddomain;
 
   // Pade C0 //
   Complex C0;
 
+  // Function Space & Domain //
+  const FunctionSpaceScalar* ffield;
+  const GroupOfElement*      ddomain;
+
   // Local Terms //
-  TermFieldField<double>*       localLHS;
-  TermProjectionField<Complex>* localRHS;
+  const TermFieldField<double>*       localLHS;
+  const TermProjectionField<Complex>* localRHS;
+
+ private:
+  FormulationOSRCOne(void);
+  FormulationOSRCOne(const GroupOfElement& domain,
+                     const FunctionSpaceScalar& field,
+                     double k,
+                     const TermFieldField<double>& localLHS,
+                     const TermProjectionField<Complex>& localRHS);
 
  public:
-  FormulationOSRCOne(const GroupOfElement& domain,
-                     const FunctionSpaceScalar& fs,
-                     double k,
-                     const std::map<Dof, Complex>& ddmDof);
-
   virtual ~FormulationOSRCOne(void);
 
   virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
@@ -47,12 +54,11 @@ class FormulationOSRCOne: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
-
- private:
-  static double pade_aj(int j, int N);
-  static double pade_bj(int j, int N);
-
-  static Complex padeC0(int N, double theta);
 };
+
+/**
+   @fn FormulationOSRCOne::~FormulationOSRCOne
+   Deletes this FormulationOSRCOne
+*/
 
 #endif

@@ -1,43 +1,51 @@
 #ifndef _FORMULATIONOSRCTHREE_H_
 #define _FORMULATIONOSRCTHREE_H_
 
-#include <map>
-
 #include "SmallFem.h"
-#include "Formulation.h"
-#include "GroupOfElement.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
 
+#include "Formulation.h"
+#include "FormulationOSRC.h"
+
 /**
    @class FormulationOSRCThree
-   @brief FormulationOSRCThree
+   @brief Helping class for FormulationOSRC (uncoupled with auxiliary as unknowns)
 
-   FormulationOSRCThree
+   Helping class for FormulationOSRC (auxiliary is unknown and tested by itself)
+
+   FormulationOSRC is a friend of FormulationOSRCThree
 */
 
 class FormulationOSRCThree: public Formulation<Complex>{
  private:
+  friend class FormulationOSRC;
+
+ private:
   // Complexified wavenumber //
   Complex keps;
-
-  // FunctionSpace & Domain //
-  const FunctionSpaceScalar* ffspace;
-  const GroupOfElement*      ddomain;
 
   // Pade B1 //
   Complex B1;
 
+  // FunctionSpace & Domain //
+  const FunctionSpaceScalar* faux;
+  const GroupOfElement*      ddomain;
+
   // Local Terms //
-  TermFieldField<double>* localFF;
-  TermGradGrad<double>*   localGG;
+  const TermFieldField<double>* localFF;
+  const TermGradGrad<double>*   localGG;
+
+ private:
+  FormulationOSRCThree(void);
+  FormulationOSRCThree(const GroupOfElement& domain,
+                       const FunctionSpaceScalar& auxiliary,
+                       Complex keps,
+                       const TermFieldField<double>& localFF,
+                       const TermGradGrad<double>& localGG);
 
  public:
-  FormulationOSRCThree(const GroupOfElement& domain,
-                       const FunctionSpaceScalar& fspace,
-                       Complex keps);
-
   virtual ~FormulationOSRCThree(void);
 
   virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
@@ -46,12 +54,11 @@ class FormulationOSRCThree: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
-
- private:
-  static double pade_aj(int j, int N);
-  static double pade_bj(int j, int N);
-
-  static Complex padeBj(int j, int N, double theta);
 };
+
+/**
+   @fn FormulationOSRCThree::~FormulationOSRCThree
+   Deletes this FormulationOSRCThree
+*/
 
 #endif

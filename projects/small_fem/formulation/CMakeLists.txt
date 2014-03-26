@@ -13,6 +13,7 @@ set(src
   FormulationOO2.cpp
   FormulationUpdateOO2.cpp
 
+  FormulationOSRC.cpp
   FormulationOSRCOne.cpp
   FormulationOSRCTwo.cpp
   FormulationOSRCThree.cpp

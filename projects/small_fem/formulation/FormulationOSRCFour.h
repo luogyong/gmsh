@@ -1,36 +1,44 @@
 #ifndef _FORMULATIONOSRCFOUR_H_
 #define _FORMULATIONOSRCFOUR_H_
 
-#include <map>
-
 #include "SmallFem.h"
-#include "Formulation.h"
 #include "GroupOfElement.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
 
+#include "Formulation.h"
+#include "FormulationOSRC.h"
+
 /**
    @class FormulationOSRCFour
-   @brief FormulationOSRCFour
+   @brief Helping class for FormulationOSRC (coupled with field as unknowns)
 
-   FormulationOSRCFour
+   Helping class for FormulationOSRC (field is unknown and tested by auxiliary)
+
+   FormulationOSRC is a friend of FormulationOSRCFour
  */
 
 class FormulationOSRCFour: public Formulation<Complex>{
  private:
-  // FunctionSpace (field and test) & Domain //
-  const FunctionSpaceScalar* ffField;
-  const FunctionSpaceScalar* ffTest;
+  friend class FormulationOSRC;
+
+ private:
+  // FunctionSpace (field and aux) & Domain //
+  const FunctionSpaceScalar* ffield;
+  const FunctionSpaceScalar* faux;
   const GroupOfElement*      ddomain;
 
   // Local Term //
-  TermFieldField<double>* local;
+  const TermFieldField<double>* localTerm;
+
+ private:
+  FormulationOSRCFour(void);
+  FormulationOSRCFour(const GroupOfElement& domain,
+                      const FunctionSpaceScalar& field,
+                      const FunctionSpaceScalar& auxiliary,
+                      const TermFieldField<double>& localTerm);
 
  public:
-  FormulationOSRCFour(const GroupOfElement& domain,
-                      const FunctionSpaceScalar& fField,
-                      const FunctionSpaceScalar& fTest);
-
   virtual ~FormulationOSRCFour(void);
 
   virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
@@ -40,5 +48,10 @@ class FormulationOSRCFour: public Formulation<Complex>{
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
 };
+
+/**
+   @fn FormulationOSRCFour::~FormulationOSRCFour
+   Deletes this FormulationOSRCFour
+*/
 
 #endif
