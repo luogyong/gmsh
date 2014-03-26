@@ -150,7 +150,7 @@ void compute(const Options& option){
   double chi      = 0;
   Complex ooA     = 0;
   Complex ooB     = 0;
-  Complex keps    = Complex(k, k / 4);
+  Complex keps    = 0;
 
   // EMDA Stuff
   if(ddmType == emdaType)
@@ -175,6 +175,12 @@ void compute(const Options& option){
 
     ooA = -(ooAlpha * ooBeta - k * k) / (ooAlpha + ooBeta);
     ooB = Complex(-1, 0) / (ooAlpha + ooBeta);
+  }
+
+  // OSRC Stuff
+  if(ddmType == osrcType){
+    double ck = atof(option.getValue("-ck")[1].c_str());
+    keps      = k + Complex(0, k * ck);
   }
 
   // Get Domains //
@@ -357,7 +363,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-max,-ddm,-chi,-lc,-disp");
+  SmallFem::Keywords("-msh,-o,-k,-max,-ddm,-chi,-lc,-ck,-disp");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

@@ -7,8 +7,7 @@
 
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
-#include "FormulationFieldLagrange.h"
-#include "FormulationLagrangeField.h"
+#include "FormulationLagrange.h"
 
 #include "Timer.h"
 #include "SmallFem.h"
@@ -17,7 +16,7 @@ using namespace std;
 
 double fSourceReal(fullVector<double>& xyz){
   //return 1;
-  //return fabs(xyz(1);
+  //return fabs(xyz(1))0;
   return exp(-((xyz(1) * 4.2) * (xyz(1) * 4.2) +
                (xyz(2) * 4.2) * (xyz(2) * 4.2)));
 }
@@ -46,22 +45,17 @@ void compute(const Options& option){
   // Formulation //
   assemble.start();
   FunctionSpaceScalar fs(domain, order);
+  FunctionSpaceScalar lfs(domain, order);
 
   FormulationSteadyWave<complex<double> > wave(volume, fs, k);
-  FormulationSommerfeld                   sommerfeld(freeSpace, fs, k);
-
-  // Lagrange //
-  FunctionSpaceScalar lagrange(domain, order);
-
-  FormulationFieldLagrange fieldLagrange(source, fs, lagrange, fSourceReal);
-  FormulationLagrangeField lagrangeField(source, lagrange, fs);
+  FormulationSommerfeld          sommerfeld(freeSpace, fs, k);
+  FormulationLagrange  lagrange(source, fs, lfs, fSourceReal);
 
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
   sys.addFormulation(sommerfeld);
-  sys.addFormulation(fieldLagrange);
-  sys.addFormulation(lagrangeField);
+  sys.addFormulation(lagrange);
 
   cout << "Free Space Lagrange contrainted (Order: "  << order
        << " --- Wavenumber: "                         << k
@@ -91,9 +85,9 @@ void compute(const Options& option){
     FEMSolution<complex<double> > feSolSrc;
     FEMSolution<complex<double> > feSolMul;
 
-    sys.getSolution(feSolVol, fs,       volume);
-    sys.getSolution(feSolSrc, fs,       source);
-    sys.getSolution(feSolMul, lagrange, source);
+    sys.getSolution(feSolVol, fs,  volume);
+    sys.getSolution(feSolSrc, fs,  source);
+    sys.getSolution(feSolMul, lfs, source);
 
     feSolVol.write("lagrVol");
     feSolSrc.write("lagrSrc");

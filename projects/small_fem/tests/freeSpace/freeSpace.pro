@@ -7,6 +7,9 @@ Group{
 Function{
   k = 5;
   I[] = Complex[0, 1];
+
+  F[] = Exp[-((Y[] * 4.2) * (Y[] * 4.2) + (Z[] * 4.2) * (Z[] * 4.2))];
+  //F[] = Fabs[Y[]];
 }
 
 Jacobian {
@@ -28,22 +31,10 @@ Integration {
     Case {
       { Type Gauss ;
         Case {
-          { GeoElement Point ; NumberOfPoints  1 ; }
-          { GeoElement Line ; NumberOfPoints  4 ; }
-          { GeoElement Triangle ; NumberOfPoints 12 ; }
-          { GeoElement Quadrangle ; NumberOfPoints 7 ; }
-          { GeoElement Tetrahedron ; NumberOfPoints 15 ; }
-          { GeoElement Hexahedron ; NumberOfPoints 34 ; }
+          { GeoElement Triangle ; NumberOfPoints 3 ; }
+          { GeoElement Tetrahedron ; NumberOfPoints 4 ; }
         }
       }
-    }
-  }
-}
-
-Constraint{
-  { Name Dirichlet ;
-    Case {
-      { Region GammaS ; Value 1. ; }
     }
   }
 }
@@ -53,8 +44,11 @@ FunctionSpace {
     BasisFunction {
       { Name se; NameOfCoef ee; Function BF_Node; Support Region[{Omega,GammaS,GammaN}] ; Entity NodesOf[All]; }
     }
-    Constraint {
-      { NameOfCoef ee; EntityType NodesOf ; NameOfConstraint Dirichlet; }
+  }
+
+  { Name HgradLagrange; Type Form0;
+    BasisFunction {
+      { Name le; NameOfCoef le; Function BF_Node; Support Region[{GammaS}] ; Entity NodesOf[All]; }
     }
   }
 }
@@ -63,17 +57,30 @@ FunctionSpace {
 Formulation {
   { Name FreeSpace; Type FemEquation;
     Quantity {
-      { Name e; Type Local;  NameOfSpace Hgrad; }
+      { Name e; Type Local; NameOfSpace Hgrad; }
+      { Name l; Type Local; NameOfSpace HgradLagrange; }
     }
     Equation {
+      // Helmholtz
       Galerkin { [ Dof{d e} , {d e} ];
                  In Omega; Integration I1; Jacobian JVol;  }
 
       Galerkin { [ -k^2 * Dof{e} , {e} ];
                  In Omega; Integration I1; Jacobian JVol;  }
 
+      // Somerfeld
       Galerkin { [ -1 * I[] * k * Dof{e} , {e} ];
                  In GammaN; Integration I1; Jacobian JSur;  }
+
+      // Lagrange
+      Galerkin { [ Dof{l}, {e} ];
+                 In GammaS; Integration I1; Jacobian JSur;  }
+
+      Galerkin { [ Dof{e}, {l} ];
+                 In GammaS; Integration I1; Jacobian JSur;  }
+
+      Galerkin { [ -F[], {l} ];
+                 In GammaS; Integration I1; Jacobian JSur;  }
     }
   }
 }
@@ -96,6 +103,9 @@ PostProcessing {
     Quantity {
       { Name e ;
         Value { Local { [ {e} ] ; In Omega; Jacobian JVol ; } } }
+
+      { Name l ;
+        Value { Local { [ {l} ] ; In GammaS; Jacobian JSur ; } } }
     }
   }
 }
@@ -105,6 +115,7 @@ PostOperation {
   { Name FreeSpace ; NameOfPostProcessing FreeSpace;
     Operation {
       Print[ e, OnElementsOf Omega, File "free.pos"] ;
+      Print[ l, OnElementsOf GammaS, File "lagfree.pos"] ;
     }
   }
 }

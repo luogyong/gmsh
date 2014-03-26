@@ -4,8 +4,9 @@ set(src
   FormulationSteadySlow.cpp
   FormulationPML.cpp
 
-  FormulationLagrangeField.cpp
-  FormulationFieldLagrange.cpp
+  FormulationLagrange.cpp
+  FormulationLagrangeOne.cpp
+  FormulationLagrangeTwo.cpp
 
   FormulationEMDA.cpp
   FormulationUpdateEMDA.cpp

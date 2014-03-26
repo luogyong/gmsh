@@ -6,6 +6,7 @@
 
 #include "DofManager.h"
 #include "Formulation.h"
+#include "CoupledFormulation.h"
 #include "FEMSolution.h"
 
 #include "SolverMatrix.h"
@@ -45,6 +46,7 @@ class SystemAbstract{
   size_t getSize(void)     const;
 
   void addFormulation(const Formulation<scalar>& formulation);
+  void addFormulation(const CoupledFormulation<scalar>& formulation);
   void constraint(const std::map<Dof, scalar>& constr);
 
   virtual void assemble(void) = 0;
@@ -92,9 +94,15 @@ class SystemAbstract{
    @return Returns the number of unknowns in this linear system
    **
 
-   @fn SystemAbstract::addFormulation
+   @fn SystemAbstract::addFormulation(const Formulation<scalar>& formulation)
    @param formulation A Formulation
    Adds the given Formulation to the Formulation%s that will be assembled
+   **
+
+   @fn SystemAbstract::addFormulation(const CoupledFormulation<scalar>& formulation);
+   @param formulation A CoupledFormulation
+   Adds the Formulation%s embeded in CoupledFormulation::getFormulations()
+   to the Formulation%s that will be assembled
    **
 
    @fn SystemAbstract::constraint

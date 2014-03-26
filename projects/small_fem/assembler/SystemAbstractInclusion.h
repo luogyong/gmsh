@@ -42,6 +42,24 @@ addFormulation(const Formulation<scalar>& formulation){
 }
 
 template<typename scalar>
+void SystemAbstract<scalar>::
+addFormulation(const CoupledFormulation<scalar>& formulation){
+  // Get the list of Formulations //
+  const std::list<const Formulation<scalar>*>&
+    fList = formulation.getFormulations();
+
+  // Iterate on list and add the pointed Formulations //
+  typename std::list<const Formulation<scalar>*>::const_iterator
+    end = fList.end();
+
+  typename std::list<const Formulation<scalar>*>::const_iterator
+    it  = fList.begin();
+
+  for(; it != end; it++)
+    this->addFormulation(**it);
+}
+
+template<typename scalar>
 void SystemAbstract<scalar>::constraint(const std::map<Dof, scalar>& constr){
   typename std::map<Dof, scalar>::const_iterator it  = constr.begin();
   typename std::map<Dof, scalar>::const_iterator end = constr.end();
