@@ -12,6 +12,8 @@ FormulationOSRCThree::
 FormulationOSRCThree(const GroupOfElement& domain,
                      const FunctionSpaceScalar& auxiliary,
                      Complex keps,
+                     int NPade,
+                     int jPade,
                      const TermFieldField<double>& localFF,
                      const TermGradGrad<double>& localGG){
   // Save Data //
@@ -21,8 +23,8 @@ FormulationOSRCThree(const GroupOfElement& domain,
   this->localFF = &localFF;
   this->localGG = &localGG;
 
-  // Pade B1 //
-  B1 = FormulationOSRC::padeBj(1, 1, M_PI / 4.);
+  // Pade Bj //
+  Bj = FormulationOSRC::padeBj(jPade, NPade, M_PI / 4.);
 }
 
 FormulationOSRCThree::~FormulationOSRCThree(void){
@@ -32,7 +34,7 @@ Complex FormulationOSRCThree::weak(size_t dofI, size_t dofJ,
                                    size_t elementId) const{
   return
      localFF->getTerm(dofI, dofJ, elementId)
-    -localGG->getTerm(dofI, dofJ, elementId) * B1 / (keps * keps);
+    -localGG->getTerm(dofI, dofJ, elementId) * Bj / (keps * keps);
 }
 
 Complex FormulationOSRCThree::rhs(size_t equationI, size_t elementId) const{

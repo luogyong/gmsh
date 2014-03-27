@@ -13,6 +13,8 @@ FormulationOSRCTwo::FormulationOSRCTwo(const GroupOfElement& domain,
                                        const FunctionSpaceScalar& field,
                                        double  k,
                                        Complex keps,
+                                       int NPade,
+                                       int jPade,
                                        const TermGradGrad<double>& localTerm){
   // Save Data //
   this->k         = k;
@@ -22,8 +24,8 @@ FormulationOSRCTwo::FormulationOSRCTwo(const GroupOfElement& domain,
   this->ddomain   = &domain;
   this->localTerm = &localTerm;
 
-  // Pade A1 //
-  A1 = FormulationOSRC::padeAj(1, 1, M_PI / 4.);
+  // Pade Aj //
+  Aj = FormulationOSRC::padeAj(jPade, NPade, M_PI / 4.);
 }
 
 FormulationOSRCTwo::~FormulationOSRCTwo(void){
@@ -32,7 +34,7 @@ FormulationOSRCTwo::~FormulationOSRCTwo(void){
 Complex FormulationOSRCTwo::weak(size_t dofI, size_t dofJ,
                                  size_t elementId) const{
   return
-    Complex(0, k) * A1 / (keps * keps) *
+    Complex(0, k) * Aj / (keps * keps) *
     localTerm->getTerm(dofI, dofJ, elementId);
 }
 

@@ -14,9 +14,10 @@ using namespace std;
 
 FormulationOSRC::FormulationOSRC(const GroupOfElement& domain,
                                  const FunctionSpaceScalar& field,
-                                 const FunctionSpaceScalar& aux,
+                                 const vector<const FunctionSpaceScalar*>& aux,
                                  double k,
                                  Complex keps,
+                                 int NPade,
                                  const map<Dof, Complex>& ddmDof){
 
   // Check GroupOfElement Stats: Uniform Mesh //
@@ -57,13 +58,23 @@ FormulationOSRC::FormulationOSRC(const GroupOfElement& domain,
   //     So it can instanciate those classes...
 
   fList.push_back
-    (new FormulationOSRCOne(domain, field, k, *localFF, *localPr));    // u.u'
-  fList.push_back
-    (new FormulationOSRCTwo(domain, aux, field, k, keps, *localGG));   // phi.u'
-  fList.push_back
-    (new FormulationOSRCThree(domain, aux, keps, *localFF, *localGG)); // ph.ph'
-  fList.push_back
-    (new FormulationOSRCFour(domain, field, aux, *localFF));           // u.phi'
+    (new FormulationOSRCOne
+     (domain, field, k, NPade, *localFF, *localPr));              // u.u'
+
+  // Loop on phi[j]
+  for(int j = 0; j < NPade; j++){
+    fList.push_back
+      (new FormulationOSRCTwo
+       (domain, *aux[j], field, k, keps, NPade, j+1, *localGG)); // phi[j].u'
+
+    fList.push_back
+      (new FormulationOSRCThree
+       (domain, *aux[j], keps, NPade, j+1, *localFF, *localGG)); // ph[j].ph[j]'
+
+    fList.push_back
+      (new FormulationOSRCFour
+       (domain, field, *aux[j], *localFF));                      // u.phi[j]'
+  }
 }
 
 FormulationOSRC::~FormulationOSRC(void){
@@ -86,11 +97,15 @@ FormulationOSRC::getFormulations(void) const{
 }
 
 double FormulationOSRC::pade_aj(int j, int N){
-  return 2. / (2. * N + 1.) * sqrt(sin((double)j * M_PI / (2. * N + 1.)));
+  double tmp = sin((double)j * M_PI / (2. * N + 1.));
+
+  return 2. / (2. * N + 1.) * tmp * tmp;
 }
 
 double FormulationOSRC::pade_bj(int j, int N){
-  return sqrt(cos((double)j * M_PI / (2. *N + 1.)));
+  double tmp = cos((double)j * M_PI / (2. *N + 1.));
+
+  return tmp * tmp;
 }
 
 Complex FormulationOSRC::padeC0(int N, double theta){

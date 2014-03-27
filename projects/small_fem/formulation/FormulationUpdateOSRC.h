@@ -27,8 +27,8 @@ class FormulationUpdateOSRC: public Formulation<Complex>{
 
   // Pade //
   Complex C0;
-  Complex A1;
-  Complex B1;
+  std::vector<Complex> A;
+  std::vector<Complex> B;
 
   // Local Terms //
   TermFieldField<double>*       lGout;
@@ -40,8 +40,9 @@ class FormulationUpdateOSRC: public Formulation<Complex>{
   FormulationUpdateOSRC(const GroupOfElement& domain,
                         const FunctionSpaceScalar& fspace,
                         double k,
+                        int NPade,
                         const std::map<Dof, Complex>& solU,
-                        const std::map<Dof, Complex>& solPhi,
+                        const std::vector<std::map<Dof, Complex> >& solPhi,
                         const std::map<Dof, Complex>& oldG);
 
   virtual ~FormulationUpdateOSRC(void);

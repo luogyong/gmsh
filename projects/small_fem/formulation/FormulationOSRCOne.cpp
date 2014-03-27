@@ -12,6 +12,7 @@ FormulationOSRCOne::
 FormulationOSRCOne(const GroupOfElement& domain,
                    const FunctionSpaceScalar& field,
                    double k,
+                   int NPade,
                    const TermFieldField<double>& localLHS,
                    const TermProjectionField<Complex>& localRHS){
   // Save Data //
@@ -22,7 +23,7 @@ FormulationOSRCOne(const GroupOfElement& domain,
   this->localRHS = &localRHS;
 
   // Pade C0
-  C0 = FormulationOSRC::padeC0(1, M_PI / 4.);
+  C0 = FormulationOSRC::padeC0(NPade, M_PI / 4.);
 }
 
 FormulationOSRCOne::~FormulationOSRCOne(void){

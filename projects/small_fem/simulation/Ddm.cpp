@@ -33,6 +33,29 @@ void initMap(FunctionSpace& fs, GroupOfElement& goe, map<Dof, Complex>& data){
     data.insert(pair<Dof, Complex>(*it, 0));
 }
 
+void initMap(vector<const FunctionSpaceScalar*>& fs, GroupOfElement& goe,
+             vector<map<Dof, Complex> >& data){
+
+  const size_t size = data.size();
+
+  set<Dof> dSet;
+  set<Dof>::iterator end;
+  set<Dof>::iterator it;
+
+  if(size != fs.size())
+    throw Exception("initMap: vector must have the same size");
+
+  for(size_t i = 0; i < size; i++){
+    dSet.clear();
+    fs[i]->getKeys(goe, dSet);
+
+    end = dSet.end();
+
+    for(it = dSet.begin(); it != end; it++)
+      data[i].insert(pair<Dof, Complex>(*it, 0));
+  }
+}
+
 void displaySolution(map<Dof, Complex>& solution,
                      int id, size_t step, string name){
   int myId;
@@ -146,6 +169,7 @@ void compute(const Options& option){
   double chi      = 0;
   Complex ooA     = 0;
   Complex ooB     = 0;
+  int NPade       = 0;
   Complex keps    = 0;
 
   // EMDA Stuff
@@ -176,6 +200,7 @@ void compute(const Options& option){
   // OSRC Stuff
   if(ddmType == osrcType){
     double ck = atof(option.getValue("-ck")[1].c_str());
+    NPade     = atoi(option.getValue("-pade")[1].c_str());
     keps      = k + Complex(0, k * ck);
   }
 
@@ -208,8 +233,11 @@ void compute(const Options& option){
   domain.add(ddmBorder);
 
   // Function Space //
-  FunctionSpaceScalar fs(domain, order);
-  FunctionSpaceScalar phi(ddmBorder, order); // OSRC
+  FunctionSpaceScalar                fs(domain, order);
+  vector<const FunctionSpaceScalar*> phi(NPade); // OSRC
+
+  for(int j = 0; j < NPade; j++)
+    phi[j] = new FunctionSpaceScalar(ddmBorder, order);
 
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, fs, k);
@@ -227,7 +255,7 @@ void compute(const Options& option){
   // Solution Maps //
   map<Dof, Complex> ddmG;
   map<Dof, Complex> solution;
-  map<Dof, Complex> solPhi;  // OSRC
+  vector<map<Dof, Complex> > solPhi(NPade); // OSRC
 
   initMap(phi, ddmBorder, solPhi); // OSRC
   initMap(fs,  ddmBorder, solution);
@@ -249,7 +277,7 @@ void compute(const Options& option){
     else if(ddmType == oo2Type)
       ddm = new FormulationOO2(ddmBorder, fs, ooA, ooB, ddmG);
     else if(ddmType == osrcType)
-      ddmOSRC  = new FormulationOSRC(ddmBorder, fs, phi, k, keps, ddmG);
+      ddmOSRC  = new FormulationOSRC(ddmBorder, fs, phi, k, keps, NPade, ddmG);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -280,7 +308,8 @@ void compute(const Options& option){
 
     // Get Phi DDM Border //
     if(ddmType == osrcType)
-      system->getSolution(solPhi, 1);
+      for(int j = 0; j < NPade; j++)
+        system->getSolution(solPhi[j], 0);
 
     try{
       if(option.getValue("-disp").size() > 1)
@@ -301,7 +330,8 @@ void compute(const Options& option){
 
     else if(ddmType == osrcType)
       upDdm  =
-        new FormulationUpdateOSRC(ddmBorder, fs, k, solution, solPhi, ddmG);
+        new FormulationUpdateOSRC(ddmBorder, fs, k, NPade,
+                                  solution, solPhi, ddmG);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -343,11 +373,14 @@ void compute(const Options& option){
     delete system;
     delete update;
   }
+
+  for(int j = 0; j < NPade; j++)
+    delete phi[j];
 }
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-max,-ddm,-chi,-lc,-ck,-disp");
+  SmallFem::Keywords("-msh,-o,-k,-max,-ddm,-chi,-lc,-ck,-pade,-disp");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

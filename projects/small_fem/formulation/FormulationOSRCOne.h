@@ -42,6 +42,7 @@ class FormulationOSRCOne: public Formulation<Complex>{
   FormulationOSRCOne(const GroupOfElement& domain,
                      const FunctionSpaceScalar& field,
                      double k,
+                     int NPade,
                      const TermFieldField<double>& localLHS,
                      const TermProjectionField<Complex>& localRHS);
 

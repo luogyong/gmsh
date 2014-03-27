@@ -7,12 +7,14 @@
 
 using namespace std;
 
-FormulationUpdateOSRC::FormulationUpdateOSRC(const GroupOfElement& domain,
-                                             const FunctionSpaceScalar& fspace,
-                                             double k,
-                                             const map<Dof, Complex>& solU,
-                                             const map<Dof, Complex>& solPhi,
-                                             const map<Dof, Complex>& oldG){
+FormulationUpdateOSRC::
+FormulationUpdateOSRC(const GroupOfElement& domain,
+                      const FunctionSpaceScalar& fspace,
+                      double k,
+                      int NPade,
+                      const map<Dof, Complex>& solU,
+                      const vector<map<Dof, Complex> >& solPhi,
+                      const map<Dof, Complex>& oldG){
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = domain.isUniform();
@@ -20,6 +22,20 @@ FormulationUpdateOSRC::FormulationUpdateOSRC(const GroupOfElement& domain,
 
   if(!uniform.first)
     throw Exception("FormulationUpdateOSRC needs a uniform mesh");
+
+  // Sanity //
+  if(solPhi.size() != (size_t)(NPade))
+    throw Exception
+      ("FormulationUpdateOSRC: size of solPhi should be equal to NPade");
+
+  for(int j = 0; j < NPade; j++)
+    if(solPhi[j].size() != solU.size())
+      throw Exception
+        ("FormulationUpdateOSRC: solPhi[j] and solU should have the same size");
+
+  if(oldG.size() != solU.size())
+    throw Exception
+      ("FormulationUpdateOSRC: oldG and solU should have the same size");
 
   // Wavenumber //
   this->k = k;
@@ -29,9 +45,15 @@ FormulationUpdateOSRC::FormulationUpdateOSRC(const GroupOfElement& domain,
   ddomain = &domain;
 
   // Pade //
-  C0 = FormulationOSRC::padeC0(1, M_PI / 4.);
-  A1 = FormulationOSRC::padeAj(1, 1, M_PI / 4.);
-  B1 = FormulationOSRC::padeBj(1, 1, M_PI / 4.);
+  A.resize(NPade);
+  B.resize(NPade);
+
+  C0 = FormulationOSRC::padeC0(NPade, M_PI / 4.);
+
+  for(int j = 0; j < NPade; j++)
+    A[j] = FormulationOSRC::padeAj(j + 1, NPade, M_PI / 4.);
+  for(int j = 0; j < NPade; j++)
+    B[j] = FormulationOSRC::padeBj(j + 1, NPade, M_PI / 4.);
 
   // Basis //
   const Basis& basis = fspace.getBasis(eType);
@@ -43,19 +65,28 @@ FormulationUpdateOSRC::FormulationUpdateOSRC(const GroupOfElement& domain,
   // Jacobian //
   GroupOfJacobian jac(domain, gC, "jacobian");
 
-  // Difference between solU and solPhi //
-  if(solU.size() != solPhi.size())
-    throw
-      Exception("FormulationUpdateOSRC: solU and solPhi must have same size");
+  // UPhi[d] = sum_j (solU[d] - solPhi[j][d]) * A[j] / B[j] //
 
+  // Init UPhi
   map<Dof, Complex> UPhi = solU;
 
-  map<Dof, Complex>::iterator       end    = UPhi.end();
-  map<Dof, Complex>::iterator       itUPhi = UPhi.begin();
-  map<Dof, Complex>::const_iterator itPhi  = solPhi.begin();
+  map<Dof, Complex>:: iterator UPhiEnd = UPhi.end();
+  map<Dof, Complex>:: iterator UPhiIt;
 
-  for(; itUPhi != end; itUPhi++, itPhi++)
-    itUPhi->second = itUPhi->second - itPhi->second;
+  for(UPhiIt = UPhi.begin(); UPhiIt != UPhiEnd; UPhiIt++)
+    UPhiIt->second = Complex(0, 0);
+
+  // Iterator on solU and solPhi[j]
+  map<Dof, Complex>::const_iterator solUIt;
+  map<Dof, Complex>::const_iterator solPhiJIt;
+
+  // Loop on j (Pade terms) and Degrees of freedom (iterators)
+  for(int j = 0; j < NPade; j++)
+    for(UPhiIt = UPhi.begin(),
+          solUIt = solU.begin(), solPhiJIt = solPhi[j].begin();
+        UPhiIt != UPhiEnd; UPhiIt++, solUIt++, solPhiJIt++)
+
+      UPhiIt->second += (solUIt->second - solPhiJIt->second) * A[j] / B[j];
 
   // Local Terms //
   lGout = new TermFieldField<double>(jac, basis, gauss);
@@ -79,9 +110,9 @@ Complex FormulationUpdateOSRC::weak(size_t dofI, size_t dofJ,
 
 Complex FormulationUpdateOSRC::rhs(size_t equationI, size_t elementId) const{
   return
-    Complex(-1,  0    ) *           lGin->getTerm(0, equationI, elementId) +
-    Complex( 0, -2 * k) * C0 *       lC0->getTerm(0, equationI, elementId) +
-    Complex( 0, -2 * k) * A1 / B1 *  lAB->getTerm(0, equationI, elementId);
+    Complex(-1,  0    ) *      lGin->getTerm(0, equationI, elementId) +
+    Complex( 0, -2 * k) * C0 * lC0->getTerm(0, equationI, elementId)  +
+    Complex( 0, -2 * k) *      lAB->getTerm(0, equationI, elementId);
 }
 
 const FunctionSpace& FormulationUpdateOSRC::field(void) const{

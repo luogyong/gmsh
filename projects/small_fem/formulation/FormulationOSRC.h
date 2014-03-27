@@ -32,9 +32,10 @@ class FormulationOSRC: public CoupledFormulation<Complex>{
  public:
   FormulationOSRC(const GroupOfElement& domain,
                   const FunctionSpaceScalar& field,
-                  const FunctionSpaceScalar& aux,
+                  const std::vector<const FunctionSpaceScalar*>& aux,
                   double k,
                   Complex keps,
+                  int NPade,
                   const std::map<Dof, Complex>& ddmDof);
 
   virtual ~FormulationOSRC(void);
@@ -56,14 +57,17 @@ class FormulationOSRC: public CoupledFormulation<Complex>{
    @fn FormulationOSRC::FormulationOSRC
    @param domain A GroupOfElement for the domain
    @param field FunctionSpace for the computed field
-   @param aux Auxiliary FunctionSpace for Pade denominator
+   @param aux A set of auxiliary FunctionSpace for Pade denominator
    @param k A real number
    @param keps A complex number
+   @param NPade Number of approximation terms for Pade
    @param ddmDof A map with the DDM Dof%s and their associated values
 
    Instantiates a new FormulationOSRC with wavenumber k
    and complexified wavenumber keps.
    The DDM Dof%s are given by ddmDof.
+
+   It is important mentioning that aux.size() and NPade must be equal.
    **
 
    @fn FormulationOSRC::~FormulationOSRC

@@ -26,8 +26,8 @@ class FormulationOSRCThree: public Formulation<Complex>{
   // Complexified wavenumber //
   Complex keps;
 
-  // Pade B1 //
-  Complex B1;
+  // Pade Bj //
+  Complex Bj;
 
   // FunctionSpace & Domain //
   const FunctionSpaceScalar* faux;
@@ -42,6 +42,8 @@ class FormulationOSRCThree: public Formulation<Complex>{
   FormulationOSRCThree(const GroupOfElement& domain,
                        const FunctionSpaceScalar& auxiliary,
                        Complex keps,
+                       int NPade,
+                       int jPade,
                        const TermFieldField<double>& localFF,
                        const TermGradGrad<double>& localGG);
 

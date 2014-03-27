@@ -27,8 +27,8 @@ class FormulationOSRCTwo: public Formulation<Complex>{
   double  k;
   Complex keps;
 
-  // Pade A1 //
-  Complex A1;
+  // Pade Aj //
+  Complex Aj;
 
   // Function Space (field and aux) & Domain //
   const FunctionSpaceScalar* ffield;
@@ -45,6 +45,8 @@ class FormulationOSRCTwo: public Formulation<Complex>{
                      const FunctionSpaceScalar& field,
                      double  k,
                      Complex keps,
+                     int NPade,
+                     int jPade,
                      const TermGradGrad<double>& localTerm);
 
  public:
