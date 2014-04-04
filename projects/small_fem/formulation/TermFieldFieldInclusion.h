@@ -58,11 +58,11 @@ void TermFieldField<scalar>::init(const GroupOfJacobian& goj,
   computeC(basis, gW, cM);
   computeB(goj, gW.size(), bM);
 
-  allocA(this->nFunction * this->nFunction);
-  computeA(bM, cM);
+  this->allocA(this->nFunction * this->nFunction);
+  this->computeA(bM, cM);
 
   // Clean up //
-  clean(bM, cM);
+  this->clean(bM, cM);
 }
 
 template<typename scalar>
@@ -80,22 +80,30 @@ void TermFieldField<scalar>::computeC(const Basis& basis,
   cM = new fullMatrix<scalar>*[this->nOrientation];
 
   for(size_t s = 0; s < this->nOrientation; s++)
-    cM[s] = new fullMatrix<scalar>(nG, this->nFunction * this->nFunction);
+    if((*this->orientationStat)[s] != 0)
+      // If there is at least one element with orientation 's'
+      cM[s] = new fullMatrix<scalar>(nG, this->nFunction * this->nFunction);
+    else
+      // Else: empty matrix
+      cM[s] = new fullMatrix<scalar>(0, 0);
 
   // Fill //
   for(size_t s = 0; s < this->nOrientation; s++){
-    // Get functions for this Orientation
-    const fullMatrix<double>& phi = basis.getPreEvaluatedFunctions(s);
+    // If there is at least one element with this orientation
+    if((*this->orientationStat)[s] != 0){
+      // Get functions for this Orientation
+      const fullMatrix<double>& phi = basis.getPreEvaluatedFunctions(s);
 
-    // Loop on Gauss Points
-    for(size_t g = 0; g < nG; g++){
-      // Loop on Functions
-      l = 0;
+      // Loop on Gauss Points
+      for(size_t g = 0; g < nG; g++){
+        // Loop on Functions
+        l = 0;
 
-      for(size_t i = 0; i < this->nFunction; i++){
-        for(size_t j = 0; j < this->nFunction; j++){
-          (*cM[s])(g, l) = gW(g) * phi(i, g) * phi(j, g);
-          l++;
+        for(size_t i = 0; i < this->nFunction; i++){
+          for(size_t j = 0; j < this->nFunction; j++){
+            (*cM[s])(g, l) = gW(g) * phi(i, g) * phi(j, g);
+            l++;
+          }
         }
       }
     }

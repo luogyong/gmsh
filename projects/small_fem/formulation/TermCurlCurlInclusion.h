@@ -76,11 +76,11 @@ void TermCurlCurl<scalar>::init(const GroupOfJacobian& goj,
   computeC(basis, getFunction, gW, cM);
   computeB(goj, gW.size(), bM);
 
-  allocA(this->nFunction * this->nFunction);
-  computeA(bM, cM);
+  this->allocA(this->nFunction * this->nFunction);
+  this->computeA(bM, cM);
 
   // Clean up //
-  clean(bM, cM);
+  this->clean(bM, cM);
   TJac.clear();
 }
 
