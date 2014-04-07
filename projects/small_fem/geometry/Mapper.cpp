@@ -53,8 +53,12 @@ void Mapper::hDiv(const fullMatrix<double>& hDivUVW,
     jac(0, 2) * hDivUVW(row, col * 3)     +
     jac(1, 2) * hDivUVW(row, col * 3 + 1) +
     jac(2, 2) * hDivUVW(row, col * 3 + 2);
-
+  /*
   hDivXYZ(0) /= fabs(det);
   hDivXYZ(1) /= fabs(det);
   hDivXYZ(2) /= fabs(det);
+  */
+  hDivXYZ(0) /= det;
+  hDivXYZ(1) /= det;
+  hDivXYZ(2) /= det;
 }
