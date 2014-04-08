@@ -45,72 +45,39 @@
 
 using namespace std;
 
-Complex f(fullVector<double>& xyz){
-  return Complex(+1, -1) * (sin(10 * xyz(0)) +
-                            sin(10 * xyz(1)) +
-                            sin(10 * xyz(2)));
-}
-/*
-fullVector<Complex> f(fullVector<double>& xyz){
-  fullVector<Complex> res(3);
-
-  res(0) =  Complex(+1, -1) * sin(10 * xyz(0));
-  res(1) =  Complex(+1, -1) * sin(10 * xyz(1));
-  res(2) =  Complex(+1, -1) * sin(10 * xyz(2));
-
-  return res;
-}
-*/
 void compute(const Options& option){
-  // Get FEM Orders //
-  const size_t nOrder = option.getValue("-o").size() - 1;
-  vector<int>   order(nOrder);
+  cout << "Line:" << flush;
+  LineReferenceSpace line;
+  cout << line.getNOrientation() << endl;
 
-  for(size_t i = 0; i < nOrder; i++)
-    order[i] = atoi(option.getValue("-o")[i + 1].c_str());
+  cout << "Triangle:" << flush;
+  TriReferenceSpace tri;
+  cout << tri.getNOrientation() << endl;
 
-  // Get FEM Meshes //
-  const size_t  nMesh = option.getValue("-msh").size() - 1;
-  vector<string> mesh(nMesh);
+  cout << "Quadrangle:" << flush;
+  QuadReferenceSpace quad;
+  cout << quad.getNOrientation() << endl;
 
-  for(size_t i = 0; i < nMesh; i++)
-    mesh[i] = option.getValue("-msh")[i + 1];
+  cout << "Tetrahedron:" << flush;
+  TetReferenceSpace tet;
+  cout << tet.getNOrientation() << endl;
 
-  // Iterate on Meshes //
-  for(size_t i = 0; i < nMesh; i++){
-    cout << " ** Mesh: " << mesh[i] << endl << flush;
-    Mesh           msh(mesh[i]);
-    GroupOfElement domain = msh.getFromPhysical(7);
+  cout << "Hexahedron:" << flush;
+  HexReferenceSpace hex;
+  cout << hex.getNOrientation() << endl;
 
-    // Iterate on Orders
-    for(size_t j = 0; j < nOrder; j++){
-      cout << "  -- Order " << order[j] << ": " << flush;
+  cout << "Pyramid:" << flush;
+  PyrReferenceSpace pyr;
+  cout << pyr.getNOrientation() << endl;
 
-      // Projection
-      FunctionSpaceScalar fSpace(domain, order[j]);
-      FormulationProjection<Complex> projection(domain, fSpace, f);
-      System<Complex> sysProj;
-
-      sysProj.addFormulation(projection);
-
-      // Assemble and Solve //
-      sysProj.assemble();
-      sysProj.solve();
-
-      // Post-processing //
-      FEMSolution<Complex> feSol;
-      stringstream stream;
-      stream << "projection_Mesh" << domain.getNumber() << "_Order" << order[j];
-
-      sysProj.getSolution(feSol, fSpace, domain);
-      feSol.write(stream.str());
-    }
-  }
+  cout << "Prism:" << flush;
+  PriReferenceSpace  pri;
+  cout << pri.getNOrientation() << endl;
 }
 
 int main(int argc, char** argv){
   // SmallFEM //
-  SmallFem::Keywords("-msh,-o");
+  SmallFem::Keywords("");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
