@@ -168,6 +168,7 @@ add_executable(ddm   simulation/Ddm.cpp)
 add_executable(proj simulation/Projection.cpp)
 add_executable(mesh simulation/Mesh.cpp)
 add_executable(fs   simulation/ShowFunctionSpace.cpp)
+add_executable(ref  simulation/RefSpace.cpp)
 add_executable(test simulation/Test.cpp)
 
 ## Link ##
@@ -185,4 +186,5 @@ target_link_libraries(ddm sf)
 target_link_libraries(proj sf)
 target_link_libraries(mesh sf)
 target_link_libraries(fs   sf)
+target_link_libraries(ref  sf)
 target_link_libraries(test sf)
