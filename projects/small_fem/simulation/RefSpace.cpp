@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include "SmallFem.h"
-
 #include "LineReferenceSpace.h"
 #include "TriReferenceSpace.h"
 #include "QuadReferenceSpace.h"
@@ -10,36 +8,62 @@
 #include "PyrReferenceSpace.h"
 #include "PriReferenceSpace.h"
 
+#include "Timer.h"
+#include "SmallFem.h"
+
 using namespace std;
 
 void compute(const Options& option){
-  cout << "Line:" << flush;
+  Timer time;
+
+  cout << "Line: " << flush;
+  time.start();
   LineReferenceSpace line;
-  cout << line.getNOrientation() << endl;
+  time.stop();
+  cout << line.getNOrientation()
+       << " (" << time.time() << " " << time.unit() << ")" << endl << flush;
 
-  cout << "Triangle:" << flush;
+  cout << "Triangle: " << flush;
+  time.start();
   TriReferenceSpace tri;
-  cout << tri.getNOrientation() << endl;
+  time.stop();
+  cout << tri.getNOrientation()
+       << " (" << time.time() << " " << time.unit() << ")" << endl << flush;
 
-  cout << "Quadrangle:" << flush;
+  cout << "Quadrangle: " << flush;
+  time.start();
   QuadReferenceSpace quad;
-  cout << quad.getNOrientation() << endl;
+  time.stop();
+  cout << quad.getNOrientation()
+       << " (" << time.time() << " " << time.unit() << ")" << endl << flush;
 
-  cout << "Tetrahedron:" << flush;
+  cout << "Tetrahedron: " << flush;
+  time.start();
   TetReferenceSpace tet;
-  cout << tet.getNOrientation() << endl;
+  time.stop();
+  cout << tet.getNOrientation()
+       << " (" << time.time() << " " << time.unit() << ")" << endl << flush;
 
-  cout << "Hexahedron:" << flush;
+  cout << "Hexahedron: " << flush;
+  time.start();
   HexReferenceSpace hex;
-  cout << hex.getNOrientation() << endl;
+  time.stop();
+  cout << hex.getNOrientation()
+       << " (" << time.time() << " " << time.unit() << ")" << endl << flush;
 
-  cout << "Pyramid:" << flush;
+  cout << "Pyramid: " << flush;
+  time.start();
   PyrReferenceSpace pyr;
-  cout << pyr.getNOrientation() << endl;
+  time.stop();
+  cout << pyr.getNOrientation()
+       << " (" << time.time() << " " << time.unit() << ")" << endl << flush;
 
-  cout << "Prism:" << flush;
+  cout << "Prism: " << flush;
+  time.start();
   PriReferenceSpace  pri;
-  cout << pri.getNOrientation() << endl;
+  time.stop();
+  cout << pri.getNOrientation()
+       << " (" << time.time() << " " << time.unit() << ")" << endl << flush;
 }
 
 int main(int argc, char** argv){
