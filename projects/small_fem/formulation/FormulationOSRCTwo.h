@@ -6,7 +6,7 @@
 #include "FunctionSpaceScalar.h"
 #include "TermGradGrad.h"
 
-#include "Formulation.h"
+#include "FormulationBlock.h"
 #include "FormulationOSRC.h"
 
 /**
@@ -18,7 +18,7 @@
    FormulationOSRC is a friend of FormulationOSRCTwo
  */
 
-class FormulationOSRCTwo: public Formulation<Complex>{
+class FormulationOSRCTwo: public FormulationBlock<Complex>{
  private:
   friend class FormulationOSRC;
 
@@ -58,6 +58,8 @@ class FormulationOSRCTwo: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

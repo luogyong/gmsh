@@ -50,3 +50,7 @@ const FunctionSpace& FormulationOSRCOne::test(void) const{
 const GroupOfElement& FormulationOSRCOne::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationOSRCOne::isBlock(void) const{
+  return true;
+}

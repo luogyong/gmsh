@@ -79,8 +79,8 @@ FormulationOSRC::FormulationOSRC(const GroupOfElement& domain,
 
 FormulationOSRC::~FormulationOSRC(void){
   // Iterate & Delete Formulations //
-  list<const Formulation<Complex>*>::iterator end = fList.end();
-  list<const Formulation<Complex>*>::iterator it  = fList.begin();
+  list<const FormulationBlock<Complex>*>::iterator end = fList.end();
+  list<const FormulationBlock<Complex>*>::iterator it  = fList.begin();
 
   for(; it !=end; it++)
     delete *it;
@@ -91,9 +91,13 @@ FormulationOSRC::~FormulationOSRC(void){
   delete localPr;
 }
 
-const list<const Formulation<Complex>*>&
-FormulationOSRC::getFormulations(void) const{
+const list<const FormulationBlock<Complex>*>&
+FormulationOSRC::getFormulationBlocks(void) const{
   return fList;
+}
+
+bool FormulationOSRC::isBlock(void) const{
+  return false;
 }
 
 double FormulationOSRC::pade_aj(int j, int N){

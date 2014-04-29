@@ -39,18 +39,18 @@ SystemEigen::~SystemEigen(void){
 
 void SystemEigen::
 addFormulationB(const Formulation<complex<double> >& formulation){
-  // Add formulation in list of formulation //
-  formulationB.push_back(&formulation);
+  // Add FormulationBlocks to list B (this->formulationB) //
 
-  // Get Formulation Dofs (Field & Test) //
-  set<Dof> dofField;
-  set<Dof> dofTest;
-  formulation.field().getKeys(formulation.domain(), dofField);
-  formulation.test().getKeys(formulation.domain(), dofTest);
+  // Is this a FormulationBlock ?
+  if(formulation.isBlock())
+    addFormulationBlock
+      (static_cast<const FormulationBlock<complex<double> >&>(formulation),
+       formulationB);
 
-  // Add them to DofManager //
-  dofM.addToDofManager(dofField);
-  dofM.addToDofManager(dofTest);
+  else
+    addFormulationCoupled
+      (static_cast<const FormulationCoupled<complex<double> >&>(formulation),
+       formulationB);
 
   // This EigenSystem is general
   general = true;
@@ -58,7 +58,8 @@ addFormulationB(const Formulation<complex<double> >& formulation){
 
 void SystemEigen::assembleCom(SolverMatrix<complex<double> >& tmpMat,
                               SolverVector<complex<double> >& tmpRHS,
-                              const Formulation<complex<double> >& formulation,
+                              const FormulationBlock<complex<double> >&
+                                                                    formulation,
                               formulationPtr term){
   // Get All Dofs (Field & Test) per Element //
   vector<vector<Dof> > dofField;
@@ -87,11 +88,14 @@ void SystemEigen::assemble(void){
   SolverMatrix<complex<double> > tmpB(size, size);
 
   // Get Formulation Terms //
-  formulationPtr term = &Formulation<complex<double> >::weak;
+  formulationPtr term = &FormulationBlock<complex<double> >::weak;
 
   // Iterate on Formulations A //
-  list<const Formulation<complex<double> >*>::iterator it = formulation.begin();
-  list<const Formulation<complex<double> >*>::iterator end = formulation.end();
+  list<const FormulationBlock<complex<double> >*>::iterator it;
+  list<const FormulationBlock<complex<double> >*>::iterator end;
+
+  it  = formulation.begin();
+  end = formulation.end();
 
   for(; it != end; it++)
     assembleCom(tmpA, tmpRHS, **it, term);

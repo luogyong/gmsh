@@ -244,9 +244,8 @@ void compute(const Options& option){
   FormulationSommerfeld          sommerfeld(infinity, fs, k);
 
   // Ddm Formulation Pointers //
-  Formulation<Complex>*            ddm = NULL;
-  Formulation<Complex>*          upDdm = NULL;
-  CoupledFormulation<Complex>* ddmOSRC = NULL; // OSRC
+  Formulation<Complex>*     ddm = NULL;
+  Formulation<Complex>*   upDdm = NULL;
 
   // System Pointers //
   System<Complex>* system;
@@ -277,7 +276,7 @@ void compute(const Options& option){
     else if(ddmType == oo2Type)
       ddm = new FormulationOO2(ddmBorder, fs, ooA, ooB, ddmG);
     else if(ddmType == osrcType)
-      ddmOSRC  = new FormulationOSRC(ddmBorder, fs, phi, k, keps, NPade, ddmG);
+      ddm = new FormulationOSRC(ddmBorder, fs, phi, k, keps, NPade, ddmG);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -287,11 +286,7 @@ void compute(const Options& option){
     system = new System<Complex>;
     system->addFormulation(wave);
     system->addFormulation(sommerfeld);
-
-    if(ddmType == osrcType)
-      system->addFormulation(*ddmOSRC);
-    else
-      system->addFormulation(*ddm);
+    system->addFormulation(*ddm);
 
     // Constraint
     if(myId == 0)
@@ -306,11 +301,12 @@ void compute(const Options& option){
     // Get DDM Border Solution //
     system->getSolution(solution, 0);
 
-    // Get Phi DDM Border //
+    // Get Phi DDM Border (if OSRC) //
     if(ddmType == osrcType)
       for(int j = 0; j < NPade; j++)
         system->getSolution(solPhi[j], 0);
 
+    // Display //
     try{
       if(option.getValue("-disp").size() > 1)
         displaySolution(solution, atoi(option.getValue("-disp")[1].c_str()),
@@ -367,8 +363,6 @@ void compute(const Options& option){
       delete upDdm;
     if(ddm)
       delete ddm;
-    if(ddmOSRC)
-      delete ddmOSRC;
 
     delete system;
     delete update;

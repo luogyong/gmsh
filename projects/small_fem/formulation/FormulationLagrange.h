@@ -2,26 +2,26 @@
 #define _FORMULATIONLAGRANGE_H_
 
 #include "SmallFem.h"
-#include "CoupledFormulation.h"
+#include "FormulationCoupled.h"
 #include "FunctionSpaceScalar.h"
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
 
 /**
    @class FormulationLagrange
-   @brief Lagrange multipliers CoupledFormulation
+   @brief Lagrange multipliers FormulationCoupled
 
-   Lagrange multipliers CoupledFormulation
+   Lagrange multipliers FormulationCoupled
  */
 
-class FormulationLagrange: public CoupledFormulation<Complex>{
+class FormulationLagrange: public FormulationCoupled<Complex>{
  private:
   // Local Terms //
   TermFieldField<double>*      local; // Lagrange . Field && Field . Lagrange
   TermProjectionField<double>* proj;  // Proj     . Lagrange
 
   // Formulations //
-  std::list<const Formulation<Complex>*> fList;
+  std::list<const FormulationBlock<Complex>*> fList;
 
  public:
   FormulationLagrange(const GroupOfElement& domain,
@@ -32,7 +32,9 @@ class FormulationLagrange: public CoupledFormulation<Complex>{
   virtual ~FormulationLagrange(void);
 
   virtual
-    const std::list<const Formulation<Complex>*>& getFormulations(void) const;
+    const std::list<const FormulationBlock<Complex>*>&
+                                               getFormulationBlocks(void) const;
+  virtual bool isBlock(void) const;
 };
 
 /**

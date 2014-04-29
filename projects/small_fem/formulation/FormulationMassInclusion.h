@@ -98,3 +98,8 @@ template<typename scalar>
 const GroupOfElement& FormulationMass<scalar>::domain(void) const{
   return *ddomain;
 }
+
+template<typename scalar>
+bool FormulationMass<scalar>::isBlock(void) const{
+  return true;
+}

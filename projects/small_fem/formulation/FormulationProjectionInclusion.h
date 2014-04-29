@@ -130,3 +130,8 @@ template<typename scalar>
 const GroupOfElement& FormulationProjection<scalar>::domain(void) const{
   return *ddomain;
 }
+
+template<typename scalar>
+bool FormulationProjection<scalar>::isBlock(void) const{
+  return true;
+}

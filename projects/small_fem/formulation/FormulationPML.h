@@ -3,7 +3,7 @@
 
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 #include "SmallFem.h"
 
 /**
@@ -13,7 +13,7 @@
    Formulation for the PML problem
  */
 
-class FormulationPML: public Formulation<Complex>{
+class FormulationPML: public FormulationBlock<Complex>{
  private:
   // Function Space & Domain //
   const FunctionSpace*  ffs;
@@ -41,6 +41,8 @@ class FormulationPML: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

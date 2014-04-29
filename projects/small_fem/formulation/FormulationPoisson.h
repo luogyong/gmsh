@@ -7,7 +7,7 @@
 #include "TermGradGrad.h"
 #include "TermProjectionField.h"
 
-#include "Formulation.h"
+#include "FormulationBlock.h"
 
 /**
    @class FormulationPoisson
@@ -16,7 +16,7 @@
    Formulation for the Poisson problem
  */
 
-class FormulationPoisson: public Formulation<double>{
+class FormulationPoisson: public FormulationBlock<double>{
  private:
   // Function Space & Domain //
   const FunctionSpaceScalar* fspace;
@@ -41,6 +41,8 @@ class FormulationPoisson: public Formulation<double>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

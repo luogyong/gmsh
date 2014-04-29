@@ -45,3 +45,7 @@ const FunctionSpace& FormulationLagrangeTwo::test(void) const{
 const GroupOfElement& FormulationLagrangeTwo::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationLagrangeTwo::isBlock(void) const{
+  return true;
+}

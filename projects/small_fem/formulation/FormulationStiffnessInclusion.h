@@ -98,3 +98,8 @@ template<typename scalar>
 const GroupOfElement& FormulationStiffness<scalar>::domain(void) const{
   return *ddomain;
 }
+
+template<typename scalar>
+bool FormulationStiffness<scalar>::isBlock(void) const{
+  return true;
+}

@@ -6,7 +6,7 @@
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 
 /**
    @class FormulationOO2
@@ -15,7 +15,7 @@
    OO2 Formulation for DDM
  */
 
-class FormulationOO2: public Formulation<Complex>{
+class FormulationOO2: public FormulationBlock<Complex>{
  private:
   // a & b //
   Complex a;
@@ -45,6 +45,8 @@ class FormulationOO2: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

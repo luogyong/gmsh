@@ -1,7 +1,7 @@
 #ifndef _FORMULATIONSTEADYWAVE_H_
 #define _FORMULATIONSTEADYWAVE_H_
 
-#include "Formulation.h"
+#include "FormulationBlock.h"
 #include "FormulationMass.h"
 #include "FormulationStiffness.h"
 
@@ -13,7 +13,7 @@
  */
 
 template<typename scalar>
-class FormulationSteadyWave: public Formulation<scalar>{
+class FormulationSteadyWave: public FormulationBlock<scalar>{
  private:
   // Wavenumber Squared //
   scalar kSquare;
@@ -35,6 +35,8 @@ class FormulationSteadyWave: public Formulation<scalar>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

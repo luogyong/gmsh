@@ -5,7 +5,7 @@
 #include "FunctionSpaceScalar.h"
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 
 /**
    @class FormulationEMDA
@@ -14,7 +14,7 @@
    EMDA Formulation for DDM
  */
 
-class FormulationEMDA: public Formulation<Complex>{
+class FormulationEMDA: public FormulationBlock<Complex>{
  private:
   // Wavenumber & Chi //
   double k;
@@ -43,6 +43,8 @@ class FormulationEMDA: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

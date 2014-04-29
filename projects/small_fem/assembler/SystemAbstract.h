@@ -6,7 +6,8 @@
 
 #include "DofManager.h"
 #include "Formulation.h"
-#include "CoupledFormulation.h"
+#include "FormulationBlock.h"
+#include "FormulationCoupled.h"
 #include "FEMSolution.h"
 
 #include "SolverMatrix.h"
@@ -25,9 +26,9 @@ template<typename scalar>
 class SystemAbstract{
  protected:
   typedef
-    scalar (Formulation<scalar>::*formulationPtr)(size_t dofI,
-                                                  size_t dofJ,
-                                                  size_t elementId) const;
+    scalar (FormulationBlock<scalar>::*formulationPtr)(size_t dofI,
+                                                       size_t dofJ,
+                                                       size_t elementId) const;
  protected:
   static const scalar minusSign;
 
@@ -35,7 +36,7 @@ class SystemAbstract{
   bool assembled;
   bool solved;
 
-  std::list<const Formulation<scalar>*> formulation;
+  std::list<const FormulationBlock<scalar>*> formulation;
   DofManager<scalar> dofM;
 
  public:
@@ -46,7 +47,6 @@ class SystemAbstract{
   size_t getSize(void)     const;
 
   void addFormulation(const Formulation<scalar>& formulation);
-  void addFormulation(const CoupledFormulation<scalar>& formulation);
   void constraint(const std::map<Dof, scalar>& constr);
 
   virtual void assemble(void) = 0;
@@ -63,13 +63,19 @@ class SystemAbstract{
                            std::string matrixName) const = 0;
 
  protected:
+  void addFormulationBlock(const FormulationBlock<scalar>& formulation,
+                           std::list<const FormulationBlock<scalar>*>& fList);
+
+  void addFormulationCoupled(const FormulationCoupled<scalar>& formulation,
+                             std::list<const FormulationBlock<scalar>*>& fList);
+
   void assemble(SolverMatrix<scalar>& A,
                 SolverVector<scalar>& b,
                 size_t elementId,
                 const std::vector<Dof>& dofField,
                 const std::vector<Dof>& dofTest,
                 formulationPtr& term,
-                const Formulation<scalar>& formulation);
+                const FormulationBlock<scalar>& formulation);
 };
 
 
@@ -97,12 +103,6 @@ class SystemAbstract{
    @fn SystemAbstract::addFormulation(const Formulation<scalar>& formulation)
    @param formulation A Formulation
    Adds the given Formulation to the Formulation%s that will be assembled
-   **
-
-   @fn SystemAbstract::addFormulation(const CoupledFormulation<scalar>& formulation);
-   @param formulation A CoupledFormulation
-   Adds the Formulation%s embeded in CoupledFormulation::getFormulations()
-   to the Formulation%s that will be assembled
    **
 
    @fn SystemAbstract::constraint

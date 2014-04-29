@@ -132,3 +132,7 @@ const FunctionSpace& FormulationSteadySlow::test(void) const{
 const GroupOfElement& FormulationSteadySlow::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationSteadySlow::isBlock(void) const{
+  return true;
+}

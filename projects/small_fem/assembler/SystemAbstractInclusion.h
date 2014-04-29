@@ -27,8 +27,26 @@ size_t SystemAbstract<scalar>::getSize(void) const{
 template<typename scalar>
 void SystemAbstract<scalar>::
 addFormulation(const Formulation<scalar>& formulation){
-  // Add formulation in list of formulation //
-  this->formulation.push_back(&formulation);
+  // Add FormulationBlocks to list (this->formulation) //
+
+  // Is this a FormulationBlock ?
+  if(formulation.isBlock())
+    addFormulationBlock
+      (static_cast<const FormulationBlock<scalar>&>(formulation),
+       this->formulation);
+
+  else
+    addFormulationCoupled
+      (static_cast<const FormulationCoupled<scalar>&>(formulation),
+       this->formulation);
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+addFormulationBlock(const FormulationBlock<scalar>& formulation,
+                    std::list<const FormulationBlock<scalar>*>& fList){
+  // Add formulation block in the given list //
+  fList.push_back(&formulation);
 
   // Get Formulation Dofs (Field & Test) //
   std::set<Dof> dofField;
@@ -43,20 +61,21 @@ addFormulation(const Formulation<scalar>& formulation){
 
 template<typename scalar>
 void SystemAbstract<scalar>::
-addFormulation(const CoupledFormulation<scalar>& formulation){
-  // Get the list of Formulations //
-  const std::list<const Formulation<scalar>*>&
-    fList = formulation.getFormulations();
+addFormulationCoupled(const FormulationCoupled<scalar>& formulation,
+                      std::list<const FormulationBlock<scalar>*>& fList){
+  // Get the list of Formulation Blocks //
+  const std::list<const FormulationBlock<scalar>*>&
+    blockList = formulation.getFormulationBlocks();
 
   // Iterate on list and add the pointed Formulations //
-  typename std::list<const Formulation<scalar>*>::const_iterator
-    end = fList.end();
+  typename std::list<const FormulationBlock<scalar>*>::const_iterator
+    end = blockList.end();
 
-  typename std::list<const Formulation<scalar>*>::const_iterator
-    it  = fList.begin();
+  typename std::list<const FormulationBlock<scalar>*>::const_iterator
+    it  = blockList.begin();
 
   for(; it != end; it++)
-    this->addFormulation(**it);
+    this->addFormulationBlock(**it, fList);
 }
 
 template<typename scalar>
@@ -76,7 +95,7 @@ assemble(SolverMatrix<scalar>& A,
          const std::vector<Dof>& dofField,
          const std::vector<Dof>& dofTest,
          formulationPtr& term,
-         const Formulation<scalar>& formulation){
+         const FormulationBlock<scalar>& formulation){
 
   const size_t N = dofTest.size();
   const size_t M = dofField.size();

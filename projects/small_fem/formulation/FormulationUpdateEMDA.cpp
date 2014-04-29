@@ -76,3 +76,7 @@ const FunctionSpace& FormulationUpdateEMDA::test(void) const{
 const GroupOfElement& FormulationUpdateEMDA::domain(void) const{
   return *goe;
 }
+
+bool FormulationUpdateEMDA::isBlock(void) const{
+  return true;
+}

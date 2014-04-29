@@ -86,3 +86,7 @@ const FunctionSpace& FormulationUpdateOO2::test(void) const{
 const GroupOfElement& FormulationUpdateOO2::domain(void) const{
   return *goe;
 }
+
+bool FormulationUpdateOO2::isBlock(void) const{
+  return true;
+}

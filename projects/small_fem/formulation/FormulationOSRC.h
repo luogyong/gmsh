@@ -10,7 +10,7 @@
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
 
-#include "CoupledFormulation.h"
+#include "FormulationCoupled.h"
 
 /**
    @class FormulationOSRC
@@ -19,7 +19,7 @@
    OSRC Formulation for DDM
  */
 
-class FormulationOSRC: public CoupledFormulation<Complex>{
+class FormulationOSRC: public FormulationCoupled<Complex>{
  private:
   // Local Terms //
   TermFieldField<double>*       localFF;
@@ -27,7 +27,7 @@ class FormulationOSRC: public CoupledFormulation<Complex>{
   TermProjectionField<Complex>* localPr;
 
   // Formulations //
-  std::list<const Formulation<Complex>*> fList;
+  std::list<const FormulationBlock<Complex>*> fList;
 
  public:
   FormulationOSRC(const GroupOfElement& domain,
@@ -41,7 +41,10 @@ class FormulationOSRC: public CoupledFormulation<Complex>{
   virtual ~FormulationOSRC(void);
 
   virtual
-    const std::list<const Formulation<Complex>*>& getFormulations(void) const;
+    const std::list<const FormulationBlock<Complex>*>&
+                                               getFormulationBlocks(void) const;
+
+  virtual bool isBlock(void) const;
 
  private:
   static double pade_aj(int j, int N);

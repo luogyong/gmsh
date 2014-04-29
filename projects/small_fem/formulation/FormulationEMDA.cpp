@@ -68,3 +68,7 @@ const FunctionSpace& FormulationEMDA::test(void) const{
 const GroupOfElement& FormulationEMDA::domain(void) const{
   return *goe;
 }
+
+bool FormulationEMDA::isBlock(void) const{
+  return true;
+}

@@ -4,7 +4,7 @@
 #include <map>
 
 #include "SmallFem.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 #include "FunctionSpaceScalar.h"
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
@@ -16,7 +16,7 @@
    Update Formulation for FormulationOSRC
 */
 
-class FormulationUpdateOSRC: public Formulation<Complex>{
+class FormulationUpdateOSRC: public FormulationBlock<Complex>{
  private:
   // Wavenumber //
   double k;
@@ -53,6 +53,8 @@ class FormulationUpdateOSRC: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

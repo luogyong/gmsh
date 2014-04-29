@@ -52,8 +52,8 @@ FormulationLagrange::FormulationLagrange(const GroupOfElement& domain,
 
 FormulationLagrange::~FormulationLagrange(void){
   // Iterate & Delete Formulations //
-  list<const Formulation<Complex>*>::iterator end = fList.end();
-  list<const Formulation<Complex>*>::iterator it  = fList.begin();
+  list<const FormulationBlock<Complex>*>::iterator end = fList.end();
+  list<const FormulationBlock<Complex>*>::iterator it  = fList.begin();
 
   for(; it !=end; it++)
     delete *it;
@@ -63,7 +63,11 @@ FormulationLagrange::~FormulationLagrange(void){
   delete proj;
 }
 
-const list<const Formulation<Complex>*>&
-FormulationLagrange::getFormulations(void) const{
+const list<const FormulationBlock<Complex>*>&
+FormulationLagrange::getFormulationBlocks(void) const{
   return fList;
+}
+
+bool FormulationLagrange::isBlock(void) const{
+  return false;
 }

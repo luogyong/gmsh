@@ -44,3 +44,7 @@ const FunctionSpace& FormulationOSRCFour::test(void) const{
 const GroupOfElement& FormulationOSRCFour::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationOSRCFour::isBlock(void) const{
+  return true;
+}

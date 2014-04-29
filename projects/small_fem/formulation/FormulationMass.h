@@ -2,7 +2,7 @@
 #define _FORMULATIONMASS_H_
 
 #include "FunctionSpace.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 #include "Term.h"
 
 /**
@@ -13,7 +13,7 @@
  */
 
 template<typename scalar>
-class FormulationMass: public Formulation<scalar>{
+class FormulationMass: public FormulationBlock<scalar>{
  private:
   // Function Space & Domain //
   const FunctionSpace*  ffield;
@@ -36,6 +36,8 @@ class FormulationMass: public Formulation<scalar>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

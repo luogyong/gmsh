@@ -1,10 +1,10 @@
 ///////////////////////////////////////////////////////
-// Templates Implementations for CoupledFormulation: //
+// Templates Implementations for FormulationCoupled: //
 // Inclusion compilation model                       //
 //                                                   //
 // Damn you gcc: we want 'export' !                  //
 ///////////////////////////////////////////////////////
 
 template<typename scalar>
-CoupledFormulation<scalar>::~CoupledFormulation(void){
+FormulationCoupled<scalar>::~FormulationCoupled(void){
 }

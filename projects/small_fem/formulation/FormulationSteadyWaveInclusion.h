@@ -52,3 +52,8 @@ template<typename scalar>
 const GroupOfElement& FormulationSteadyWave<scalar>::domain(void) const{
   return stiff->domain();
 }
+
+template<typename scalar>
+bool FormulationSteadyWave<scalar>::isBlock(void) const{
+  return true;
+}

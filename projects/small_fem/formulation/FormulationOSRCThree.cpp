@@ -52,3 +52,7 @@ const FunctionSpace& FormulationOSRCThree::test(void) const{
 const GroupOfElement& FormulationOSRCThree::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationOSRCThree::isBlock(void) const{
+  return true;
+}

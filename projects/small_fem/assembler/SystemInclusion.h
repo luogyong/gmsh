@@ -44,13 +44,13 @@ void System<scalar>::assemble(void){
 
   // Get Formulation Term //
   typename SystemAbstract<scalar>::formulationPtr term =
-    &Formulation<scalar>::weak;
+    &FormulationBlock<scalar>::weak;
 
   // Iterate on Formulations //
-  typename std::list<const Formulation<scalar>*>::iterator it =
+  typename std::list<const FormulationBlock<scalar>*>::iterator it =
     this->formulation.begin();
 
-  typename std::list<const Formulation<scalar>*>::iterator end =
+  typename std::list<const FormulationBlock<scalar>*>::iterator end =
     this->formulation.end();
 
   for(; it != end; it++){

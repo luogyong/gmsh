@@ -126,3 +126,7 @@ const FunctionSpace& FormulationUpdateOSRC::test(void) const{
 const GroupOfElement& FormulationUpdateOSRC::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationUpdateOSRC::isBlock(void) const{
+  return true;
+}

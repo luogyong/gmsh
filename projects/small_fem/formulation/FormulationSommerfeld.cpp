@@ -63,3 +63,7 @@ const FunctionSpace& FormulationSommerfeld::test(void) const{
 const GroupOfElement& FormulationSommerfeld::domain(void) const{
   return *goe;
 }
+
+bool FormulationSommerfeld::isBlock(void) const{
+  return true;
+}

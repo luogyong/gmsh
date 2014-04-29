@@ -75,3 +75,7 @@ const FunctionSpace& FormulationPML::test(void) const{
 const GroupOfElement& FormulationPML::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationPML::isBlock(void) const{
+  return true;
+}

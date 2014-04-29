@@ -53,3 +53,7 @@ const FunctionSpace& FormulationOSRCTwo::test(void) const{
 const GroupOfElement& FormulationOSRCTwo::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationOSRCTwo::isBlock(void) const{
+  return true;
+}

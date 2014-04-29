@@ -74,3 +74,7 @@ const FunctionSpace& FormulationPoisson::test(void) const{
 const GroupOfElement& FormulationPoisson::domain(void) const{
   return *goe;
 }
+
+bool FormulationPoisson::isBlock(void) const{
+  return true;
+}

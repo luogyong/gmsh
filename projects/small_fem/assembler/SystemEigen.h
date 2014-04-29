@@ -25,7 +25,7 @@
 
 class SystemEigen: public SystemAbstract<std::complex<double> >{
  protected:
-  std::list<const Formulation<std::complex<double> >*> formulationB;
+  std::list<const FormulationBlock<std::complex<double> >*> formulationB;
   bool general;
 
   Mat* A;
@@ -62,7 +62,7 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
  private:
   void assembleCom(SolverMatrix<std::complex<double> >& tmpMat,
                    SolverVector<std::complex<double> >& tmpRHS,
-                   const Formulation<std::complex<double> >& formulation,
+                   const FormulationBlock<std::complex<double> >& formulation,
                    formulationPtr term);
 };
 

@@ -2,7 +2,7 @@
 #define _FORMULATIONPROJECTION_H_
 
 #include "FunctionSpace.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 #include "fullMatrix.h"
 #include "Term.h"
 
@@ -14,7 +14,7 @@
  */
 
 template<typename scalar>
-class FormulationProjection: public Formulation<scalar>{
+class FormulationProjection: public FormulationBlock<scalar>{
  private:
   // Function Space & Basis & Domain //
   const FunctionSpace*  fspace;
@@ -41,6 +41,8 @@ class FormulationProjection: public Formulation<scalar>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 
  private:
   int initCommon(const GroupOfElement& domain, const FunctionSpace& fs);

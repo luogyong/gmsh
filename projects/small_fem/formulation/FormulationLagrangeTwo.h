@@ -4,7 +4,7 @@
 #include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermFieldField.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 
 #include "FormulationLagrange.h"
 
@@ -17,7 +17,7 @@
    FormulationLagrangeTwo is a friend of FormulationLagrange
  */
 
-class FormulationLagrangeTwo: public Formulation<Complex>{
+class FormulationLagrangeTwo: public FormulationBlock<Complex>{
  private:
   friend class FormulationLagrange;
 
@@ -46,6 +46,8 @@ class FormulationLagrangeTwo: public Formulation<Complex>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

@@ -47,3 +47,7 @@ const FunctionSpace& FormulationLagrangeOne::test(void) const{
 const GroupOfElement& FormulationLagrangeOne::domain(void) const{
   return *ddomain;
 }
+
+bool FormulationLagrangeOne::isBlock(void) const{
+  return true;
+}

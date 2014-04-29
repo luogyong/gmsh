@@ -5,7 +5,7 @@
 
 #include "FunctionSpaceVector.h"
 #include "GroupOfJacobian.h"
-#include "Formulation.h"
+#include "FormulationBlock.h"
 
 /**
    @class FormulationSteadySlow
@@ -15,7 +15,7 @@
    This version don't use the fast integration algorithm.
  */
 
-class FormulationSteadySlow: public Formulation<double>{
+class FormulationSteadySlow: public FormulationBlock<double>{
  private:
   // Wavenumber Squared //
   double kSquare;
@@ -54,6 +54,8 @@ class FormulationSteadySlow: public Formulation<double>{
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
   virtual const GroupOfElement& domain(void) const;
+
+  virtual bool isBlock(void) const;
 };
 
 /**
