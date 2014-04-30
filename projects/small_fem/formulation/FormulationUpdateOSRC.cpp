@@ -7,44 +7,80 @@
 
 using namespace std;
 
-FormulationUpdateOSRC::
-FormulationUpdateOSRC(const GroupOfElement& domain,
-                      const FunctionSpaceScalar& fspace,
-                      double k,
-                      int NPade,
-                      const map<Dof, Complex>& solU,
-                      const vector<map<Dof, Complex> >& solPhi,
-                      const map<Dof, Complex>& oldG){
+#include <set>
+static
+void initMap(const FunctionSpace& fs,
+             const GroupOfElement& goe,
+             map<Dof, Complex>& data){
+
+  set<Dof> dSet;
+  fs.getKeys(goe, dSet);
+
+  set<Dof>::iterator it  = dSet.begin();
+  set<Dof>::iterator end = dSet.end();
+
+  for(; it != end; it++)
+    data.insert(pair<Dof, Complex>(*it, 0));
+}
+
+static
+void initMap(const vector<const FunctionSpaceScalar*>& fs,
+             const GroupOfElement& goe,
+             vector<map<Dof, Complex> >& data){
+
+  const size_t size = data.size();
+
+  set<Dof> dSet;
+  set<Dof>::iterator end;
+  set<Dof>::iterator it;
+
+  if(size != fs.size())
+    throw Exception("initMap: vector must have the same size");
+
+  for(size_t i = 0; i < size; i++){
+    dSet.clear();
+    fs[i]->getKeys(goe, dSet);
+
+    end = dSet.end();
+
+    for(it = dSet.begin(); it != end; it++)
+      data[i].insert(pair<Dof, Complex>(*it, 0));
+  }
+}
+
+FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContext& context){
+  // Check if OSRC DDMContext //
+  if(context.typeDDM != DDMContext::typeOSRC)
+    throw Exception("FormulationUpdateOSRC needs a OSRC DDMContext");
+
+  // Get Domain and FunctionSpace from DDMContext //
+  ffspace = &context.getFunctionSpace();
+  ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = domain.isUniform();
+  pair<bool, size_t> uniform = ddomain->isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
     throw Exception("FormulationUpdateOSRC needs a uniform mesh");
 
+  /*
   // Sanity //
-  if(solPhi.size() != (size_t)(NPade))
-    throw Exception
-      ("FormulationUpdateOSRC: size of solPhi should be equal to NPade");
-
   for(int j = 0; j < NPade; j++)
     if(solPhi[j].size() != solU.size())
       throw Exception
         ("FormulationUpdateOSRC: solPhi[j] and solU should have the same size");
 
-  if(oldG.size() != solU.size())
+  if(ddm.size() != solU.size())
     throw Exception
-      ("FormulationUpdateOSRC: oldG and solU should have the same size");
+      ("FormulationUpdateOSRC: ddm and solU should have the same size");
+  */
 
   // Wavenumber //
-  this->k = k;
-
-  // FunctionSpace and Domain //
-  ffspace = &fspace;
-  ddomain = &domain;
+  this->k = context.k;
 
   // Pade //
+  int NPade = context.OSRC_NPade;
   A.resize(NPade);
   B.resize(NPade);
 
@@ -56,14 +92,25 @@ FormulationUpdateOSRC(const GroupOfElement& domain,
     B[j] = FormulationOSRC::padeBj(j + 1, NPade, M_PI / 4.);
 
   // Basis //
-  const Basis& basis = fspace.getBasis(eType);
+  const Basis& basis = ffspace->getBasis(eType);
 
   // Gaussian Quadrature //
   Quadrature gauss(eType, basis.getOrder(), 2);
   const fullMatrix<double>& gC = gauss.getPoints();
 
   // Jacobian //
-  GroupOfJacobian jac(domain, gC, "jacobian");
+  GroupOfJacobian jac(*ddomain, gC, "jacobian");
+
+  // Get Volume Solution //
+  map<Dof, Complex> solU;
+  initMap(*ffspace, *ddomain, solU);
+  context.system->getSolution(solU, 0);
+
+  // Get Auxiliary Solutions //
+  vector<map<Dof, Complex> > solPhi(NPade);
+  initMap(*context.phi, *ddomain, solPhi);
+  for(int i = 0; i < NPade; i++)
+    context.system->getSolution(solPhi[i], 0);
 
   // UPhi[d] = sum_j (solU[d] - solPhi[j][d]) * A[j] / B[j] //
 
@@ -88,11 +135,14 @@ FormulationUpdateOSRC(const GroupOfElement& domain,
 
       UPhiIt->second += (solUIt->second - solPhiJIt->second) * A[j] / B[j];
 
+  // Get DDM Dofs from DDMContext //
+  const map<Dof, Complex>& ddm = context.getDDMDofs();
+
   // Local Terms //
   lGout = new TermFieldField<double>(jac, basis, gauss);
-  lGin  = new TermProjectionField<Complex>(jac, basis, gauss, fspace, oldG);
-  lC0   = new TermProjectionField<Complex>(jac, basis, gauss, fspace, solU);
-  lAB   = new TermProjectionField<Complex>(jac, basis, gauss, fspace, UPhi);
+  lGin  = new TermProjectionField<Complex>(jac, basis, gauss, *ffspace, ddm);
+  lC0   = new TermProjectionField<Complex>(jac, basis, gauss, *ffspace, solU);
+  lAB   = new TermProjectionField<Complex>(jac, basis, gauss, *ffspace, UPhi);
 }
 
 FormulationUpdateOSRC::~FormulationUpdateOSRC(void){

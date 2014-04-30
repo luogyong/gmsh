@@ -28,12 +28,16 @@ TermProjectionField<scalar>::
 TermProjectionField(const GroupOfJacobian& goj,
                     const Basis& basis,
                     const Quadrature& quadrature,
-                    const FunctionSpaceScalar& fs,
+                    const FunctionSpace& fs,
                     const std::map<Dof, scalar>& dof){
+
+  // Check if FunctionSpace is scalar //
+  if(!fs.isScalar())
+    throw Exception("TermProjectionField<scalar> needs a scalar FunctionSpace");
 
   // Save FunctionSpace, Dof values and Evaluator //
   Eval evaluator = &TermProjectionField<scalar>::interpolate;
-  this->fsScalar = &fs;
+  this->fsScalar = static_cast<const FunctionSpaceScalar*>(&fs);
   this->dofValue = &dof;
 
   // Init //

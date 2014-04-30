@@ -8,6 +8,8 @@
 #include "TermFieldField.h"
 #include "FormulationBlock.h"
 
+#include "DDMContext.h"
+
 /**
    @class FormulationUpdateOO2
    @brief Update Formulation for FormulationOO2
@@ -22,8 +24,8 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
   Complex b;
 
   // Function Space & Domain //
-  const FunctionSpaceScalar* fspace;
-  const GroupOfElement*      goe;
+  const FunctionSpace*  fspace;
+  const GroupOfElement* ddomain;
 
   // Local Terms //
   TermFieldField<double>*       lGout;
@@ -32,12 +34,7 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
   TermProjectionGrad<Complex>*  lDU;
 
  public:
-  FormulationUpdateOO2(const GroupOfElement& domain,
-                       const FunctionSpaceScalar& fs,
-                       Complex a,
-                       Complex b,
-                       const std::map<Dof, Complex>& sol,
-                       const std::map<Dof, Complex>& oldG);
+  FormulationUpdateOO2(DDMContext& context);
 
   virtual ~FormulationUpdateOO2(void);
 
@@ -53,7 +50,9 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationUpdateOO2::FormulationUpdateOO2
-   @todo TODO
+   @param context A DDMContext
+
+   Instantiates a new FormulationUpdateOO2 with the given DDMContext
    **
 
    @fn FormulationUpdateOO2::~FormulationUpdateOO2

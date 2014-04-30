@@ -5,30 +5,28 @@
 
 using namespace std;
 
-FormulationOO2::
-FormulationOO2(const GroupOfElement& domain,
-               const FunctionSpaceScalar& fs,
-               Complex a,
-               Complex b,
-               const std::map<Dof, Complex>& ddmDof){
+FormulationOO2::FormulationOO2(DDMContext& context){
+  // Check if OO2 DDMContext //
+  if(context.getType() != DDMContext::typeOO2)
+    throw Exception("FormulationOO2 needs a OO2 DDMContext");
+
+  // Get Domain and FunctionSpace from DDMContext //
+  fspace  = &context.getFunctionSpace();
+  ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = domain.isUniform();
+  pair<bool, size_t> uniform = ddomain->isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
     throw Exception("FormulationOO2 needs a uniform mesh");
 
   // a & b //
-  this->a = a;
-  this->b = b;
-
-  // Save FunctionSpace & Domain //
-  fspace = &fs;
-  goe    = &domain;
+  this->a = context.OO2_A;
+  this->b = context.OO2_B;
 
   // Get Basis //
-  const Basis& basis = fs.getBasis(eType);
+  const Basis& basis = fspace->getBasis(eType);
 
   // Gaussian Quadrature (Field - Field & Field - Projection) //
   Quadrature gaussFF(eType, basis.getOrder(), 2);
@@ -43,14 +41,17 @@ FormulationOO2(const GroupOfElement& domain,
   basis.preEvaluateDerivatives(gCGG);
 
   // Jacobians //
-  GroupOfJacobian jacFF(domain, gCFF, "jacobian");
-  GroupOfJacobian jacGG(domain, gCGG, "invert");
+  GroupOfJacobian jacFF(*ddomain, gCFF, "jacobian");
+  GroupOfJacobian jacGG(*ddomain, gCGG, "invert");
+
+  // Get DDM Dofs from DDMContext //
+  const map<Dof, Complex>& ddm = context.getDDMDofs();
 
   // Local Terms //
   localTermsFF = new TermFieldField<double>(jacFF, basis, gaussFF);
   localTermsGG = new TermGradGrad<double>(jacGG, basis, gaussGG);
   localTermsPr =
-    new TermProjectionField<Complex>(jacFF, basis, gaussFF, fs, ddmDof);
+    new TermProjectionField<Complex>(jacFF, basis, gaussFF, *fspace, ddm);
 }
 
 FormulationOO2::~FormulationOO2(void){
@@ -78,7 +79,7 @@ const FunctionSpace& FormulationOO2::test(void) const{
 }
 
 const GroupOfElement& FormulationOO2::domain(void) const{
-  return *goe;
+  return *ddomain;
 }
 
 bool FormulationOO2::isBlock(void) const{

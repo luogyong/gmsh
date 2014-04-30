@@ -105,6 +105,7 @@ add_subdirectory(formulation)
 add_subdirectory(geometry)
 add_subdirectory(postprocessing)
 add_subdirectory(solver)
+add_subdirectory(context)
 
 ## TO BE REMOVED !!!
 ####################
@@ -122,6 +123,7 @@ include_directories(
   geometry
   postprocessing
   solver
+  context
 
   ## Gmsh
   ${CMAKE_CURRENT_BINARY_DIR}/gmsh/Common
@@ -162,8 +164,8 @@ add_executable(free    simulation/FreeSpace.cpp)
 add_executable(lagr    simulation/Lagrange.cpp)
 add_executable(emode   simulation/EigenMode.cpp)
 
-add_executable(pml   simulation/Pml.cpp)
-add_executable(ddm   simulation/Ddm.cpp)
+add_executable(pml simulation/Pml.cpp)
+add_executable(ddm simulation/Ddm.cpp)
 
 add_executable(proj simulation/Projection.cpp)
 add_executable(mesh simulation/Mesh.cpp)

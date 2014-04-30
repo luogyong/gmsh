@@ -10,7 +10,7 @@ FormulationOSRCOne::FormulationOSRCOne(void){
 
 FormulationOSRCOne::
 FormulationOSRCOne(const GroupOfElement& domain,
-                   const FunctionSpaceScalar& field,
+                   const FunctionSpace& field,
                    double k,
                    int NPade,
                    const TermFieldField<double>& localLHS,

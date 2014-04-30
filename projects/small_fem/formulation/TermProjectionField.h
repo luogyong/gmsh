@@ -43,7 +43,7 @@ class TermProjectionField: public Term<scalar>{
   TermProjectionField(const GroupOfJacobian& goj,
                       const Basis& basis,
                       const Quadrature& quadrature,
-                      const FunctionSpaceScalar& fs,
+                      const FunctionSpace& fs,
                       const std::map<Dof, scalar>& dof);
 
   virtual ~TermProjectionField(void);

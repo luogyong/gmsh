@@ -9,8 +9,9 @@
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
-
 #include "FormulationCoupled.h"
+
+#include "DDMContext.h"
 
 /**
    @class FormulationOSRC
@@ -30,13 +31,7 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
   std::list<const FormulationBlock<Complex>*> fList;
 
  public:
-  FormulationOSRC(const GroupOfElement& domain,
-                  const FunctionSpaceScalar& field,
-                  const std::vector<const FunctionSpaceScalar*>& aux,
-                  double k,
-                  Complex keps,
-                  int NPade,
-                  const std::map<Dof, Complex>& ddmDof);
+  FormulationOSRC(DDMContext& context);
 
   virtual ~FormulationOSRC(void);
 
@@ -58,19 +53,9 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
 
 /**
    @fn FormulationOSRC::FormulationOSRC
-   @param domain A GroupOfElement for the domain
-   @param field FunctionSpace for the computed field
-   @param aux A set of auxiliary FunctionSpace for Pade denominator
-   @param k A real number
-   @param keps A complex number
-   @param NPade Number of approximation terms for Pade
-   @param ddmDof A map with the DDM Dof%s and their associated values
+   @param context A DDMContext
 
-   Instantiates a new FormulationOSRC with wavenumber k
-   and complexified wavenumber keps.
-   The DDM Dof%s are given by ddmDof.
-
-   It is important mentioning that aux.size() and NPade must be equal.
+   Instantiates a new FormulationOSRC with the given DDMContext
    **
 
    @fn FormulationOSRC::~FormulationOSRC

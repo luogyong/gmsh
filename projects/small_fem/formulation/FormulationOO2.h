@@ -8,6 +8,8 @@
 #include "TermGradGrad.h"
 #include "FormulationBlock.h"
 
+#include "DDMContext.h"
+
 /**
    @class FormulationOO2
    @brief OO2 Formulation for DDM
@@ -22,8 +24,8 @@ class FormulationOO2: public FormulationBlock<Complex>{
   Complex b;
 
   // Function Space & Domain //
-  const FunctionSpaceScalar* fspace;
-  const GroupOfElement*      goe;
+  const FunctionSpace*  fspace;
+  const GroupOfElement* ddomain;
 
   // Local Terms //
   TermFieldField<double>*       localTermsFF;
@@ -31,11 +33,7 @@ class FormulationOO2: public FormulationBlock<Complex>{
   TermProjectionField<Complex>* localTermsPr;
 
  public:
-  FormulationOO2(const GroupOfElement& domain,
-                 const FunctionSpaceScalar& fs,
-                 Complex a,
-                 Complex b,
-                 const std::map<Dof, Complex>& ddmDof);
+  FormulationOO2(DDMContext& context);
 
   virtual ~FormulationOO2(void);
 
@@ -51,14 +49,9 @@ class FormulationOO2: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationOO2::FormulationOO2
-   @param domain A GroupOfElement for the domain
-   @param fs A FunctionSpace for both unknown and test fields
-   @param a A complex number
-   @param b A complex number
-   @param ddmDof A map with the DDM Dof%s and their associated values
+   @param context A DDMContext
 
-   Instantiates a new FormulationEMDA with parameters a and b.
-   The DDM Dof%s are given by ddmDof.
+   Instantiates a new FormulationOO2 with the given DDMContext
    **
 
    @fn FormulationOO2::~FormulationOO2

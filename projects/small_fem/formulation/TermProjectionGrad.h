@@ -44,7 +44,7 @@ class TermProjectionGrad: public Term<scalar>{
   TermProjectionGrad(const GroupOfJacobian& goj,
                      const Basis& basis,
                      const Quadrature& quadrature,
-                     const FunctionSpaceScalar& fs,
+                     const FunctionSpace& fs,
                      const std::map<Dof, scalar>& dof);
 
   virtual ~TermProjectionGrad(void);

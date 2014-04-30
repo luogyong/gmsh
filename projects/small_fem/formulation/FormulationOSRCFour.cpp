@@ -10,8 +10,8 @@ FormulationOSRCFour::FormulationOSRCFour(void){
 
 FormulationOSRCFour::
 FormulationOSRCFour(const GroupOfElement& domain,
-                    const FunctionSpaceScalar& field,
-                    const FunctionSpaceScalar& auxiliary,
+                    const FunctionSpace& field,
+                    const FunctionSpace& auxiliary,
                     const TermFieldField<double>& localTerm){
   // Save Data //
   this->ffield    = &field;

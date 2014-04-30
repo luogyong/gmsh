@@ -10,7 +10,7 @@ FormulationOSRCThree::FormulationOSRCThree(void){
 
 FormulationOSRCThree::
 FormulationOSRCThree(const GroupOfElement& domain,
-                     const FunctionSpaceScalar& auxiliary,
+                     const FunctionSpace& auxiliary,
                      Complex keps,
                      int NPade,
                      int jPade,

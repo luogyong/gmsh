@@ -15,13 +15,16 @@
 #include "FormulationUpdateOO2.h"
 #include "FormulationUpdateOSRC.h"
 
+#include "DDMContext.h"
+
 using namespace std;
 
 Complex fSource(fullVector<double>& xyz){
   return Complex(1, 0);
 }
 
-void initMap(FunctionSpace& fs, GroupOfElement& goe, map<Dof, Complex>& data){
+void initMap(const FunctionSpace& fs,
+             const GroupOfElement& goe, map<Dof, Complex>& data){
 
   set<Dof> dSet;
   fs.getKeys(goe, dSet);
@@ -33,35 +36,22 @@ void initMap(FunctionSpace& fs, GroupOfElement& goe, map<Dof, Complex>& data){
     data.insert(pair<Dof, Complex>(*it, 0));
 }
 
-void initMap(vector<const FunctionSpaceScalar*>& fs, GroupOfElement& goe,
-             vector<map<Dof, Complex> >& data){
-
-  const size_t size = data.size();
-
-  set<Dof> dSet;
-  set<Dof>::iterator end;
-  set<Dof>::iterator it;
-
-  if(size != fs.size())
-    throw Exception("initMap: vector must have the same size");
-
-  for(size_t i = 0; i < size; i++){
-    dSet.clear();
-    fs[i]->getKeys(goe, dSet);
-
-    end = dSet.end();
-
-    for(it = dSet.begin(); it != end; it++)
-      data[i].insert(pair<Dof, Complex>(*it, 0));
-  }
-}
-
-void displaySolution(map<Dof, Complex>& solution,
+void displaySolution(const System<Complex>& system,
+                     const FunctionSpace& fs,
+                     const GroupOfElement& goe,
                      int id, size_t step, string name){
   int myId;
   MPI_Comm_rank(MPI_COMM_WORLD,&myId);
 
   if(myId == id){
+    // Get unknonws
+    map<Dof, Complex> solution;
+    initMap(fs, goe, solution);
+
+    // Get Solution
+    system.getSolution(solution, 0);
+
+    // Print it
     cout << "After Iteration: " << step + 1 << endl;
     map<Dof, Complex>::iterator it  = solution.begin();
     map<Dof, Complex>::iterator end = solution.end();
@@ -174,7 +164,7 @@ void compute(const Options& option){
 
   // EMDA Stuff
   if(ddmType == emdaType)
-    chi = atof(option.getValue("-chi")[1].c_str());
+    chi = atof(option.getValue("-chi")[1].c_str()) * k;
 
   // OO2 Stuff
   if(ddmType == oo2Type){
@@ -244,21 +234,31 @@ void compute(const Options& option){
   FormulationSommerfeld          sommerfeld(infinity, fs, k);
 
   // Ddm Formulation Pointers //
-  Formulation<Complex>*     ddm = NULL;
-  Formulation<Complex>*   upDdm = NULL;
+  Formulation<Complex>*   ddm = NULL;
+  Formulation<Complex>* upDdm = NULL;
 
   // System Pointers //
   System<Complex>* system;
   System<Complex>* update;
 
-  // Solution Maps //
+  // DDM Solution Map //
   map<Dof, Complex> ddmG;
-  map<Dof, Complex> solution;
-  vector<map<Dof, Complex> > solPhi(NPade); // OSRC
-
-  initMap(phi, ddmBorder, solPhi); // OSRC
-  initMap(fs,  ddmBorder, solution);
   initMap(fs,  ddmBorder, ddmG);
+
+  // DDMContext //
+  DDMContext context;
+
+  if(ddmType == emdaType)
+    context.setToEMDA(ddmBorder, fs, k, chi);
+  else if(ddmType == oo2Type)
+    context.setToOO2(ddmBorder, fs, ooA, ooB);
+  else if(ddmType == osrcType)
+    context.setToOSRC(ddmBorder, fs, phi, k, keps, NPade);
+
+  else
+    throw Exception("Unknown %s DDM border term", ddmType.c_str());
+
+
 
   // MPI Buffers //
   vector<int>     outEntity(ddmG.size(), 0);
@@ -270,13 +270,16 @@ void compute(const Options& option){
   vector<Complex> inValue(ddmG.size(), 0);
 
   for(size_t step = 0; step < maxIt; step++){
+    // Get new DDM Dofs //
+    context.setDDMDofs(ddmG);
+
     // Formulations for DDM //
     if(ddmType == emdaType)
-      ddm = new FormulationEMDA(ddmBorder, fs, k, chi, ddmG);
+      ddm = new FormulationEMDA(context);
     else if(ddmType == oo2Type)
-      ddm = new FormulationOO2(ddmBorder, fs, ooA, ooB, ddmG);
+      ddm = new FormulationOO2(context);
     else if(ddmType == osrcType)
-      ddm = new FormulationOSRC(ddmBorder, fs, phi, k, keps, NPade, ddmG);
+      ddm = new FormulationOSRC(context);
 
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
@@ -298,37 +301,27 @@ void compute(const Options& option){
     // Solve
     system->solve();
 
-    // Get DDM Border Solution //
-    system->getSolution(solution, 0);
-
-    // Get Phi DDM Border (if OSRC) //
-    if(ddmType == osrcType)
-      for(int j = 0; j < NPade; j++)
-        system->getSolution(solPhi[j], 0);
+    // Put new System in DDM Context //
+    context.setSystem(*system);
 
     // Display //
     try{
       if(option.getValue("-disp").size() > 1)
-        displaySolution(solution, atoi(option.getValue("-disp")[1].c_str()),
-                        step, "u");
+        displaySolution(*system, fs, ddmBorder,
+                        atoi(option.getValue("-disp")[1].c_str()), step, "u");
     }
     catch(...){
     }
 
     // Update G //
     if(ddmType == emdaType)
-      upDdm  =
-        new FormulationUpdateEMDA(ddmBorder, fs, k, chi, solution, ddmG);
+      upDdm = new FormulationUpdateEMDA(context);
 
     else if(ddmType == oo2Type)
-      upDdm  =
-        new FormulationUpdateOO2(ddmBorder, fs, ooA, ooB, solution, ddmG);
+      upDdm = new FormulationUpdateOO2(context);
 
     else if(ddmType == osrcType)
-      upDdm  =
-        new FormulationUpdateOSRC(ddmBorder, fs, k, NPade,
-                                  solution, solPhi, ddmG);
-
+      upDdm = new FormulationUpdateOSRC(context);
     else
       throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
@@ -359,11 +352,8 @@ void compute(const Options& option){
     }
 
     // Clean //
-    if(upDdm)
-      delete upDdm;
-    if(ddm)
-      delete ddm;
-
+    delete upDdm;
+    delete ddm;
     delete system;
     delete update;
   }

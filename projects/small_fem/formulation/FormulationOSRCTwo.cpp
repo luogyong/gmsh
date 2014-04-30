@@ -9,8 +9,8 @@ FormulationOSRCTwo::FormulationOSRCTwo(void){
 }
 
 FormulationOSRCTwo::FormulationOSRCTwo(const GroupOfElement& domain,
-                                       const FunctionSpaceScalar& auxiliary,
-                                       const FunctionSpaceScalar& field,
+                                       const FunctionSpace& auxiliary,
+                                       const FunctionSpace& field,
                                        double  k,
                                        Complex keps,
                                        int NPade,

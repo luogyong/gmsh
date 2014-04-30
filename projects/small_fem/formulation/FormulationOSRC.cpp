@@ -12,13 +12,15 @@
 
 using namespace std;
 
-FormulationOSRC::FormulationOSRC(const GroupOfElement& domain,
-                                 const FunctionSpaceScalar& field,
-                                 const vector<const FunctionSpaceScalar*>& aux,
-                                 double k,
-                                 Complex keps,
-                                 int NPade,
-                                 const map<Dof, Complex>& ddmDof){
+FormulationOSRC::FormulationOSRC(DDMContext& context){
+  // Check if OSRC DDMContext //
+  if(context.typeDDM != DDMContext::typeOSRC)
+    throw Exception("FormulationOSRC needs a OSRC DDMContext");
+
+  // Get Domain, FunctionSpace and auxiliary FunctionSpaces from DDMContext //
+  const GroupOfElement&                     domain = context.getDomain();
+  const FunctionSpace&                      field  = context.getFunctionSpace();
+  const vector<const FunctionSpaceScalar*>& aux    = *context.phi;
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = domain.isUniform();
@@ -30,6 +32,11 @@ FormulationOSRC::FormulationOSRC(const GroupOfElement& domain,
   // Get Basis (same for field and auxiliary function spaces) //
   const Basis& basis = field.getBasis(eType);
   const size_t order = basis.getOrder();
+
+  // k, keps and NPade //
+  double k     = context.k;
+  Complex keps = context.OSRC_keps;
+  int NPade    = context.OSRC_NPade;
 
   // Gaussian Quadrature //
   Quadrature gaussFF(eType, order    , 2);
@@ -45,13 +52,16 @@ FormulationOSRC::FormulationOSRC(const GroupOfElement& domain,
   GroupOfJacobian jacFF(domain, gCFF, "jacobian");
   GroupOfJacobian jacGG(domain, gCGG, "invert");
 
+  // Get DDM Dofs from DDMContext //
+  const map<Dof, Complex>& ddm = context.getDDMDofs();
+
   // NB: Since the Formulations share the same basis functions,
   //     the local terms will be the same !
   //     It's the Dof numbering imposed by the function spaces that will differ
   localFF = new TermFieldField<double>(jacFF, basis, gaussFF);
   localGG = new TermGradGrad<double>(jacGG, basis, gaussGG);
   localPr =
-    new TermProjectionField<Complex>(jacFF, basis, gaussFF, field, ddmDof);
+    new TermProjectionField<Complex>(jacFF, basis, gaussFF, field, ddm);
 
   // Formulations //
   // NB: FormulationOSRC is a friend of FormulationOSRC{One,Two,Three,Four,} !

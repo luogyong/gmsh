@@ -28,12 +28,18 @@ TermProjectionGrad<scalar>::
 TermProjectionGrad(const GroupOfJacobian& goj,
                    const Basis& basis,
                    const Quadrature& quadrature,
-                   const FunctionSpaceScalar& fs,
+                   const FunctionSpace& fs,
                    const std::map<Dof, scalar>& dof){
+
+  // Check if FunctionSpace is scalar //
+  if(!fs.isScalar())
+    throw Exception("%s: %s",
+                    "TermProjectionGrad<scalar> needs a scalar FunctionSpace",
+                    "vectorial case not implemented yet");
 
   // Save FunctionSpace, Dof values and Evaluator //
   Eval evaluator = &TermProjectionGrad<scalar>::interpolateGrad;
-  this->fsScalar = &fs;
+  this->fsScalar = static_cast<const FunctionSpaceScalar*>(&fs);
   this->dofValue = &dof;
 
   // Init //

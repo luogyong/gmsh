@@ -30,8 +30,8 @@ class FormulationOSRCThree: public FormulationBlock<Complex>{
   Complex Bj;
 
   // FunctionSpace & Domain //
-  const FunctionSpaceScalar* faux;
-  const GroupOfElement*      ddomain;
+  const FunctionSpace*  faux;
+  const GroupOfElement* ddomain;
 
   // Local Terms //
   const TermFieldField<double>* localFF;
@@ -40,7 +40,7 @@ class FormulationOSRCThree: public FormulationBlock<Complex>{
  private:
   FormulationOSRCThree(void);
   FormulationOSRCThree(const GroupOfElement& domain,
-                       const FunctionSpaceScalar& auxiliary,
+                       const FunctionSpace& auxiliary,
                        Complex keps,
                        int NPade,
                        int jPade,

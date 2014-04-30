@@ -5,29 +5,28 @@
 
 using namespace std;
 
-FormulationEMDA::FormulationEMDA(const GroupOfElement& domain,
-                                 const FunctionSpaceScalar& fs,
-                                 double k,
-                                 double chi,
-                                 const std::map<Dof, Complex>& ddmDof){
+FormulationEMDA::FormulationEMDA(DDMContext& context){
+  // Check if EMDA DDMContext //
+  if(context.getType() != DDMContext::typeEMDA)
+    throw Exception("FormulationEMDA needs a EMDA DDMContext");
+
+  // Get Domain and FunctionSpace from DDMContext //
+  fspace  = &context.getFunctionSpace();
+  ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = domain.isUniform();
+  pair<bool, size_t> uniform = ddomain->isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
     throw Exception("FormulationEMDA needs a uniform mesh");
 
   // Wavenumber & Chi //
-  this->k   = k;
-  this->chi = chi;
-
-  // Save FunctionSpace & Domain //
-  fspace = &fs;
-  goe    = &domain;
+  this->k   = context.k;
+  this->chi = context.EMDA_Chi;
 
   // Basis //
-  const Basis& basis = fs.getBasis(eType);
+  const Basis& basis = fspace->getBasis(eType);
 
   // Gaussian Quadrature //
   Quadrature gauss(eType, basis.getOrder(), 2);
@@ -37,11 +36,14 @@ FormulationEMDA::FormulationEMDA(const GroupOfElement& domain,
   basis.preEvaluateFunctions(gC);
 
   // Jacobian //
-  GroupOfJacobian jac(domain, gC, "jacobian");
+  GroupOfJacobian jac(*ddomain, gC, "jacobian");
+
+  // Get DDM Dofs from DDMContext //
+  const map<Dof, Complex>& ddm = context.getDDMDofs();
 
   // Local Terms //
   localLHS = new TermFieldField<double>(jac, basis, gauss);
-  localRHS = new TermProjectionField<Complex>(jac, basis, gauss, fs, ddmDof);
+  localRHS = new TermProjectionField<Complex>(jac, basis, gauss, *fspace, ddm);
 }
 
 FormulationEMDA::~FormulationEMDA(void){
@@ -66,7 +68,7 @@ const FunctionSpace& FormulationEMDA::test(void) const{
 }
 
 const GroupOfElement& FormulationEMDA::domain(void) const{
-  return *goe;
+  return *ddomain;
 }
 
 bool FormulationEMDA::isBlock(void) const{

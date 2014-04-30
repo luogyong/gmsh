@@ -9,6 +9,8 @@
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
 
+#include "DDMContext.h"
+
 /**
    @class FormulationUpdateOSRC
    @brief Update Formulation for FormulationOSRC
@@ -22,8 +24,8 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
   double k;
 
   // Function Space & Domain //
-  const FunctionSpaceScalar* ffspace;
-  const GroupOfElement*      ddomain;
+  const FunctionSpace*  ffspace;
+  const GroupOfElement* ddomain;
 
   // Pade //
   Complex C0;
@@ -37,13 +39,7 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
   TermProjectionField<Complex>* lAB;
 
  public:
-  FormulationUpdateOSRC(const GroupOfElement& domain,
-                        const FunctionSpaceScalar& fspace,
-                        double k,
-                        int NPade,
-                        const std::map<Dof, Complex>& solU,
-                        const std::vector<std::map<Dof, Complex> >& solPhi,
-                        const std::map<Dof, Complex>& oldG);
+  FormulationUpdateOSRC(DDMContext& context);
 
   virtual ~FormulationUpdateOSRC(void);
 
@@ -59,7 +55,9 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationUpdateOSRC::FormulationUpdateOSRC
-   @todo TODO
+   @param context A DDMContext
+
+   Instantiates a new FormulationUpdateOSRC with the given DDMContext
    **
 
    @fn FormulationUpdateOSRC::~FormulationUpdateOSRC

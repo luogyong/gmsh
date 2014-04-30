@@ -6,31 +6,43 @@
 
 using namespace std;
 
-FormulationUpdateEMDA::
-FormulationUpdateEMDA(const GroupOfElement& domain,
-                      const FunctionSpaceScalar& fs,
-                      double k,
-                      double chi,
-                      const std::map<Dof, Complex>& sol,
-                      const std::map<Dof, Complex>& oldG){
+#include <set>
+static
+void initMap(const FunctionSpace& fs,
+             const GroupOfElement& goe, map<Dof, Complex>& data){
+
+  set<Dof> dSet;
+  fs.getKeys(goe, dSet);
+
+  set<Dof>::iterator it  = dSet.begin();
+  set<Dof>::iterator end = dSet.end();
+
+  for(; it != end; it++)
+    data.insert(pair<Dof, Complex>(*it, 0));
+}
+
+FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContext& context){
+  // Check if EMDA DDMContext //
+  if(context.typeDDM != DDMContext::typeEMDA)
+    throw Exception("FormulationUpdateEMDA needs a EMDA DDMContext");
+
+  // Get Domain and FunctionSpace from DDMContext //
+  fspace  = &context.getFunctionSpace();
+  ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = domain.isUniform();
+  pair<bool, size_t> uniform = ddomain->isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
-    throw Exception("FormulationEMDA needs a uniform mesh");
+    throw Exception("FormulationUpdateEMDA needs a uniform mesh");
 
   // Wavenumber & Chi //
-  this->k   = k;
-  this->chi = chi;
-
-  // Save FunctionSpace & Domain //
-  fspace = &fs;
-  goe    = &domain;
+  this->k   = context.k;
+  this->chi = context.EMDA_Chi;
 
   // Basis //
-  const Basis& basis = fs.getBasis(eType);
+  const Basis& basis = fspace->getBasis(eType);
 
   // Gaussian Quadrature //
   Quadrature gauss(eType, basis.getOrder(), 2);
@@ -40,12 +52,20 @@ FormulationUpdateEMDA(const GroupOfElement& domain,
   basis.preEvaluateFunctions(gC);
 
   // Jacobian //
-  GroupOfJacobian jac(domain, gC, "jacobian");
+  GroupOfJacobian jac(*ddomain, gC, "jacobian");
+
+  // Get Volume Solution //
+  map<Dof, Complex> sol;
+  initMap(*fspace, *ddomain, sol);
+  context.system->getSolution(sol, 0);
+
+  // Get DDM Dofs from DDMContext //
+  const map<Dof, Complex>& ddm = context.getDDMDofs();
 
   // Local Terms //
   lGout = new TermFieldField<double>(jac, basis, gauss);
-  lGin  = new TermProjectionField<Complex>(jac, basis, gauss, fs, oldG);
-  lU    = new TermProjectionField<Complex>(jac, basis, gauss, fs, sol);
+  lGin  = new TermProjectionField<Complex>(jac, basis, gauss, *fspace, ddm);
+  lU    = new TermProjectionField<Complex>(jac, basis, gauss, *fspace, sol);
 }
 
 FormulationUpdateEMDA::~FormulationUpdateEMDA(void){
@@ -74,7 +94,7 @@ const FunctionSpace& FormulationUpdateEMDA::test(void) const{
 }
 
 const GroupOfElement& FormulationUpdateEMDA::domain(void) const{
-  return *goe;
+  return *ddomain;
 }
 
 bool FormulationUpdateEMDA::isBlock(void) const{

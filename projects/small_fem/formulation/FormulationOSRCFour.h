@@ -24,9 +24,9 @@ class FormulationOSRCFour: public FormulationBlock<Complex>{
 
  private:
   // FunctionSpace (field and aux) & Domain //
-  const FunctionSpaceScalar* ffield;
-  const FunctionSpaceScalar* faux;
-  const GroupOfElement*      ddomain;
+  const FunctionSpace*  ffield;
+  const FunctionSpace*  faux;
+  const GroupOfElement* ddomain;
 
   // Local Term //
   const TermFieldField<double>* localTerm;
@@ -34,8 +34,8 @@ class FormulationOSRCFour: public FormulationBlock<Complex>{
  private:
   FormulationOSRCFour(void);
   FormulationOSRCFour(const GroupOfElement& domain,
-                      const FunctionSpaceScalar& field,
-                      const FunctionSpaceScalar& auxiliary,
+                      const FunctionSpace& field,
+                      const FunctionSpace& auxiliary,
                       const TermFieldField<double>& localTerm);
 
  public:

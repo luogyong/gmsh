@@ -7,6 +7,8 @@
 #include "TermFieldField.h"
 #include "FormulationBlock.h"
 
+#include "DDMContext.h"
+
 /**
    @class FormulationUpdateEMDA
    @brief Update Formulation for FormulationEMDA
@@ -21,8 +23,8 @@ class FormulationUpdateEMDA: public FormulationBlock<Complex>{
   double chi;
 
   // Function Space & Domain //
-  const FunctionSpaceScalar* fspace;
-  const GroupOfElement*      goe;
+  const FunctionSpace*  fspace;
+  const GroupOfElement* ddomain;
 
   // Local Terms //
   TermFieldField<double>*       lGout;
@@ -30,12 +32,7 @@ class FormulationUpdateEMDA: public FormulationBlock<Complex>{
   TermProjectionField<Complex>* lU;
 
  public:
-  FormulationUpdateEMDA(const GroupOfElement& domain,
-                        const FunctionSpaceScalar& fs,
-                        double k,
-                        double chi,
-                        const std::map<Dof, Complex>& sol,
-                        const std::map<Dof, Complex>& oldG);
+  FormulationUpdateEMDA(DDMContext& context);
 
   virtual ~FormulationUpdateEMDA(void);
 
@@ -51,7 +48,9 @@ class FormulationUpdateEMDA: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationUpdateEMDA::FormulationUpdateEMDA
-   @todo TODO
+   @param context A DDMContext
+
+   Instantiates a new FormulationUpdateEMDA with the given DDMContext
    **
 
    @fn FormulationUpdateEMDA::~FormulationUpdateEMDA

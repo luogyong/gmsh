@@ -30,8 +30,8 @@ class FormulationOSRCOne: public FormulationBlock<Complex>{
   Complex C0;
 
   // Function Space & Domain //
-  const FunctionSpaceScalar* ffield;
-  const GroupOfElement*      ddomain;
+  const FunctionSpace*  ffield;
+  const GroupOfElement* ddomain;
 
   // Local Terms //
   const TermFieldField<double>*       localLHS;
@@ -40,7 +40,7 @@ class FormulationOSRCOne: public FormulationBlock<Complex>{
  private:
   FormulationOSRCOne(void);
   FormulationOSRCOne(const GroupOfElement& domain,
-                     const FunctionSpaceScalar& field,
+                     const FunctionSpace& field,
                      double k,
                      int NPade,
                      const TermFieldField<double>& localLHS,
