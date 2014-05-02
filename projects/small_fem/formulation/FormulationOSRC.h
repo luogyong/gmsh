@@ -10,7 +10,10 @@
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
 #include "FormulationCoupled.h"
+#include "GroupOfJacobian.h"
+#include "Quadrature.h"
 
+#include "FormulationOSRCOne.h"
 #include "DDMContext.h"
 
 /**
@@ -20,8 +23,20 @@
    OSRC Formulation for DDM
  */
 
+class FormulationOSRCOne;
+
 class FormulationOSRC: public FormulationCoupled<Complex>{
  private:
+  // DDMContext //
+  DDMContext* context;
+
+  // Stuff for updating RHS //
+  const Basis*         basis;
+  const FunctionSpace* field;
+  Quadrature*          gaussFF;
+  GroupOfJacobian*     jacFF;
+  FormulationOSRCOne*  formulationOne;
+
   // Local Terms //
   TermFieldField<double>*       localFF;
   TermGradGrad<double>*         localGG;
@@ -40,6 +55,7 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
                                                getFormulationBlocks(void) const;
 
   virtual bool isBlock(void) const;
+  virtual void update(void);
 
  private:
   static double pade_aj(int j, int N);
@@ -60,6 +76,10 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
 
    @fn FormulationOSRC::~FormulationOSRC
    Deletes this FormulationOSRC
+   **
+
+   @fn FormulationOSRC::update
+   Updates the DDM Dof%s values from the DDMContext given at construction time
    **
 
    @fn FormulationOSRC::padeC0

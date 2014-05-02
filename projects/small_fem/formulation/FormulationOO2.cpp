@@ -1,6 +1,3 @@
-#include "GroupOfJacobian.h"
-#include "Quadrature.h"
-
 #include "FormulationOO2.h"
 
 using namespace std;
@@ -9,6 +6,9 @@ FormulationOO2::FormulationOO2(DDMContext& context){
   // Check if OO2 DDMContext //
   if(context.getType() != DDMContext::typeOO2)
     throw Exception("FormulationOO2 needs a OO2 DDMContext");
+
+  // Save DDMContext //
+  this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
   fspace  = &context.getFunctionSpace();
@@ -26,38 +26,41 @@ FormulationOO2::FormulationOO2(DDMContext& context){
   this->b = context.OO2_B;
 
   // Get Basis //
-  const Basis& basis = fspace->getBasis(eType);
+  basis = &fspace->getBasis(eType);
 
   // Gaussian Quadrature (Field - Field & Field - Projection) //
-  Quadrature gaussFF(eType, basis.getOrder(), 2);
-  const fullMatrix<double>& gCFF = gaussFF.getPoints();
+  gaussFF = new Quadrature(eType, basis->getOrder(), 2); // Saved for update()
 
   // Gaussian Quadrature (Grad - Grad) //
-  Quadrature gaussGG(eType, basis.getOrder() - 1, 2);
-  const fullMatrix<double>& gCGG = gaussGG.getPoints();
+  Quadrature gaussGG(eType, basis->getOrder() - 1, 2);
 
   // Pre-evalution //
-  basis.preEvaluateFunctions(gCFF);
-  basis.preEvaluateDerivatives(gCGG);
+  const fullMatrix<double>& gCFF = gaussFF->getPoints();
+  const fullMatrix<double>& gCGG = gaussGG.getPoints();
+
+  basis->preEvaluateFunctions(gCFF);
+  basis->preEvaluateDerivatives(gCGG);
 
   // Jacobians //
-  GroupOfJacobian jacFF(*ddomain, gCFF, "jacobian");
+  jacFF = new GroupOfJacobian(*ddomain, gCFF, "jacobian"); // Saved for update()
   GroupOfJacobian jacGG(*ddomain, gCGG, "invert");
 
   // Get DDM Dofs from DDMContext //
   const map<Dof, Complex>& ddm = context.getDDMDofs();
 
   // Local Terms //
-  localTermsFF = new TermFieldField<double>(jacFF, basis, gaussFF);
-  localTermsGG = new TermGradGrad<double>(jacGG, basis, gaussGG);
+  localTermsFF = new TermFieldField<double>(*jacFF, *basis, *gaussFF);
+  localTermsGG = new TermGradGrad<double>(jacGG, *basis, gaussGG);
   localTermsPr =
-    new TermProjectionField<Complex>(jacFF, basis, gaussFF, *fspace, ddm);
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, ddm);
 }
 
 FormulationOO2::~FormulationOO2(void){
   delete localTermsFF;
   delete localTermsGG;
   delete localTermsPr;
+  delete jacFF;
+  delete gaussFF;
 }
 
 Complex FormulationOO2::weak(size_t dofI, size_t dofJ, size_t elementId) const{
@@ -84,4 +87,20 @@ const GroupOfElement& FormulationOO2::domain(void) const{
 
 bool FormulationOO2::isBlock(void) const{
   return true;
+}
+
+void FormulationOO2::update(void){
+  // Delete RHS (localTermsPr)
+  delete localTermsPr;
+
+  // Get DDM Dofs from DDMContext
+  const map<Dof, Complex>& ddm = context->getDDMDofs();
+
+  // Pre-evalution
+  const fullMatrix<double>& gCFF = gaussFF->getPoints();
+  basis->preEvaluateFunctions(gCFF);
+
+  // New RHS
+  localTermsPr =
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, ddm);
 }

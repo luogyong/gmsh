@@ -8,6 +8,8 @@
 #include "FunctionSpaceScalar.h"
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
+#include "Quadrature.h"
+#include "GroupOfJacobian.h"
 
 #include "DDMContext.h"
 
@@ -15,13 +17,32 @@
    @class FormulationUpdateOSRC
    @brief Update Formulation for FormulationOSRC
 
-   Update Formulation for FormulationOSRC
+   Update Formulation for FormulationOSRC.
+
+   Since this Formulation needs the volume solution (restriced at DDM border),
+   the FormulationUpdateOSRC::update() must be called @em before
+   calling FormulationUpdateOSRC::weak() or FormulationUpdateOSRC::rhs()
+   or an @em assembly procedure.
 */
 
 class FormulationUpdateOSRC: public FormulationBlock<Complex>{
  private:
   // Wavenumber //
   double k;
+
+  // DDMContext //
+  DDMContext* context;
+
+  // Stuff for updating RHS //
+  int NPade;
+  const Basis*     basis;
+  Quadrature*      gauss;
+  GroupOfJacobian* jac;
+
+  // Volume Solution (field and auxiliary) //
+  std::map<Dof, Complex> solU;
+  std::map<Dof, Complex> UPhi;
+  std::vector<std::map<Dof, Complex> > solPhi;
 
   // Function Space & Domain //
   const FunctionSpace*  ffspace;
@@ -51,6 +72,11 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
+  virtual void update(void);
+
+ private:
+  void resetUPhi(void);
+  void getUPhi(void);
 };
 
 /**
@@ -62,6 +88,10 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
 
    @fn FormulationUpdateOSRC::~FormulationUpdateOSRC
    Deletes this FormulationUpdateOSRC
+   **
+
+   @fn FormulationUpdateOSRC::update
+   Updates the DDM Dof%s values from the DDMContext given at construction time
 */
 
 #endif

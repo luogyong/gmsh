@@ -6,6 +6,8 @@
 #include "TermProjectionField.h"
 #include "TermFieldField.h"
 #include "FormulationBlock.h"
+#include "GroupOfJacobian.h"
+#include "Quadrature.h"
 
 #include "DDMContext.h"
 
@@ -21,6 +23,14 @@ class FormulationEMDA: public FormulationBlock<Complex>{
   // Wavenumber & Chi //
   double k;
   double chi;
+
+  // DDMContext //
+  DDMContext* context;
+
+  // Stuff for updating RHS //
+  const Basis*     basis;
+  Quadrature*      gauss;
+  GroupOfJacobian* jac;
 
   // Function Space & Domain //
   const FunctionSpace*  fspace;
@@ -43,6 +53,7 @@ class FormulationEMDA: public FormulationBlock<Complex>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
+  virtual void update(void);
 };
 
 /**
@@ -54,6 +65,10 @@ class FormulationEMDA: public FormulationBlock<Complex>{
 
    @fn FormulationEMDA::~FormulationEMDA
    Deletes this FormulationEMDA
+   **
+
+   @fn FormulationEMDA::update
+   Updates the DDM Dof%s values from the DDMContext given at construction time
 */
 
 #endif

@@ -7,6 +7,8 @@
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
 #include "FormulationBlock.h"
+#include "GroupOfJacobian.h"
+#include "Quadrature.h"
 
 #include "DDMContext.h"
 
@@ -22,6 +24,14 @@ class FormulationOO2: public FormulationBlock<Complex>{
   // a & b //
   Complex a;
   Complex b;
+
+  // DDMContext //
+  DDMContext* context;
+
+  // Stuff for updating RHS //
+  const Basis*     basis;
+  Quadrature*      gaussFF;
+  GroupOfJacobian* jacFF;
 
   // Function Space & Domain //
   const FunctionSpace*  fspace;
@@ -45,6 +55,7 @@ class FormulationOO2: public FormulationBlock<Complex>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
+  virtual void update(void);
 };
 
 /**
@@ -56,6 +67,10 @@ class FormulationOO2: public FormulationBlock<Complex>{
 
    @fn FormulationOO2::~FormulationOO2
    Deletes this FormulationOO2
+   **
+
+   @fn FormulationOO2::update
+   Updates the DDM Dof%s values from the DDMContext given at construction time
 */
 
 #endif

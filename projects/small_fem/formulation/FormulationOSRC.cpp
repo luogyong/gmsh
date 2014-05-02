@@ -1,9 +1,6 @@
 #include <cmath>
 
 #include "Exception.h"
-#include "Quadrature.h"
-#include "GroupOfJacobian.h"
-
 #include "FormulationOSRCOne.h"
 #include "FormulationOSRCTwo.h"
 #include "FormulationOSRCThree.h"
@@ -17,10 +14,15 @@ FormulationOSRC::FormulationOSRC(DDMContext& context){
   if(context.typeDDM != DDMContext::typeOSRC)
     throw Exception("FormulationOSRC needs a OSRC DDMContext");
 
-  // Get Domain, FunctionSpace and auxiliary FunctionSpaces from DDMContext //
+  // Save DDMContext //
+  this->context = &context;
+
+  // Get Domain and auxiliary FunctionSpaces from DDMContext //
   const GroupOfElement&                     domain = context.getDomain();
-  const FunctionSpace&                      field  = context.getFunctionSpace();
   const vector<const FunctionSpaceScalar*>& aux    = *context.phi;
+
+  // Save field FunctionSpace
+  field = &context.getFunctionSpace(); // Saved from update()
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = domain.isUniform();
@@ -30,8 +32,8 @@ FormulationOSRC::FormulationOSRC(DDMContext& context){
     throw Exception("FormulationOSRC needs a uniform mesh");
 
   // Get Basis (same for field and auxiliary function spaces) //
-  const Basis& basis = field.getBasis(eType);
-  const size_t order = basis.getOrder();
+  basis = &field->getBasis(eType); // Saved from update()
+  const size_t order = basis->getOrder();
 
   // k, keps and NPade //
   double k     = context.k;
@@ -39,17 +41,17 @@ FormulationOSRC::FormulationOSRC(DDMContext& context){
   int NPade    = context.OSRC_NPade;
 
   // Gaussian Quadrature //
-  Quadrature gaussFF(eType, order    , 2);
+  gaussFF = new Quadrature(eType, order, 2); // Saved from update()
   Quadrature gaussGG(eType, order - 1, 2);
 
-  const fullMatrix<double>& gCFF = gaussFF.getPoints();
+  const fullMatrix<double>& gCFF = gaussFF->getPoints();
   const fullMatrix<double>& gCGG = gaussGG.getPoints();
 
   // Local Terms //
-  basis.preEvaluateFunctions(gCFF);
-  basis.preEvaluateDerivatives(gCGG);
+  basis->preEvaluateFunctions(gCFF);
+  basis->preEvaluateDerivatives(gCGG);
 
-  GroupOfJacobian jacFF(domain, gCFF, "jacobian");
+  jacFF = new GroupOfJacobian(domain, gCFF, "jacobian"); // Saved from update()
   GroupOfJacobian jacGG(domain, gCGG, "invert");
 
   // Get DDM Dofs from DDMContext //
@@ -58,24 +60,27 @@ FormulationOSRC::FormulationOSRC(DDMContext& context){
   // NB: Since the Formulations share the same basis functions,
   //     the local terms will be the same !
   //     It's the Dof numbering imposed by the function spaces that will differ
-  localFF = new TermFieldField<double>(jacFF, basis, gaussFF);
-  localGG = new TermGradGrad<double>(jacGG, basis, gaussGG);
+  localFF = new TermFieldField<double>(*jacFF, *basis, *gaussFF);
+  localGG = new TermGradGrad<double>(jacGG, *basis, gaussGG);
   localPr =
-    new TermProjectionField<Complex>(jacFF, basis, gaussFF, field, ddm);
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *field, ddm);
 
   // Formulations //
   // NB: FormulationOSRC is a friend of FormulationOSRC{One,Two,Three,Four,} !
   //     So it can instanciate those classes...
 
-  fList.push_back
-    (new FormulationOSRCOne
-     (domain, field, k, NPade, *localFF, *localPr));              // u.u'
+  // Save FormulationOSRCOne for update()
+  formulationOne = new FormulationOSRCOne
+    (domain, *field, k, NPade, *localFF, *localPr);                // u.u'
+
+  // Then push it in list
+  fList.push_back(formulationOne);
 
   // Loop on phi[j]
   for(int j = 0; j < NPade; j++){
     fList.push_back
       (new FormulationOSRCTwo
-       (domain, *aux[j], field, k, keps, NPade, j+1, *localGG)); // phi[j].u'
+       (domain, *aux[j], *field, k, keps, NPade, j+1, *localGG)); // phi[j].u'
 
     fList.push_back
       (new FormulationOSRCThree
@@ -83,7 +88,7 @@ FormulationOSRC::FormulationOSRC(DDMContext& context){
 
     fList.push_back
       (new FormulationOSRCFour
-       (domain, field, *aux[j], *localFF));                      // u.phi[j]'
+       (domain, *field, *aux[j], *localFF));                     // u.phi[j]'
   }
 }
 
@@ -99,6 +104,10 @@ FormulationOSRC::~FormulationOSRC(void){
   delete localFF;
   delete localGG;
   delete localPr;
+
+  // Delete update stuffs //
+  delete jacFF;
+  delete gaussFF;
 }
 
 const list<const FormulationBlock<Complex>*>&
@@ -108,6 +117,25 @@ FormulationOSRC::getFormulationBlocks(void) const{
 
 bool FormulationOSRC::isBlock(void) const{
   return false;
+}
+
+void FormulationOSRC::update(void){
+  // Delete RHS (localPr)
+  delete localPr;
+
+  // Get DDM Dofs from DDMContext
+  const map<Dof, Complex>& ddm = context->getDDMDofs();
+
+  // Pre-evalution
+  const fullMatrix<double>& gCFF = gaussFF->getPoints();
+  basis->preEvaluateFunctions(gCFF);
+
+  // New RHS
+  localPr =
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *field, ddm);
+
+  // Update FormulationOSRCOne (formulationOne): this FormulationBlock holds RHS
+  formulationOne->update(*localPr);
 }
 
 double FormulationOSRC::pade_aj(int j, int N){

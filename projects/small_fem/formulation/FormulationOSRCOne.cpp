@@ -54,3 +54,7 @@ const GroupOfElement& FormulationOSRCOne::domain(void) const{
 bool FormulationOSRCOne::isBlock(void) const{
   return true;
 }
+
+void FormulationOSRCOne::update(TermProjectionField<Complex>& localRHS){
+  this->localRHS = &localRHS;
+}

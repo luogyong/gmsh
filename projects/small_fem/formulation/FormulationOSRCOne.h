@@ -57,6 +57,9 @@ class FormulationOSRCOne: public FormulationBlock<Complex>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
+
+ private:
+  void update(TermProjectionField<Complex>& localRHS);
 };
 
 /**

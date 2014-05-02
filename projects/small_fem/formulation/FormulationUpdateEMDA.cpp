@@ -1,30 +1,16 @@
-#include "GroupOfJacobian.h"
-#include "Quadrature.h"
-
 #include "Exception.h"
+#include "FormulationHelper.h"
 #include "FormulationUpdateEMDA.h"
 
 using namespace std;
-
-#include <set>
-static
-void initMap(const FunctionSpace& fs,
-             const GroupOfElement& goe, map<Dof, Complex>& data){
-
-  set<Dof> dSet;
-  fs.getKeys(goe, dSet);
-
-  set<Dof>::iterator it  = dSet.begin();
-  set<Dof>::iterator end = dSet.end();
-
-  for(; it != end; it++)
-    data.insert(pair<Dof, Complex>(*it, 0));
-}
 
 FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContext& context){
   // Check if EMDA DDMContext //
   if(context.typeDDM != DDMContext::typeEMDA)
     throw Exception("FormulationUpdateEMDA needs a EMDA DDMContext");
+
+  // Save DDMContext //
+  this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
   fspace  = &context.getFunctionSpace();
@@ -42,36 +28,38 @@ FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContext& context){
   this->chi = context.EMDA_Chi;
 
   // Basis //
-  const Basis& basis = fspace->getBasis(eType);
+  basis = &fspace->getBasis(eType);
 
   // Gaussian Quadrature //
-  Quadrature gauss(eType, basis.getOrder(), 2);
-  const fullMatrix<double>& gC = gauss.getPoints();
+  gauss = new Quadrature(eType, basis->getOrder(), 2);
 
   // Pre-evalution //
-  basis.preEvaluateFunctions(gC);
+  const fullMatrix<double>& gC = gauss->getPoints();
+  basis->preEvaluateFunctions(gC);
 
   // Jacobian //
-  GroupOfJacobian jac(*ddomain, gC, "jacobian");
+  jac = new GroupOfJacobian(*ddomain, gC, "jacobian");
 
-  // Get Volume Solution //
-  map<Dof, Complex> sol;
-  initMap(*fspace, *ddomain, sol);
-  context.system->getSolution(sol, 0);
-
-  // Get DDM Dofs from DDMContext //
-  const map<Dof, Complex>& ddm = context.getDDMDofs();
+  // Init Volume Solution //
+  FormulationHelper::initDofMap(*fspace, *ddomain, sol);
 
   // Local Terms //
-  lGout = new TermFieldField<double>(jac, basis, gauss);
-  lGin  = new TermProjectionField<Complex>(jac, basis, gauss, *fspace, ddm);
-  lU    = new TermProjectionField<Complex>(jac, basis, gauss, *fspace, sol);
+  lGout = new TermFieldField<double>(*jac, *basis, *gauss);
+
+  // NB: lGin & lU will be computed at update, when volume System is available
+  lGin = NULL;
+  lU   = NULL;
 }
 
 FormulationUpdateEMDA::~FormulationUpdateEMDA(void){
   delete lGout;
-  delete lGin;
-  delete lU;
+  if(lGin)
+    delete lGin;
+  if(lU)
+    delete lU;
+
+  delete jac;
+  delete gauss;
 }
 
 Complex FormulationUpdateEMDA::
@@ -99,4 +87,24 @@ const GroupOfElement& FormulationUpdateEMDA::domain(void) const{
 
 bool FormulationUpdateEMDA::isBlock(void) const{
   return true;
+}
+
+void FormulationUpdateEMDA::update(void){
+  // Delete RHS (lGin & lU)
+  if(lGin)
+    delete lGin;
+  if(lU)
+    delete lU;
+
+  // Get DDM Dofs & Volume solution (at border) from DDMContext //
+  const map<Dof, Complex>& ddm = context->getDDMDofs();
+  context->system->getSolution(sol, 0);
+
+  // Pre-evalution
+  const fullMatrix<double>& gC = gauss->getPoints();
+  basis->preEvaluateFunctions(gC);
+
+  // New RHS
+  lGin  = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+  lU    = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, sol);
 }

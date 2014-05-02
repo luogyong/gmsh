@@ -8,3 +8,7 @@
 template<typename scalar>
 Formulation<scalar>::~Formulation(void){
 }
+
+template<typename scalar>
+void Formulation<scalar>::update(void){
+}

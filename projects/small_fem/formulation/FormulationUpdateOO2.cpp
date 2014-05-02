@@ -1,30 +1,16 @@
-#include "GroupOfJacobian.h"
-#include "Quadrature.h"
-
 #include "Exception.h"
+#include "FormulationHelper.h"
 #include "FormulationUpdateOO2.h"
 
 using namespace std;
-
-#include <set>
-static
-void initMap(const FunctionSpace& fs,
-             const GroupOfElement& goe, map<Dof, Complex>& data){
-
-  set<Dof> dSet;
-  fs.getKeys(goe, dSet);
-
-  set<Dof>::iterator it  = dSet.begin();
-  set<Dof>::iterator end = dSet.end();
-
-  for(; it != end; it++)
-    data.insert(pair<Dof, Complex>(*it, 0));
-}
 
 FormulationUpdateOO2::FormulationUpdateOO2(DDMContext& context){
   // Check if OO2 DDMContext //
   if(context.typeDDM != DDMContext::typeOO2)
     throw Exception("FormulationUpdateOO2 needs a OO2 DDMContext");
+
+  // Save DDMContext //
+  this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
   fspace  = &context.getFunctionSpace();
@@ -42,44 +28,48 @@ FormulationUpdateOO2::FormulationUpdateOO2(DDMContext& context){
   this->b = context.OO2_B;
 
   // Get Basis //
-  const Basis& basis = fspace->getBasis(eType);
+  basis = &fspace->getBasis(eType);
 
-  // Gaussian Quadrature (Field - Field) //
-  Quadrature gaussFF(eType, basis.getOrder(), 2);
-  const fullMatrix<double>& gCFF = gaussFF.getPoints();
-
-  // Gaussian Quadrature (Grad - Grad) //
-  Quadrature gaussGG(eType, basis.getOrder() - 1, 2);
-  const fullMatrix<double>& gCGG = gaussGG.getPoints();
+  // Gaussian Quadrature (Field - Field & Grad - Grad) //
+  gaussFF = new Quadrature(eType, basis->getOrder()    , 2);
+  gaussGG = new Quadrature(eType, basis->getOrder() - 1, 2);
 
   // Pre-evalution //
-  basis.preEvaluateFunctions(gCFF);
-  basis.preEvaluateDerivatives(gCGG);
+  const fullMatrix<double>& gCFF = gaussFF->getPoints();
+  const fullMatrix<double>& gCGG = gaussGG->getPoints();
+
+  basis->preEvaluateFunctions(gCFF);
+  basis->preEvaluateDerivatives(gCGG);
 
   // Jacobians //
-  GroupOfJacobian jacFF(*ddomain, gCFF, "jacobian");
-  GroupOfJacobian jacGG(*ddomain, gCGG, "invert");
+  jacFF = new GroupOfJacobian(*ddomain, gCFF, "jacobian");
+  jacGG = new GroupOfJacobian(*ddomain, gCGG, "invert");
 
-  // Get Volume Solution //
-  map<Dof, Complex> sol;
-  initMap(*fspace, *ddomain, sol);
-  context.system->getSolution(sol, 0);
-
- // Get DDM Dofs from DDMContext //
-  const map<Dof, Complex>& ddm = context.getDDMDofs();
+  // Init Volume Solution //
+  FormulationHelper::initDofMap(*fspace, *ddomain, sol);
 
   // Local Terms //
-  lGout = new TermFieldField<double>(jacFF, basis, gaussFF);
-  lGin  = new TermProjectionField<Complex>(jacFF, basis, gaussFF, *fspace, ddm);
-  lU    = new TermProjectionField<Complex>(jacFF, basis, gaussFF, *fspace, sol);
-  lDU   = new  TermProjectionGrad<Complex>(jacGG, basis, gaussGG, *fspace, sol);
+  lGout = new TermFieldField<double>(*jacFF, *basis, *gaussFF);
+
+  // NB: lGin, lU & lDU will be computed at update, when vol System is available
+  lGin = NULL;
+  lU   = NULL;
+  lDU  = NULL;
 }
 
 FormulationUpdateOO2::~FormulationUpdateOO2(void){
   delete lGout;
-  delete lGin;
-  delete lU;
-  delete lDU;
+  if(lGin)
+    delete lGin;
+  if(lU)
+    delete lU;
+  if(lDU)
+    delete lDU;
+
+  delete gaussFF;
+  delete gaussGG;
+  delete jacFF;
+  delete jacGG;
 }
 
 Complex FormulationUpdateOO2::
@@ -93,7 +83,6 @@ Complex FormulationUpdateOO2::rhs(size_t equationI, size_t elementId) const{
     Complex(+2, 0) * a *   lU->getTerm(0, equationI, elementId) +
     Complex(-2, 0) * b *  lDU->getTerm(0, equationI, elementId);
 }
-
 
 const FunctionSpace& FormulationUpdateOO2::field(void) const{
   return *fspace;
@@ -109,4 +98,35 @@ const GroupOfElement& FormulationUpdateOO2::domain(void) const{
 
 bool FormulationUpdateOO2::isBlock(void) const{
   return true;
+}
+
+void FormulationUpdateOO2::update(void){
+  // Delete RHS (lGin, lU & lDU)
+  if(lGin)
+    delete lGin;
+  if(lU)
+    delete lU;
+  if(lDU)
+    delete lDU;
+
+  // Get DDM Dofs & Volume solution (at border) from DDMContext //
+  const map<Dof, Complex>& ddm = context->getDDMDofs();
+  context->system->getSolution(sol, 0);
+
+  // Pre-evalution
+  const fullMatrix<double>& gCFF = gaussFF->getPoints();
+  const fullMatrix<double>& gCGG = gaussGG->getPoints();
+
+  basis->preEvaluateFunctions(gCFF);
+  basis->preEvaluateDerivatives(gCGG);
+
+  // New RHS
+  lGin =
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, ddm);
+
+  lU   =
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, sol);
+
+  lDU  =
+    new TermProjectionGrad<Complex>(*jacGG, *basis, *gaussGG, *fspace, sol);
 }

@@ -1,12 +1,16 @@
 #ifndef _FORMULATIONUPDATEOO2_H_
 #define _FORMULATIONUPDATEOO2_H_
 
+#include <map>
+
 #include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
 #include "TermProjectionField.h"
 #include "TermProjectionGrad.h"
 #include "TermFieldField.h"
 #include "FormulationBlock.h"
+#include "GroupOfJacobian.h"
+#include "Quadrature.h"
 
 #include "DDMContext.h"
 
@@ -14,7 +18,12 @@
    @class FormulationUpdateOO2
    @brief Update Formulation for FormulationOO2
 
-   Update Formulation for FormulationOO2
+   Update Formulation for FormulationOO2.
+
+   Since this Formulation needs the volume solution (restriced at DDM border),
+   the FormulationUpdateOO2::update() must be called @em before
+   calling FormulationUpdateOO2::weak() or FormulationUpdateOO2::rhs()
+   or an @em assembly procedure.
  */
 
 class FormulationUpdateOO2: public FormulationBlock<Complex>{
@@ -22,6 +31,19 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
   // a & b //
   Complex a;
   Complex b;
+
+  // DDMContext //
+  DDMContext* context;
+
+  // Stuff for updating RHS //
+  const Basis*     basis;
+  Quadrature*      gaussFF;
+  Quadrature*      gaussGG;
+  GroupOfJacobian* jacFF;
+  GroupOfJacobian* jacGG;
+
+  // Volume Solution //
+  std::map<Dof, Complex> sol;
 
   // Function Space & Domain //
   const FunctionSpace*  fspace;
@@ -46,6 +68,7 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
+  virtual void update(void);
 };
 
 /**
@@ -57,6 +80,10 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
 
    @fn FormulationUpdateOO2::~FormulationUpdateOO2
    Deletes this FormulationUpdateOO2
+   **
+
+   @fn FormulationUpdateOO2::update
+   Updates the DDM Dof%s values from the DDMContext given at construction time
 */
 
 #endif

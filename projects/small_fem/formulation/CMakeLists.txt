@@ -1,4 +1,6 @@
 set(src
+  FormulationHelper.cpp
+
   FormulationPoisson.cpp
   FormulationSommerfeld.cpp
   FormulationSteadySlow.cpp

@@ -1,6 +1,3 @@
-#include "GroupOfJacobian.h"
-#include "Quadrature.h"
-
 #include "FormulationEMDA.h"
 
 using namespace std;
@@ -9,6 +6,9 @@ FormulationEMDA::FormulationEMDA(DDMContext& context){
   // Check if EMDA DDMContext //
   if(context.getType() != DDMContext::typeEMDA)
     throw Exception("FormulationEMDA needs a EMDA DDMContext");
+
+  // Save DDMContext //
+  this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
   fspace  = &context.getFunctionSpace();
@@ -26,29 +26,32 @@ FormulationEMDA::FormulationEMDA(DDMContext& context){
   this->chi = context.EMDA_Chi;
 
   // Basis //
-  const Basis& basis = fspace->getBasis(eType);
+  basis = &fspace->getBasis(eType);
 
   // Gaussian Quadrature //
-  Quadrature gauss(eType, basis.getOrder(), 2);
-  const fullMatrix<double>& gC = gauss.getPoints();
+  gauss = new Quadrature(eType, basis->getOrder(), 2);
 
   // Pre-evalution //
-  basis.preEvaluateFunctions(gC);
+  const fullMatrix<double>& gC = gauss->getPoints();
+  basis->preEvaluateFunctions(gC);
 
   // Jacobian //
-  GroupOfJacobian jac(*ddomain, gC, "jacobian");
+  jac = new GroupOfJacobian(*ddomain, gC, "jacobian");
 
   // Get DDM Dofs from DDMContext //
   const map<Dof, Complex>& ddm = context.getDDMDofs();
 
   // Local Terms //
-  localLHS = new TermFieldField<double>(jac, basis, gauss);
-  localRHS = new TermProjectionField<Complex>(jac, basis, gauss, *fspace, ddm);
+  localLHS = new TermFieldField<double>(*jac, *basis, *gauss);
+  localRHS =
+    new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
 }
 
 FormulationEMDA::~FormulationEMDA(void){
   delete localLHS;
   delete localRHS;
+  delete jac;
+  delete gauss;
 }
 
 Complex FormulationEMDA::weak(size_t dofI, size_t dofJ, size_t elementId) const{
@@ -73,4 +76,20 @@ const GroupOfElement& FormulationEMDA::domain(void) const{
 
 bool FormulationEMDA::isBlock(void) const{
   return true;
+}
+
+void FormulationEMDA::update(void){
+  // Delete RHS
+  delete localRHS;
+
+  // Get DDM Dofs from DDMContext
+  const map<Dof, Complex>& ddm = context->getDDMDofs();
+
+  // Pre-evalution
+  const fullMatrix<double>& gC = gauss->getPoints();
+  basis->preEvaluateFunctions(gC);
+
+  // New RHS
+  localRHS =
+    new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
 }

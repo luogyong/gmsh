@@ -269,21 +269,11 @@ void compute(const Options& option){
   vector<int>     inType(ddmG.size(), 0);
   vector<Complex> inValue(ddmG.size(), 0);
 
+  context.setDDMDofs(ddmG);
+  ddm   = new FormulationOSRC(context);
+  upDdm = new FormulationUpdateOSRC(context);
+
   for(size_t step = 0; step < maxIt; step++){
-    // Get new DDM Dofs //
-    context.setDDMDofs(ddmG);
-
-    // Formulations for DDM //
-    if(ddmType == emdaType)
-      ddm = new FormulationEMDA(context);
-    else if(ddmType == oo2Type)
-      ddm = new FormulationOO2(context);
-    else if(ddmType == osrcType)
-      ddm = new FormulationOSRC(context);
-
-    else
-      throw Exception("Unknown %s DDM border term", ddmType.c_str());
-
     // System //
     // Terms
     system = new System<Complex>;
@@ -314,16 +304,7 @@ void compute(const Options& option){
     }
 
     // Update G //
-    if(ddmType == emdaType)
-      upDdm = new FormulationUpdateEMDA(context);
-
-    else if(ddmType == oo2Type)
-      upDdm = new FormulationUpdateOO2(context);
-
-    else if(ddmType == osrcType)
-      upDdm = new FormulationUpdateOSRC(context);
-    else
-      throw Exception("Unknown %s DDM border term", ddmType.c_str());
+    upDdm->update(); // update volume solution (at DDM border)
 
     update = new System<Complex>;
     update->addFormulation(*upDdm);
@@ -341,6 +322,12 @@ void compute(const Options& option){
     // ddmG is new ddmG : unserialize
     unserialize(ddmG, inEntity, inType, inValue);
 
+    // Get new DDM Dofs //
+    context.setDDMDofs(ddmG);
+
+    // Update DDM Formulations //
+    ddm->update();
+
     // Write Solution //
     if(step == maxIt - 1){
       stringstream feSolName;
@@ -352,8 +339,6 @@ void compute(const Options& option){
     }
 
     // Clean //
-    delete upDdm;
-    delete ddm;
     delete system;
     delete update;
   }
