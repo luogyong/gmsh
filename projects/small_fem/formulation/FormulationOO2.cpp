@@ -2,11 +2,7 @@
 
 using namespace std;
 
-FormulationOO2::FormulationOO2(DDMContext& context){
-  // Check if OO2 DDMContext //
-  if(context.getType() != DDMContext::typeOO2)
-    throw Exception("FormulationOO2 needs a OO2 DDMContext");
-
+FormulationOO2::FormulationOO2(DDMContextOO2& context){
   // Save DDMContext //
   this->context = &context;
 
@@ -22,8 +18,8 @@ FormulationOO2::FormulationOO2(DDMContext& context){
     throw Exception("FormulationOO2 needs a uniform mesh");
 
   // a & b //
-  this->a = context.OO2_A;
-  this->b = context.OO2_B;
+  this->a = context.getA();
+  this->b = context.getB();
 
   // Get Basis //
   basis = &fspace->getBasis(eType);

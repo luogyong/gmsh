@@ -4,11 +4,7 @@
 
 using namespace std;
 
-FormulationUpdateOO2::FormulationUpdateOO2(DDMContext& context){
-  // Check if OO2 DDMContext //
-  if(context.typeDDM != DDMContext::typeOO2)
-    throw Exception("FormulationUpdateOO2 needs a OO2 DDMContext");
-
+FormulationUpdateOO2::FormulationUpdateOO2(DDMContextOO2& context){
   // Save DDMContext //
   this->context = &context;
 
@@ -24,8 +20,8 @@ FormulationUpdateOO2::FormulationUpdateOO2(DDMContext& context){
     throw Exception("FormulationUpdateOO2 needs a uniform mesh");
 
   // a & b //
-  this->a = context.OO2_A;
-  this->b = context.OO2_B;
+  this->a = context.getA();
+  this->b = context.getB();
 
   // Get Basis //
   basis = &fspace->getBasis(eType);
@@ -111,7 +107,7 @@ void FormulationUpdateOO2::update(void){
 
   // Get DDM Dofs & Volume solution (at border) from DDMContext //
   const map<Dof, Complex>& ddm = context->getDDMDofs();
-  context->system->getSolution(sol, 0);
+  context->getSystem().getSolution(sol, 0);
 
   // Pre-evalution
   const fullMatrix<double>& gCFF = gaussFF->getPoints();

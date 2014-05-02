@@ -6,6 +6,10 @@
 #include "System.h"
 #include "SystemHelper.h"
 
+#include "DDMContextEMDA.h"
+#include "DDMContextOO2.h"
+#include "DDMContextOSRC.h"
+
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
 #include "FormulationOSRC.h"
@@ -14,8 +18,6 @@
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
 #include "FormulationUpdateOSRC.h"
-
-#include "DDMContext.h"
 
 using namespace std;
 
@@ -139,8 +141,8 @@ void compute(const Options& option){
   MPI_Comm_size(MPI_COMM_WORLD,&numProcs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myId);
 
-  if(numProcs != 2)
-    throw Exception("I just do two MPI Processes");
+  //if(numProcs != 2)
+  //throw Exception("I just do two MPI Processes");
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
@@ -233,32 +235,46 @@ void compute(const Options& option){
   FormulationSteadyWave<Complex> wave(volume, fs, k);
   FormulationSommerfeld          sommerfeld(infinity, fs, k);
 
-  // Ddm Formulation Pointers //
-  Formulation<Complex>*   ddm = NULL;
-  Formulation<Complex>* upDdm = NULL;
-
-  // System Pointers //
-  System<Complex>* system;
-  System<Complex>* update;
-
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
   initMap(fs,  ddmBorder, ddmG);
 
-  // DDMContext //
-  DDMContext context;
+  // Ddm Formulation //
+  DDMContext*         context = NULL;
+  Formulation<Complex>*   ddm = NULL;
+  Formulation<Complex>* upDdm = NULL;
 
-  if(ddmType == emdaType)
-    context.setToEMDA(ddmBorder, fs, k, chi);
-  else if(ddmType == oo2Type)
-    context.setToOO2(ddmBorder, fs, ooA, ooB);
-  else if(ddmType == osrcType)
-    context.setToOSRC(ddmBorder, fs, phi, k, keps, NPade);
+  if(ddmType == emdaType){
+    context = new DDMContextEMDA(ddmBorder, fs, k, chi);
+    context->setDDMDofs(ddmG);
+
+    ddm     = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
+    upDdm   = new FormulationUpdateEMDA(static_cast<DDMContextEMDA&>(*context));
+  }
+
+  else if(ddmType == oo2Type){
+    context = new DDMContextOO2(ddmBorder, fs, ooA, ooB);
+    context->setDDMDofs(ddmG);
+
+    ddm     = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
+    upDdm   = new FormulationUpdateOO2(static_cast<DDMContextOO2&>(*context));
+  }
+
+  else if(ddmType == osrcType){
+    context = new DDMContextOSRC(ddmBorder, fs, phi, k, keps, NPade);
+    context->setDDMDofs(ddmG);
+
+    ddm     = new FormulationOSRC(static_cast<DDMContextOSRC&>(*context));
+    upDdm   = new FormulationUpdateOSRC(static_cast<DDMContextOSRC&>(*context));
+  }
 
   else
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
 
+  // System Pointers //
+  System<Complex>* system;
+  System<Complex>* update;
 
   // MPI Buffers //
   vector<int>     outEntity(ddmG.size(), 0);
@@ -268,10 +284,6 @@ void compute(const Options& option){
   vector<int>     inEntity(ddmG.size(), 0);
   vector<int>     inType(ddmG.size(), 0);
   vector<Complex> inValue(ddmG.size(), 0);
-
-  context.setDDMDofs(ddmG);
-  ddm   = new FormulationOSRC(context);
-  upDdm = new FormulationUpdateOSRC(context);
 
   for(size_t step = 0; step < maxIt; step++){
     // System //
@@ -292,7 +304,7 @@ void compute(const Options& option){
     system->solve();
 
     // Put new System in DDM Context //
-    context.setSystem(*system);
+    context->setSystem(*system);
 
     // Display //
     try{
@@ -323,7 +335,7 @@ void compute(const Options& option){
     unserialize(ddmG, inEntity, inType, inValue);
 
     // Get new DDM Dofs //
-    context.setDDMDofs(ddmG);
+    context->setDDMDofs(ddmG);
 
     // Update DDM Formulations //
     ddm->update();
@@ -342,6 +354,12 @@ void compute(const Options& option){
     delete system;
     delete update;
   }
+
+  // Clean //
+
+  delete ddm;
+  delete upDdm;
+  delete context;
 
   for(int j = 0; j < NPade; j++)
     delete phi[j];

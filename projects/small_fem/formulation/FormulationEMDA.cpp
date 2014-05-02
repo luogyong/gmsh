@@ -2,11 +2,7 @@
 
 using namespace std;
 
-FormulationEMDA::FormulationEMDA(DDMContext& context){
-  // Check if EMDA DDMContext //
-  if(context.getType() != DDMContext::typeEMDA)
-    throw Exception("FormulationEMDA needs a EMDA DDMContext");
-
+FormulationEMDA::FormulationEMDA(DDMContextEMDA& context){
   // Save DDMContext //
   this->context = &context;
 
@@ -22,8 +18,8 @@ FormulationEMDA::FormulationEMDA(DDMContext& context){
     throw Exception("FormulationEMDA needs a uniform mesh");
 
   // Wavenumber & Chi //
-  this->k   = context.k;
-  this->chi = context.EMDA_Chi;
+  this->k   = context.getWavenumber();
+  this->chi = context.getChi();
 
   // Basis //
   basis = &fspace->getBasis(eType);

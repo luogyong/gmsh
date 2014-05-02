@@ -11,7 +11,7 @@
 #include "Quadrature.h"
 #include "GroupOfJacobian.h"
 
-#include "DDMContext.h"
+#include "DDMContextOSRC.h"
 
 /**
    @class FormulationUpdateOSRC
@@ -31,7 +31,7 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
   double k;
 
   // DDMContext //
-  DDMContext* context;
+  DDMContextOSRC* context;
 
   // Stuff for updating RHS //
   int NPade;
@@ -60,7 +60,7 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
   TermProjectionField<Complex>* lAB;
 
  public:
-  FormulationUpdateOSRC(DDMContext& context);
+  FormulationUpdateOSRC(DDMContextOSRC& context);
 
   virtual ~FormulationUpdateOSRC(void);
 
@@ -81,9 +81,9 @@ class FormulationUpdateOSRC: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationUpdateOSRC::FormulationUpdateOSRC
-   @param context A DDMContext
+   @param context A DDMContextOSRC
 
-   Instantiates a new FormulationUpdateOSRC with the given DDMContext
+   Instantiates a new FormulationUpdateOSRC with the given DDMContextOSRC
    **
 
    @fn FormulationUpdateOSRC::~FormulationUpdateOSRC

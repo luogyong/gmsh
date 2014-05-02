@@ -9,17 +9,14 @@
 
 using namespace std;
 
-FormulationOSRC::FormulationOSRC(DDMContext& context){
-  // Check if OSRC DDMContext //
-  if(context.typeDDM != DDMContext::typeOSRC)
-    throw Exception("FormulationOSRC needs a OSRC DDMContext");
-
+FormulationOSRC::FormulationOSRC(DDMContextOSRC& context){
   // Save DDMContext //
   this->context = &context;
 
   // Get Domain and auxiliary FunctionSpaces from DDMContext //
   const GroupOfElement&                     domain = context.getDomain();
-  const vector<const FunctionSpaceScalar*>& aux    = *context.phi;
+  const vector<const FunctionSpaceScalar*>& aux    =
+    context.getAuxFunctionSpace();
 
   // Save field FunctionSpace
   field = &context.getFunctionSpace(); // Saved from update()
@@ -36,9 +33,9 @@ FormulationOSRC::FormulationOSRC(DDMContext& context){
   const size_t order = basis->getOrder();
 
   // k, keps and NPade //
-  double k     = context.k;
-  Complex keps = context.OSRC_keps;
-  int NPade    = context.OSRC_NPade;
+  double k     = context.getWavenumber();
+  Complex keps = context.getComplexWavenumber();
+  int NPade    = context.getNPade();
 
   // Gaussian Quadrature //
   gaussFF = new Quadrature(eType, order, 2); // Saved from update()

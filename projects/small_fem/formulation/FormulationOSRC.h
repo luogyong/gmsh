@@ -14,7 +14,7 @@
 #include "Quadrature.h"
 
 #include "FormulationOSRCOne.h"
-#include "DDMContext.h"
+#include "DDMContextOSRC.h"
 
 /**
    @class FormulationOSRC
@@ -28,7 +28,7 @@ class FormulationOSRCOne;
 class FormulationOSRC: public FormulationCoupled<Complex>{
  private:
   // DDMContext //
-  DDMContext* context;
+  DDMContextOSRC* context;
 
   // Stuff for updating RHS //
   const Basis*         basis;
@@ -46,7 +46,7 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
   std::list<const FormulationBlock<Complex>*> fList;
 
  public:
-  FormulationOSRC(DDMContext& context);
+  FormulationOSRC(DDMContextOSRC& context);
 
   virtual ~FormulationOSRC(void);
 
@@ -69,9 +69,9 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
 
 /**
    @fn FormulationOSRC::FormulationOSRC
-   @param context A DDMContext
+   @param context A DDMContextOSRC
 
-   Instantiates a new FormulationOSRC with the given DDMContext
+   Instantiates a new FormulationOSRC with the given DDMContextOSRC
    **
 
    @fn FormulationOSRC::~FormulationOSRC

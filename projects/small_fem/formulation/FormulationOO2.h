@@ -10,7 +10,7 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "DDMContext.h"
+#include "DDMContextOO2.h"
 
 /**
    @class FormulationOO2
@@ -26,7 +26,7 @@ class FormulationOO2: public FormulationBlock<Complex>{
   Complex b;
 
   // DDMContext //
-  DDMContext* context;
+  DDMContextOO2* context;
 
   // Stuff for updating RHS //
   const Basis*     basis;
@@ -43,7 +43,7 @@ class FormulationOO2: public FormulationBlock<Complex>{
   TermProjectionField<Complex>* localTermsPr;
 
  public:
-  FormulationOO2(DDMContext& context);
+  FormulationOO2(DDMContextOO2& context);
 
   virtual ~FormulationOO2(void);
 
@@ -60,9 +60,9 @@ class FormulationOO2: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationOO2::FormulationOO2
-   @param context A DDMContext
+   @param context A DDMContextOO2
 
-   Instantiates a new FormulationOO2 with the given DDMContext
+   Instantiates a new FormulationOO2 with the given DDMContextOO2
    **
 
    @fn FormulationOO2::~FormulationOO2

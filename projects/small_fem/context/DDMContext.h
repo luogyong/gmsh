@@ -13,65 +13,36 @@
 #include "SmallFem.h"
 
 /**
-   @class DDMContext
-   @brief Context for DDM
+   @interface DDMContext
+   @brief Common interface for all context in DDM
 
-   This class is a DDM context.
-   A context can be:
-   @li EMDA
-   @li OO2
-   @li OSRC
+   This class is the common interface for all context in DDM
+   A DDMContext can be:
+   @li DDMContextEMDA;
+   @li DDMContextOO2;
+   @li DDMContextOSRC.
+
+   A DDMContext handles the variables common to all DDM Formulation%s,
+   that is:
+   @li the DDM border;
+   @li the field FunctionSpace;
+   @li the volume problem System;
+   @li the DDM Dof values.
+
+   Child classes must implement method specific variables.
  */
 
 class DDMContext{
- private:
-  friend class FormulationEMDA;
-  friend class FormulationOO2;
-  friend class FormulationOSRC;
-
-  friend class FormulationUpdateEMDA;
-  friend class FormulationUpdateOO2;
-  friend class FormulationUpdateOSRC;
-
- private:
-  static const std::string typeNULL;
-  static const std::string typeEMDA;
-  static const std::string typeOO2;
-  static const std::string typeOSRC;
-
- private:
-  std::string typeDDM;
-
-  const System<Complex>*                         system;
-  const GroupOfElement*                          domain;
-  const FunctionSpaceScalar*                     fSpace;
-  const std::vector<const FunctionSpaceScalar*>* phi;
+ protected:
+  const System<Complex>*     system;
+  const GroupOfElement*      domain;
+  const FunctionSpaceScalar* fSpace;
 
   const std::map<Dof, Complex>* ddm;
 
-  double  k;
-  double  EMDA_Chi;
-  Complex OO2_A;
-  Complex OO2_B;
-  Complex OSRC_keps;
-  int     OSRC_NPade;
-
  public:
-   DDMContext(void);
-  ~DDMContext(void);
-
-  void setToEMDA(const GroupOfElement& domain,
-                 const FunctionSpaceScalar& fSpace,
-                 double k, double chil);
-
-  void setToOO2(const GroupOfElement& domain,
-                const FunctionSpaceScalar& fSpace,
-                Complex a, Complex b);
-
-  void setToOSRC(const GroupOfElement& domain,
-                 const FunctionSpaceScalar& fSpace,
-                 const std::vector<const FunctionSpaceScalar*>& phi,
-                 double k, Complex keps, int NPade);
+  DDMContext(void);
+  virtual ~DDMContext(void);
 
   void setSystem(const System<Complex>& system);
   void setDDMDofs(const std::map<Dof, Complex>& ddm);
@@ -80,8 +51,42 @@ class DDMContext{
   const std::map<Dof, Complex>& getDDMDofs(void)       const;
   const FunctionSpace&          getFunctionSpace(void) const;
   const GroupOfElement&         getDomain(void)        const;
-  std::string                   getType(void)          const;
 };
+
+/**
+   @fn DDMContext::~DDMContext
+   Deletes this DDMContext
+   **
+
+   @fn DDMContext::setSytem
+   @param system A System
+
+   Sets the given System
+   as the System solving the volume problem of this DDM problem
+   **
+
+   @fn DDMContext::setDDMDofs
+   @param ddm A Dof -- Value map
+
+   Sets the given map as the DDM Dof values of this DDM problem
+   **
+
+   @fn DDMContext::getSystem
+   @return Returns the System solving the volume problem of this DDMContext
+   **
+
+   @fn DDMContext::getDDMDofs
+   @return Returns the Dof -- Value map (at DDM border) of this DDMContext
+   **
+
+   @fn DDMContext::getFunctionSpace
+   @return Returns the FunctionSpace used for the unknown field
+   of this DDMContext
+   **
+
+   @fn DDMContext::getDomain
+   @return Returns the domain defining the DDM border of this DDMContext
+ */
 
 //////////////////////
 // Inline Functions //
@@ -109,10 +114,6 @@ inline const FunctionSpace& DDMContext::getFunctionSpace(void) const{
 
 inline const GroupOfElement& DDMContext::getDomain(void) const{
   return *domain;
-}
-
-inline std::string DDMContext::getType(void) const{
-  return typeDDM;
 }
 
 

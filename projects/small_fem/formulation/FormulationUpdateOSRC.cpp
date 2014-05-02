@@ -5,11 +5,7 @@
 
 using namespace std;
 
-FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContext& context){
-  // Check if OSRC DDMContext //
-  if(context.typeDDM != DDMContext::typeOSRC)
-    throw Exception("FormulationUpdateOSRC needs a OSRC DDMContext");
-
+FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContextOSRC& context){
   // Save DDMContext //
   this->context = &context;
 
@@ -25,10 +21,10 @@ FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContext& context){
     throw Exception("FormulationUpdateOSRC needs a uniform mesh");
 
   // Wavenumber //
-  this->k = context.k;
+  this->k = context.getWavenumber();
 
   // Pade //
-  NPade = context.OSRC_NPade;
+  NPade = context.getNPade();
   A.resize(NPade);
   B.resize(NPade);
 
@@ -55,7 +51,8 @@ FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContext& context){
   // Init Volume & Auxiliary Solution //
   solPhi.resize(NPade);
   FormulationHelper::initDofMap(*ffspace, *ddomain, solU);
-  FormulationHelper::initDofMap(*context.phi, *ddomain, solPhi);
+  FormulationHelper::initDofMap(context.getAuxFunctionSpace(),
+                                *ddomain, solPhi);
 
   // Init UPhi //
   UPhi = solU;
@@ -123,10 +120,10 @@ void FormulationUpdateOSRC::update(void){
 
   // Get DDM Dofs, Volume and auxiliary solutions (at border) from DDMContext //
   const map<Dof, Complex>& ddm = context->getDDMDofs(); // ddm
-  context->system->getSolution(solU, 0);                // solU (field)
+  context->getSystem().getSolution(solU, 0);            // solU (field)
 
   for(int i = 0; i < NPade; i++)
-    context->system->getSolution(solPhi[i], 0);         // solPhi[] (aux)
+    context->getSystem().getSolution(solPhi[i], 0);     // solPhi[] (aux)
 
   // UPhi[d] = sum_j (solU[d] - solPhi[j][d]) * A[j] / B[j] //
   resetUPhi();

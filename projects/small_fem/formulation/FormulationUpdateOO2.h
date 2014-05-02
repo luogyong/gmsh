@@ -12,7 +12,7 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "DDMContext.h"
+#include "DDMContextOO2.h"
 
 /**
    @class FormulationUpdateOO2
@@ -33,7 +33,7 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
   Complex b;
 
   // DDMContext //
-  DDMContext* context;
+  DDMContextOO2* context;
 
   // Stuff for updating RHS //
   const Basis*     basis;
@@ -56,7 +56,7 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
   TermProjectionGrad<Complex>*  lDU;
 
  public:
-  FormulationUpdateOO2(DDMContext& context);
+  FormulationUpdateOO2(DDMContextOO2& context);
 
   virtual ~FormulationUpdateOO2(void);
 
@@ -73,9 +73,9 @@ class FormulationUpdateOO2: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationUpdateOO2::FormulationUpdateOO2
-   @param context A DDMContext
+   @param context A DDMContextOO2
 
-   Instantiates a new FormulationUpdateOO2 with the given DDMContext
+   Instantiates a new FormulationUpdateOO2 with the given DDMContextOO2
    **
 
    @fn FormulationUpdateOO2::~FormulationUpdateOO2

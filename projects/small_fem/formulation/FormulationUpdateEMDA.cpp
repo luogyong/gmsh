@@ -4,11 +4,7 @@
 
 using namespace std;
 
-FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContext& context){
-  // Check if EMDA DDMContext //
-  if(context.typeDDM != DDMContext::typeEMDA)
-    throw Exception("FormulationUpdateEMDA needs a EMDA DDMContext");
-
+FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContextEMDA& context){
   // Save DDMContext //
   this->context = &context;
 
@@ -24,8 +20,8 @@ FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContext& context){
     throw Exception("FormulationUpdateEMDA needs a uniform mesh");
 
   // Wavenumber & Chi //
-  this->k   = context.k;
-  this->chi = context.EMDA_Chi;
+  this->k   = context.getWavenumber();
+  this->chi = context.getChi();
 
   // Basis //
   basis = &fspace->getBasis(eType);
@@ -98,7 +94,7 @@ void FormulationUpdateEMDA::update(void){
 
   // Get DDM Dofs & Volume solution (at border) from DDMContext //
   const map<Dof, Complex>& ddm = context->getDDMDofs();
-  context->system->getSolution(sol, 0);
+  context->getSystem().getSolution(sol, 0);
 
   // Pre-evalution
   const fullMatrix<double>& gC = gauss->getPoints();

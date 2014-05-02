@@ -9,7 +9,7 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "DDMContext.h"
+#include "DDMContextEMDA.h"
 
 /**
    @class FormulationEMDA
@@ -25,7 +25,7 @@ class FormulationEMDA: public FormulationBlock<Complex>{
   double chi;
 
   // DDMContext //
-  DDMContext* context;
+  DDMContextEMDA* context;
 
   // Stuff for updating RHS //
   const Basis*     basis;
@@ -41,7 +41,7 @@ class FormulationEMDA: public FormulationBlock<Complex>{
   TermProjectionField<Complex>* localRHS;
 
  public:
-  FormulationEMDA(DDMContext& context);
+  FormulationEMDA(DDMContextEMDA& context);
 
   virtual ~FormulationEMDA(void);
 
@@ -58,9 +58,9 @@ class FormulationEMDA: public FormulationBlock<Complex>{
 
 /**
    @fn FormulationEMDA::FormulationEMDA
-   @param context A DDMContext
+   @param context A DDMContextEMDA
 
-   Instantiates a new FormulationEMDA with the given DDMContext
+   Instantiates a new FormulationEMDA with the given DDMContextEMDA
    **
 
    @fn FormulationEMDA::~FormulationEMDA
