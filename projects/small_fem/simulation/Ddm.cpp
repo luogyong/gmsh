@@ -3,12 +3,13 @@
 
 #include "SmallFem.h"
 
-#include "System.h"
-#include "SystemHelper.h"
+#include "DDMSolver.h"
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
 #include "DDMContextOSRC.h"
+
+#include "FormulationHelper.h"
 
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
@@ -25,124 +26,12 @@ Complex fSource(fullVector<double>& xyz){
   return Complex(1, 0);
 }
 
-void initMap(const FunctionSpace& fs,
-             const GroupOfElement& goe, map<Dof, Complex>& data){
-
-  set<Dof> dSet;
-  fs.getKeys(goe, dSet);
-
-  set<Dof>::iterator it  = dSet.begin();
-  set<Dof>::iterator end = dSet.end();
-
-  for(; it != end; it++)
-    data.insert(pair<Dof, Complex>(*it, 0));
-}
-
-void displaySolution(const System<Complex>& system,
-                     const FunctionSpace& fs,
-                     const GroupOfElement& goe,
-                     int id, size_t step, string name){
-  int myId;
-  MPI_Comm_rank(MPI_COMM_WORLD,&myId);
-
-  if(myId == id){
-    // Get unknonws
-    map<Dof, Complex> solution;
-    initMap(fs, goe, solution);
-
-    // Get Solution
-    system.getSolution(solution, 0);
-
-    // Print it
-    cout << "After Iteration: " << step + 1 << endl;
-    map<Dof, Complex>::iterator it  = solution.begin();
-    map<Dof, Complex>::iterator end = solution.end();
-
-    for(; it != end; it++)
-      cout << name << myId << ": " << it->first.toString()
-           << ": " << it->second << endl;
-    cout << " --- " << endl;
-  }
-}
-
-void serialize(const map<Dof, Complex>& data,
-               vector<int>& entity, vector<int>& type, vector<Complex>& value){
-
-  map<Dof, Complex>::const_iterator it  = data.begin();
-  map<Dof, Complex>::const_iterator end = data.end();
-
-  for(size_t i = 0; it != end; i++, it++){
-    entity[i] = (int)(it->first.getEntity());
-    type[i]   = (int)(it->first.getType());
-    value[i]  = it->second;
-  }
-}
-
-void unserialize(map<Dof, Complex>& data,
-                 const vector<int>& entity, const vector<int>& type,
-                 const vector<Complex>& value){
-
-  map<Dof, Complex>::iterator it  = data.begin();
-  map<Dof, Complex>::iterator end = data.end();
-
-  for(size_t i = 0; it != end; it++, i++){
-    if((int)(it->first.getType()) != type[i])
-      throw Exception("Snif");
-
-    if((int)(it->first.getEntity()) != entity[i])
-      throw Exception("Snif");
-
-    it->second = value[i];
-  }
-}
-
-void exchange(int myId,
-              vector<int>& outEntity, vector<int>& outType,
-              vector<Complex>& outValue,
-              vector<int>& inEntity, vector<int>& inType,
-              vector<Complex>& inValue){
-
-  MPI_Status s;
-  size_t     size = outEntity.size();
-
-  if(myId == 0){
-    // Send to 1
-    MPI_Ssend((void*)(outEntity.data()), size, MPI_INT, 1, 0, MPI_COMM_WORLD);
-    MPI_Ssend((void*)(outType.data()),   size, MPI_INT, 1, 0, MPI_COMM_WORLD);
-    MPI_Ssend((void*)(outValue.data()),  size,
-              MPI::DOUBLE_COMPLEX, 1, 0, MPI_COMM_WORLD);
-
-    // Recv from 1
-    MPI_Recv((void*)(inEntity.data()), size, MPI_INT, 1, 0, MPI_COMM_WORLD, &s);
-    MPI_Recv((void*)(inType.data()),   size, MPI_INT, 1, 0, MPI_COMM_WORLD, &s);
-    MPI_Recv((void*)(inValue.data()),  size,
-             MPI::DOUBLE_COMPLEX, 1, 0, MPI_COMM_WORLD, &s);
-  }
-
-  if(myId == 1){
-    // Recv from 0
-    MPI_Recv((void*)(inEntity.data()), size, MPI_INT, 0, 0, MPI_COMM_WORLD, &s);
-    MPI_Recv((void*)(inType.data()),   size, MPI_INT, 0, 0, MPI_COMM_WORLD, &s);
-    MPI_Recv((void*)(inValue.data()),  size,
-             MPI::DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD, &s);
-
-    // Send to 0
-    MPI_Ssend((void*)(outEntity.data()), size, MPI_INT, 0, 0, MPI_COMM_WORLD);
-    MPI_Ssend((void*)(outType.data()),   size, MPI_INT, 0, 0, MPI_COMM_WORLD);
-    MPI_Ssend((void*)(outValue.data()),  size,
-              MPI::DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
-  }
-}
-
 void compute(const Options& option){
   // MPI //
   int numProcs;
   int myId;
   MPI_Comm_size(MPI_COMM_WORLD,&numProcs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myId);
-
-  //if(numProcs != 2)
-  //throw Exception("I just do two MPI Processes");
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
@@ -237,7 +126,7 @@ void compute(const Options& option){
 
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
-  initMap(fs,  ddmBorder, ddmG);
+  FormulationHelper::initDofMap(fs, ddmBorder, ddmG);
 
   // Ddm Formulation //
   DDMContext*         context = NULL;
@@ -272,91 +161,13 @@ void compute(const Options& option){
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
 
-  // System Pointers //
-  System<Complex>* system;
-  System<Complex>* update;
+  // DDM Solver //
+  DDMSolver solver(wave, sommerfeld, *context, *ddm, *upDdm, ddmG,
+                   source, fSource);
 
-  // MPI Buffers //
-  vector<int>     outEntity(ddmG.size(), 0);
-  vector<int>     outType(ddmG.size(), 0);
-  vector<Complex> outValue(ddmG.size(), 0);
-
-  vector<int>     inEntity(ddmG.size(), 0);
-  vector<int>     inType(ddmG.size(), 0);
-  vector<Complex> inValue(ddmG.size(), 0);
-
-  for(size_t step = 0; step < maxIt; step++){
-    // System //
-    // Terms
-    system = new System<Complex>;
-    system->addFormulation(wave);
-    system->addFormulation(sommerfeld);
-    system->addFormulation(*ddm);
-
-    // Constraint
-    if(myId == 0)
-      SystemHelper<Complex>::dirichlet(*system, fs, source, fSource);
-
-    // Assemble
-    system->assemble();
-
-    // Solve
-    system->solve();
-
-    // Put new System in DDM Context //
-    context->setSystem(*system);
-
-    // Display //
-    try{
-      if(option.getValue("-disp").size() > 1)
-        displaySolution(*system, fs, ddmBorder,
-                        atoi(option.getValue("-disp")[1].c_str()), step, "u");
-    }
-    catch(...){
-    }
-
-    // Update G //
-    upDdm->update(); // update volume solution (at DDM border)
-
-    update = new System<Complex>;
-    update->addFormulation(*upDdm);
-
-    update->assemble();
-    update->solve();
-    update->getSolution(ddmG, 0);
-
-    // Serialize ddmG
-    serialize(ddmG, outEntity, outType, outValue);
-
-    // Exchange
-    exchange(myId, outEntity, outType, outValue, inEntity, inType, inValue);
-
-    // ddmG is new ddmG : unserialize
-    unserialize(ddmG, inEntity, inType, inValue);
-
-    // Get new DDM Dofs //
-    context->setDDMDofs(ddmG);
-
-    // Update DDM Formulations //
-    ddm->update();
-
-    // Write Solution //
-    if(step == maxIt - 1){
-      stringstream feSolName;
-      FEMSolution<Complex> feSol;
-      system->getSolution(feSol, fs, volume);
-
-      feSolName << "ddm" << myId;
-      feSol.write(feSolName.str());
-    }
-
-    // Clean //
-    delete system;
-    delete update;
-  }
+  solver.solve(maxIt);
 
   // Clean //
-
   delete ddm;
   delete upDdm;
   delete context;
@@ -367,7 +178,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-max,-ddm,-chi,-lc,-ck,-pade,-disp");
+  SmallFem::Keywords("-msh,-o,-k,-max,-ddm,-chi,-lc,-ck,-pade");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
