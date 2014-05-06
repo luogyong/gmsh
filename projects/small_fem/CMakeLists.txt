@@ -166,6 +166,7 @@ add_executable(emode   simulation/EigenMode.cpp)
 
 add_executable(pml simulation/Pml.cpp)
 add_executable(ddm simulation/Ddm.cpp)
+add_executable(old simulation/DdmOld.cpp)
 
 add_executable(proj simulation/Projection.cpp)
 add_executable(mesh simulation/Mesh.cpp)
@@ -184,6 +185,7 @@ target_link_libraries(emode sf)
 
 target_link_libraries(pml sf)
 target_link_libraries(ddm sf)
+target_link_libraries(old sf)
 
 target_link_libraries(proj sf)
 target_link_libraries(mesh sf)

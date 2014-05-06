@@ -38,19 +38,20 @@ class DDMContext{
   const GroupOfElement*      domain;
   const FunctionSpaceScalar* fSpace;
 
-  const std::map<Dof, Complex>* ddm;
+  std::map<Dof, Complex>* ddm;
 
  public:
   DDMContext(void);
   virtual ~DDMContext(void);
 
   void setSystem(const System<Complex>& system);
-  void setDDMDofs(const std::map<Dof, Complex>& ddm);
+  void setDDMDofs(std::map<Dof, Complex>& ddm);
 
-  const System<Complex>&        getSystem(void)        const;
-  const std::map<Dof, Complex>& getDDMDofs(void)       const;
-  const FunctionSpace&          getFunctionSpace(void) const;
-  const GroupOfElement&         getDomain(void)        const;
+  std::map<Dof, Complex>& getDDMDofs(void);
+
+  const System<Complex>& getSystem(void)        const;
+  const FunctionSpace&   getFunctionSpace(void) const;
+  const GroupOfElement&  getDomain(void)        const;
 };
 
 /**
@@ -96,7 +97,7 @@ inline void DDMContext::setSystem(const System<Complex>& system){
   this->system = &system;
 }
 
-inline void DDMContext::setDDMDofs(const std::map<Dof, Complex>& ddm){
+inline void DDMContext::setDDMDofs(std::map<Dof, Complex>& ddm){
   this->ddm = &ddm;
 }
 
@@ -104,7 +105,7 @@ inline const System<Complex>& DDMContext::getSystem(void) const{
   return *system;
 }
 
-inline const std::map<Dof, Complex>& DDMContext::getDDMDofs(void) const{
+inline std::map<Dof, Complex>& DDMContext::getDDMDofs(void){
   return *ddm;
 }
 

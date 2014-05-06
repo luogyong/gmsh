@@ -9,6 +9,9 @@
 #include "DDMContextOO2.h"
 #include "DDMContextOSRC.h"
 
+#include "System.h"
+#include "SystemHelper.h"
+
 #include "FormulationHelper.h"
 
 #include "FormulationOO2.h"
@@ -24,6 +27,22 @@ using namespace std;
 
 Complex fSource(fullVector<double>& xyz){
   return Complex(1, 0);
+}
+
+void see(const map<Dof, Complex>& dof, int id, size_t step, string name){
+  int myId;
+  MPI_Comm_rank(MPI_COMM_WORLD,&myId);
+
+  if(myId == id){
+    cout << "After Iteration: " << step + 1 << endl;
+    map<Dof, Complex>::const_iterator it  = dof.begin();
+    map<Dof, Complex>::const_iterator end = dof.end();
+
+    for(; it != end; it++)
+      cout << name << myId << ": " << it->first.toString()
+           << ": " << it->second << endl;
+    cout << " --- " << endl;
+  }
 }
 
 void compute(const Options& option){
@@ -126,7 +145,9 @@ void compute(const Options& option){
 
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
+  map<Dof, Complex> rhsG;
   FormulationHelper::initDofMap(fs, ddmBorder, ddmG);
+  FormulationHelper::initDofMap(fs, ddmBorder, rhsG);
 
   // Ddm Formulation //
   DDMContext*         context = NULL;
@@ -160,12 +181,73 @@ void compute(const Options& option){
   else
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
+  ddm->update();
+
+  // Solve Non homogenous problem //
+  System<Complex> nonHomogenous;
+  nonHomogenous.addFormulation(wave);
+  nonHomogenous.addFormulation(sommerfeld);
+  nonHomogenous.addFormulation(*ddm);
+
+  // Constraint
+  if(myId == 0)
+    SystemHelper<Complex>::dirichlet(nonHomogenous, fs, source, fSource);
+
+  // Assemble & Solve
+  nonHomogenous.assemble();
+  nonHomogenous.solve();
+
+  // Solve Non homogenous DDM problem //
+  context->setSystem(nonHomogenous);
+  upDdm->update(); // update volume solution (at DDM border)
+
+  System<Complex> nonHomogenousDDM;
+  nonHomogenousDDM.addFormulation(*upDdm);
+
+  nonHomogenousDDM.assemble();
+  nonHomogenousDDM.solve();
+  nonHomogenousDDM.getSolution(rhsG, 0);
 
   // DDM Solver //
-  DDMSolver solver(wave, sommerfeld, *context, *ddm, *upDdm, ddmG,
-                   source, fSource);
+  DDMSolver solver(wave, sommerfeld, source, *context, *ddm, *upDdm, rhsG);
 
   solver.solve(maxIt);
+
+  // Full Problem //
+  solver.getSolution(ddmG);
+  //see(ddmG, 1, 0, "gf");
+
+  context->setDDMDofs(ddmG);
+  ddm->update();
+
+  System<Complex> full;
+  full.addFormulation(wave);
+  full.addFormulation(sommerfeld);
+  full.addFormulation(*ddm);
+
+  // Constraint
+  if(myId == 0)
+    SystemHelper<Complex>::dirichlet(full, fs, source, fSource);
+
+  full.assemble();
+  full.solve();
+
+  full.getSolution(ddmG, 0);
+  /*
+  if(myId == 1){
+    map<Dof, Complex>::iterator it  = ddmG.begin();
+    map<Dof, Complex>::iterator end = ddmG.end();
+
+    for(; it != end; it++)
+      cout << it->second << endl;
+  }
+  */
+  stringstream stream;
+  stream << "ddm" << myId;
+
+  FEMSolution<Complex> feSol;
+  full.getSolution(feSol, fs, volume);
+  feSol.write(stream.str());
 
   // Clean //
   delete ddm;
