@@ -38,6 +38,7 @@ class GroupOfElement{
 
   void add(const GroupOfElement& other);
 
+  bool            isEmpty(void)   const;
   size_t          getNumber(void) const;
   const MElement& get(size_t i)   const;
 
@@ -83,6 +84,11 @@ class GroupOfElement{
    @param other An other GroupOfElement
 
    Adds the elements of the given GroupOfElement in this GroupOfElement
+   **
+
+   @fn GroupOfElement::isEmpty
+   @return Returns true if this GroupOfElement has no elements
+   and false otherwise
    **
 
    @fn GroupOfElement::getNumber
@@ -162,6 +168,10 @@ inline bool GroupOfElement::sortPredicate(const MElement* a, const MElement* b){
     ((a->getType() == b->getType()) &&
      (ReferenceSpaceManager::getOrientation(*a) <
       ReferenceSpaceManager::getOrientation(*b)));
+}
+
+inline bool GroupOfElement::isEmpty(void) const{
+  return getNumber() == 0;
 }
 
 inline size_t GroupOfElement::getNumber(void) const{

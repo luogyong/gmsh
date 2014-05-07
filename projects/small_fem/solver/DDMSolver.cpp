@@ -102,51 +102,28 @@ void DDMSolver::solve(int nStep){
   KSPSetFromOptions(solver);
 
   // Set RHS (b) //
-
   // Exchange
-
   serialize(*rhs, outValue);
   exchange(myId, outValue, inValue);
   unserialize(*rhs, inValue);
   PetscBarrier(PETSC_NULL);
 
+  // Set PETSc Vector and wait for MPI coherence
   setVecFromDof(b, *rhs);
-  //VecScale(b, -1);
-
-  //VecView(b, PETSC_VIEWER_STDOUT_WORLD);
+  PetscBarrier(PETSC_NULL);
 
   // Solve and Delete Solver //
-  PetscBarrier(PETSC_NULL);
   KSPSolve(solver, b, x);
   PetscBarrier(PETSC_NULL);
+
   KSPDestroy(&solver);
 }
 
 void DDMSolver::getSolution(map<Dof, Complex>& ddm){
   setDofFromVec(x, ddm);
-
-  //VecView(x, PETSC_VIEWER_STDOUT_WORLD);
-}
-
-void DDMSolver::see(const map<Dof, Complex>& dof, int id, size_t step, string name){
-  int myId;
-  MPI_Comm_rank(MPI_COMM_WORLD,&myId);
-
-  if(myId == id){
-    cout << "After Iteration: " << step + 1 << endl;
-    map<Dof, Complex>::const_iterator it  = dof.begin();
-    map<Dof, Complex>::const_iterator end = dof.end();
-
-    for(; it != end; it++)
-      cout << name << myId << ": " << it->first.toString()
-           << ": " << it->second << endl;
-    cout << " --- " << endl;
-  }
 }
 
 PetscErrorCode DDMSolver::matMult(Mat A, Vec x, Vec y){
-  //VecView(x, PETSC_VIEWER_STDOUT_WORLD);
-
   // Get FullContext //
   FullContext* fullCtx;
   MatShellGetContext(A, (void**)(&fullCtx));
@@ -162,11 +139,6 @@ PetscErrorCode DDMSolver::matMult(Mat A, Vec x, Vec y){
   map<Dof, Complex>& ddmG = context.getDDMDofs();
   setDofFromVec(x, ddmG);
 
-  // Exchange ddmG //
-  //serialize(ddmG, *fullCtx->outValue);
-  //exchange(fullCtx->myId, *fullCtx->outValue, *fullCtx->inValue);
-  //unserialize(ddmG, *fullCtx->inValue);
-
   // Update ddm Dofs in DDM Context //
   context.setDDMDofs(ddmG);
   ddm.update();
@@ -178,12 +150,10 @@ PetscErrorCode DDMSolver::matMult(Mat A, Vec x, Vec y){
   volume.addFormulation(ddm);
 
   // Constraint
-  int                   myId      =  fullCtx->myId;
   const GroupOfElement& dirichlet = *fullCtx->dirichlet;
   const FunctionSpace&  fs        = *fullCtx->fs;
 
-  if(myId == 0)
-    SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZero);
+  SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZero);
 
   // Assemble & Solve
   volume.assemble();
@@ -209,22 +179,12 @@ PetscErrorCode DDMSolver::matMult(Mat A, Vec x, Vec y){
 
   context.setDDMDofs(ddmG);
 
-  // Exchange Vec x //
-  //serialize(x, *fullCtx->outValue);
-  //exchange(fullCtx->myId, *fullCtx->outValue, *fullCtx->inValue);
-  //unserialize(x, *fullCtx->inValue);
-
-  PetscBarrier(PETSC_NULL);
   // Y = X - ddmG //
-  //see(ddmG, 1, 0, "g");
   setVecFromDof(y, ddmG);
-  //VecView(x, PETSC_VIEWER_STDOUT_WORLD);
-
   VecAYPX(y, -1, x);
 
-  // Done //
+  // Wait for MPI coherence and return //
   PetscBarrier(PETSC_NULL);
-
   PetscFunctionReturn(0);
 }
 
@@ -264,26 +224,6 @@ Complex DDMSolver::fZero(fullVector<double>& xyz){
   return Complex(0, 0);
 }
 
-void DDMSolver::see(Vec& v){
-  int myId;
-  MPI_Comm_rank(MPI_COMM_WORLD,&myId);
-
-  Complex* ptr;
-  VecGetArray(v, &ptr);
-
-  int size;
-  VecGetLocalSize(v, &size);
-
-  if(myId == 0){
-    cout << "---" << myId << "---" << endl;
-    for(int i = 0; i < size; i++)
-      cout << ptr[i] << endl;
-    cout << "---" << myId << "---" << endl;
-  }
-
-  VecRestoreArray(v, &ptr);
-}
-
 void DDMSolver::serialize(const map<Dof, Complex>& data,
                           vector<Complex>& value){
 
@@ -292,24 +232,6 @@ void DDMSolver::serialize(const map<Dof, Complex>& data,
 
   for(size_t i = 0; it != end; i++, it++)
     value[i]  = it->second;
-}
-
-void DDMSolver::serialize(const Vec& x,
-                          vector<Complex>& value){
-  // Pointer to PETSc Vec data //
-  Complex* ptr;
-  VecGetArray(x, &ptr);
-
-  // Size //
-  int size;
-  VecGetLocalSize(x, &size);
-
-  // Copy //
-  for(int i = 0; i < size; i++)
-    value[i]  = ptr[i];
-
-  // PETSc Coherence //
-  VecRestoreArray(x, &ptr);
 }
 
 void DDMSolver::unserialize(map<Dof, Complex>& data,
@@ -322,74 +244,21 @@ void DDMSolver::unserialize(map<Dof, Complex>& data,
     it->second = value[i];
 }
 
-void DDMSolver::unserialize(Vec& x,
-                            const vector<Complex>& value){
-  // Pointer to PETSc Vec data //
-  Complex* ptr;
-  VecGetArray(x, &ptr);
-
-  // Size //
-  int size;
-  VecGetLocalSize(x, &size);
-
-  // Copy //
-  for(int i = 0; i < size; i++)
-    ptr[i]  = value[i];
-
-  // PETSc Coherence //
-  VecRestoreArray(x, &ptr);
-}
-
 void DDMSolver::exchange(int myId,
                          vector<Complex>& outValue,
                          vector<Complex>& inValue){
-  MPI_Status s;
-  size_t     size = outValue.size();
+  MPI_Status  status;
+  MPI_Request request;
+  size_t      size  = outValue.size();
+  int         nxtId = (myId + 1) % 2;
 
-  if(myId == 0){
-    // Send to 1
-    MPI_Ssend((void*)(outValue.data()),  size,
-              MPI_DOUBLE_COMPLEX, 1, 0, MPI_COMM_WORLD);
+  // Asynchornous exchange //
+  MPI_Isend((void*)(outValue.data()), size, MPI_DOUBLE_COMPLEX,
+            nxtId, 0, MPI_COMM_WORLD, &request);
 
-    // Recv from 1
-    MPI_Recv((void*)(inValue.data()),  size,
-             MPI_DOUBLE_COMPLEX, 1, 0, MPI_COMM_WORLD, &s);
-  }
+  MPI_Recv((void*)(inValue.data()), size, MPI_DOUBLE_COMPLEX,
+           nxtId, 0, MPI_COMM_WORLD, &status);
 
-  if(myId == 1){
-    // Recv from 0
-    MPI_Recv((void*)(inValue.data()),  size,
-             MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD, &s);
-
-    // Send to 0
-    MPI_Ssend((void*)(outValue.data()),  size,
-              MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
-  }
-}
-
-void DDMSolver::displaySolution(const System<Complex>& system,
-                                const FunctionSpace& fs,
-                                const GroupOfElement& goe,
-                                int id, int step, string name){
-  int myId;
-  MPI_Comm_rank(MPI_COMM_WORLD,&myId);
-
-  if(myId == id){
-    // Get unknonws
-    map<Dof, Complex> solution;
-    FormulationHelper::initDofMap(fs, goe, solution);
-
-    // Get Solution
-    system.getSolution(solution, 0);
-
-    // Print it
-    cout << "After Iteration: " << step + 1 << endl;
-    map<Dof, Complex>::iterator it  = solution.begin();
-    map<Dof, Complex>::iterator end = solution.end();
-
-    for(; it != end; it++)
-      cout << name << myId << ": " << it->first.toString()
-           << ": " << it->second << endl;
-    cout << " --- " << endl;
-  }
+  // Buffer Coherence & MPI internals Free //
+  MPI_Wait(&request, &status);
 }

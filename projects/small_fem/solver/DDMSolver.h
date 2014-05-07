@@ -85,27 +85,6 @@ class DDMSolver{
   void getSolution(std::map<Dof, Complex>& ddm);
 
  private:
-  static void serialize(const std::map<Dof, Complex>& data,
-                        std::vector<Complex>& value);
-
-  static void serialize(const Vec& x,
-                        std::vector<Complex>& value);
-
-  static void unserialize(std::map<Dof, Complex>& data,
-                          const std::vector<Complex>& value);
-
-  static void unserialize(Vec& x,
-                          const std::vector<Complex>& value);
-
-  static void exchange(int myId,
-                       std::vector<Complex>& outValue,
-                       std::vector<Complex>& inValue);
-
-  void displaySolution(const System<Complex>& system,
-                       const FunctionSpace& fs,
-                       const GroupOfElement& goe,
-                       int id, int step, std::string name);
-
   static PetscErrorCode matMult(Mat A, Vec x, Vec y);
 
   static void setVecFromDof(Vec& v, std::map<Dof, Complex>& dof);
@@ -113,8 +92,15 @@ class DDMSolver{
 
   static Complex fZero(fullVector<double>& xyz);
 
-  static void see(Vec& v);
-  static void see(const std::map<Dof, Complex>& dof, int id, size_t step, std::string name);
+  static void serialize(const std::map<Dof, Complex>& data,
+                        std::vector<Complex>& value);
+
+  static void unserialize(std::map<Dof, Complex>& data,
+                          const std::vector<Complex>& value);
+
+  static void exchange(int myId,
+                       std::vector<Complex>& outValue,
+                       std::vector<Complex>& inValue);
 };
 
 #endif

@@ -17,6 +17,7 @@
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
 #include "FormulationOSRC.h"
+#include "FormulationDummy.h"
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
 #include "FormulationUpdateEMDA.h"
@@ -25,8 +26,13 @@
 
 using namespace std;
 
+static double k; // Need to be more sexy !
+static double theta = 0;
+
 Complex fSource(fullVector<double>& xyz){
-  return Complex(1, 0);
+  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+
+  return Complex(-cos(k * p), -sin(k * p));
 }
 
 void compute(const Options& option){
@@ -38,7 +44,7 @@ void compute(const Options& option){
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
-  const double k       = atof(option.getValue("-k")[1].c_str());
+               k       = atof(option.getValue("-k")[1].c_str());
   const size_t order   = atoi(option.getValue("-o")[1].c_str());
   const size_t maxIt   = atoi(option.getValue("-max")[1].c_str());
 
@@ -96,17 +102,19 @@ void compute(const Options& option){
   GroupOfElement ddmBorder(msh);
 
   if(myId == 0){
+    source.add(msh.getFromPhysical(4));
+    ddmBorder.add(msh.getFromPhysical(5));
+    // No infinity //
+
     volume.add(msh.getFromPhysical(7));
-    source.add(msh.getFromPhysical(5));
-    infinity.add(msh.getFromPhysical(61));
-    ddmBorder.add(msh.getFromPhysical(4));
   }
 
   else{
-    volume.add(msh.getFromPhysical(8));
     //No source//
-    infinity.add(msh.getFromPhysical(62));
-    ddmBorder.add(msh.getFromPhysical(4));
+    ddmBorder.add(msh.getFromPhysical(5));
+    infinity.add(msh.getFromPhysical(6));
+
+    volume.add(msh.getFromPhysical(8));
   }
 
   // Full Domain //
@@ -125,7 +133,14 @@ void compute(const Options& option){
 
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, fs, k);
-  FormulationSommerfeld          sommerfeld(infinity, fs, k);
+
+  // Sommerfeld
+  Formulation<Complex>* sommerfeld;
+
+  if(myId == 1)
+    sommerfeld = new FormulationSommerfeld(infinity, fs, k);
+  else
+    sommerfeld = new FormulationDummy<Complex>;
 
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
@@ -170,12 +185,11 @@ void compute(const Options& option){
   // Solve Non homogenous problem //
   System<Complex> nonHomogenous;
   nonHomogenous.addFormulation(wave);
-  nonHomogenous.addFormulation(sommerfeld);
+  nonHomogenous.addFormulation(*sommerfeld);
   nonHomogenous.addFormulation(*ddm);
 
   // Constraint
-  if(myId == 0)
-    SystemHelper<Complex>::dirichlet(nonHomogenous, fs, source, fSource);
+  SystemHelper<Complex>::dirichlet(nonHomogenous, fs, source, fSource);
 
   // Assemble & Solve
   nonHomogenous.assemble();
@@ -193,7 +207,7 @@ void compute(const Options& option){
   nonHomogenousDDM.getSolution(rhsG, 0);
 
   // DDM Solver //
-  DDMSolver solver(wave, sommerfeld, source, *context, *ddm, *upDdm, rhsG);
+  DDMSolver solver(wave, *sommerfeld, source, *context, *ddm, *upDdm, rhsG);
 
   solver.solve(maxIt);
 
@@ -205,7 +219,7 @@ void compute(const Options& option){
 
   System<Complex> full;
   full.addFormulation(wave);
-  full.addFormulation(sommerfeld);
+  full.addFormulation(*sommerfeld);
   full.addFormulation(*ddm);
 
   // Constraint
@@ -218,7 +232,7 @@ void compute(const Options& option){
 
   // Draw Solution //
   stringstream stream;
-  stream << "ddm" << myId;
+  stream << "circle" << myId;
 
   FEMSolution<Complex> feSol;
   full.getSolution(feSol, fs, volume);
@@ -228,6 +242,7 @@ void compute(const Options& option){
   delete ddm;
   delete upDdm;
   delete context;
+  delete sommerfeld;
 
   for(int j = 0; j < NPade; j++)
     delete phi[j];

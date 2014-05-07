@@ -22,6 +22,10 @@ dirichlet(SystemAbstract<scalar>& sys,
           const GroupOfElement& domain,
           scalar (*f)(fullVector<double>& xyz)){
 
+  // Is domain empty ? //
+  if(domain.isEmpty())
+    return;
+
   // Scalar Formulation //
   FormulationProjection<scalar> formulation(domain, fs, f);
 
@@ -35,6 +39,10 @@ dirichlet(SystemAbstract<scalar>& sys,
           const FunctionSpace& fs,
           const GroupOfElement& domain,
           fullVector<scalar> (*f)(fullVector<double>& xyz)){
+
+  // Is domain empty ? //
+  if(domain.isEmpty())
+    return;
 
   // Vector Formulation //
   FormulationProjection<scalar> formulation(domain, fs, f);
