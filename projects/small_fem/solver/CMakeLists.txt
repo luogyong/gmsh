@@ -1,8 +1,8 @@
 set(src
   SolverMatrix.cpp
-  SolverMUMPS.cpp
-
-  DDMSolver.cpp
+  SolverMUMPSReal.cpp
+  SolverMUMPSComplex.cpp
+  SolverDDM.cpp
 )
 
 add_sources(solver "${src}")

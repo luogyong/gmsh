@@ -1,5 +1,5 @@
-#ifndef _DDMSOLVER_H_
-#define _DDMSOLVER_H_
+#ifndef _SOLVERDDM_H_
+#define _SOLVERDDM_H_
 
 #include <string>
 #include <vector>
@@ -15,7 +15,7 @@
 
 #include "SmallFem.h"
 
-class DDMSolver{
+class SolverDDM{
  private:
   // MPI //
   int numProcs;
@@ -70,7 +70,7 @@ class DDMSolver{
   FullContext fullCtx;
 
  public:
-  DDMSolver(const Formulation<Complex>& wave,
+  SolverDDM(const Formulation<Complex>& wave,
             const Formulation<Complex>& sommerfeld,
             const GroupOfElement& dirichlet,
             DDMContext& context,
@@ -78,7 +78,7 @@ class DDMSolver{
             Formulation<Complex>& update,
             std::map<Dof, Complex>& rhs);
 
-  ~DDMSolver(void);
+  ~SolverDDM(void);
 
   void solve(int nStep);
 

@@ -3,7 +3,7 @@
 
 #include "SmallFem.h"
 
-#include "DDMSolver.h"
+#include "SolverDDM.h"
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
@@ -207,7 +207,7 @@ void compute(const Options& option){
   nonHomogenousDDM.getSolution(rhsG, 0);
 
   // DDM Solver //
-  DDMSolver solver(wave, *sommerfeld, source, *context, *ddm, *upDdm, rhsG);
+  SolverDDM solver(wave, *sommerfeld, source, *context, *ddm, *upDdm, rhsG);
 
   solver.solve(maxIt);
 

@@ -49,11 +49,11 @@ class SolverMatrix{
   void   add(size_t row, size_t col, scalar value);
   size_t serialize(std::vector<int>&    rowVector,
                    std::vector<int>&    colVector,
-                   std::vector<scalar>& valueVector);
+                   std::vector<scalar>& valueVector) const;
 
   size_t serializeCStyle(std::vector<int>&    rowVector,
                          std::vector<int>&    colVector,
-                         std::vector<scalar>& valueVector);
+                         std::vector<scalar>& valueVector) const;
 
   std::string toString(void) const;
   std::string toMatlab(std::string matrixName) const;
@@ -62,7 +62,7 @@ class SolverMatrix{
  private:
   SolverMatrix(void);
 
-  void        sortAndReduce(void);
+  void        sortAndReduce(void) const;
   std::string matlabCommon(std::string matrixName) const;
 
   static bool sortPredicate(const std::pair<size_t, scalar>& a,

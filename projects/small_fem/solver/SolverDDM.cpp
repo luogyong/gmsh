@@ -5,11 +5,11 @@
 #include "FormulationHelper.h"
 #include "SystemHelper.h"
 #include "Exception.h"
-#include "DDMSolver.h"
+#include "SolverDDM.h"
 
 using namespace std;
 
-DDMSolver::DDMSolver(const Formulation<Complex>& wave,
+SolverDDM::SolverDDM(const Formulation<Complex>& wave,
                      const Formulation<Complex>& sommerfeld,
                      const GroupOfElement& dirichlet,
                      DDMContext& context,
@@ -82,13 +82,13 @@ DDMSolver::DDMSolver(const Formulation<Complex>& wave,
   MatShellSetOperation(A, MATOP_MULT, (void(*)(void))(matMult));
 }
 
-DDMSolver::~DDMSolver(void){
+SolverDDM::~SolverDDM(void){
   VecDestroy(&x);
   VecDestroy(&b);
   MatDestroy(&A);
 }
 
-void DDMSolver::solve(int nStep){
+void SolverDDM::solve(int nStep){
   // Create Solver
   KSP solver;
 
@@ -119,11 +119,11 @@ void DDMSolver::solve(int nStep){
   KSPDestroy(&solver);
 }
 
-void DDMSolver::getSolution(map<Dof, Complex>& ddm){
+void SolverDDM::getSolution(map<Dof, Complex>& ddm){
   setDofFromVec(x, ddm);
 }
 
-PetscErrorCode DDMSolver::matMult(Mat A, Vec x, Vec y){
+PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   // Get FullContext //
   FullContext* fullCtx;
   MatShellGetContext(A, (void**)(&fullCtx));
@@ -188,7 +188,7 @@ PetscErrorCode DDMSolver::matMult(Mat A, Vec x, Vec y){
   PetscFunctionReturn(0);
 }
 
-void DDMSolver::setVecFromDof(Vec& v, std::map<Dof, Complex>& dof){
+void SolverDDM::setVecFromDof(Vec& v, std::map<Dof, Complex>& dof){
   // Pointer to PETSc Vec data //
   Complex* ptr;
   VecGetArray(v, &ptr);
@@ -204,7 +204,7 @@ void DDMSolver::setVecFromDof(Vec& v, std::map<Dof, Complex>& dof){
   VecRestoreArray(v, &ptr);
 }
 
-void DDMSolver::setDofFromVec(Vec& v, std::map<Dof, Complex>& dof){
+void SolverDDM::setDofFromVec(Vec& v, std::map<Dof, Complex>& dof){
   // Pointer to PETSc Vec data //
   Complex* ptr;
   VecGetArray(v, &ptr);
@@ -220,11 +220,11 @@ void DDMSolver::setDofFromVec(Vec& v, std::map<Dof, Complex>& dof){
   VecRestoreArray(v, &ptr);
 }
 
-Complex DDMSolver::fZero(fullVector<double>& xyz){
+Complex SolverDDM::fZero(fullVector<double>& xyz){
   return Complex(0, 0);
 }
 
-void DDMSolver::serialize(const map<Dof, Complex>& data,
+void SolverDDM::serialize(const map<Dof, Complex>& data,
                           vector<Complex>& value){
 
   map<Dof, Complex>::const_iterator it  = data.begin();
@@ -234,7 +234,7 @@ void DDMSolver::serialize(const map<Dof, Complex>& data,
     value[i]  = it->second;
 }
 
-void DDMSolver::unserialize(map<Dof, Complex>& data,
+void SolverDDM::unserialize(map<Dof, Complex>& data,
                             const vector<Complex>& value){
 
   map<Dof, Complex>::iterator it  = data.begin();
@@ -244,7 +244,7 @@ void DDMSolver::unserialize(map<Dof, Complex>& data,
     it->second = value[i];
 }
 
-void DDMSolver::exchange(int myId,
+void SolverDDM::exchange(int myId,
                          vector<Complex>& outValue,
                          vector<Complex>& inValue){
   MPI_Status  status;

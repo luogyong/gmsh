@@ -55,9 +55,11 @@ size_t SolverMatrix<scalar>::getNumberOfMutexWait(void) const{
 }
 
 template<typename scalar>
-size_t SolverMatrix<scalar>::serialize(std::vector<int>&    rowVector,
-                                       std::vector<int>&    colVector,
-                                       std::vector<scalar>& valueVector){
+size_t SolverMatrix<scalar>::
+serialize(std::vector<int>&    rowVector,
+          std::vector<int>&    colVector,
+          std::vector<scalar>& valueVector) const{
+
   // Reduce the data vector such that we don't have redundant entries
   sortAndReduce();
 
@@ -121,9 +123,11 @@ size_t SolverMatrix<scalar>::serialize(std::vector<int>&    rowVector,
 }
 
 template<typename scalar>
-size_t SolverMatrix<scalar>::serializeCStyle(std::vector<int>&    rowVector,
-                                             std::vector<int>&    colVector,
-                                             std::vector<scalar>& valueVector){
+size_t SolverMatrix<scalar>::
+serializeCStyle(std::vector<int>&    rowVector,
+                std::vector<int>&    colVector,
+                std::vector<scalar>& valueVector) const{
+
   // Do it Fortran Style
   const size_t nNZ = serialize(rowVector, colVector, valueVector);
 
@@ -166,7 +170,7 @@ void SolverMatrix<scalar>::writeToMatlabFile(std::string fileName,
 }
 
 template<typename scalar>
-void SolverMatrix<scalar>::sortAndReduce(void){
+void SolverMatrix<scalar>::sortAndReduce(void) const{
   // Each thread takes a set of rows
   #pragma omp parallel for
   for(size_t i = 0; i < nRow; i++){
