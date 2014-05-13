@@ -2,8 +2,9 @@
 #define _FORMULATIONSTEADYWAVE_H_
 
 #include "FormulationBlock.h"
-#include "FormulationMass.h"
-#include "FormulationStiffness.h"
+#include "GroupOfElement.h"
+#include "FunctionSpace.h"
+#include "Term.h"
 
 /**
    @class FormulationSteadyWave
@@ -15,17 +16,29 @@
 template<typename scalar>
 class FormulationSteadyWave: public FormulationBlock<scalar>{
  private:
-  // Wavenumber Squared //
-  scalar kSquare;
+  // Function Space & Domain //
+  const FunctionSpace*  ffs;
+  const GroupOfElement* ddomain;
 
-  // Formulations for stiffness and mass terms //
-  FormulationStiffness<scalar>* stiff;
-  FormulationMass<scalar>*      mass;
+  // Wavenumber Squared //
+  double kSquare;
+
+  // Local Terms //
+  Term<scalar>* stif;
+  Term<scalar>* mass;
+  Term<scalar>* src;
 
  public:
   FormulationSteadyWave(const GroupOfElement& domain,
                         const FunctionSpace& fs,
-                        scalar k);
+                        double k);
+
+  FormulationSteadyWave(const GroupOfElement& domain,
+                        const FunctionSpace& fs,
+                        double k,
+                        void (*nu)(fullVector<double>&, fullMatrix<scalar>&),
+                        void (*eps)(fullVector<double>&, fullMatrix<scalar>&),
+                        fullVector<scalar> (*source)(fullVector<double>&));
 
   virtual ~FormulationSteadyWave(void);
 

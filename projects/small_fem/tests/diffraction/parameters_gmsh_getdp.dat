@@ -1,0 +1,21 @@
+paramaille= 6.0;
+nm        = 1000;
+
+lambda0   = 1000000.00000000;
+theta0    = 0.0 * Pi/180;
+phi0      = 0.0 * Pi/180;
+psi0      = 0.0 * Pi/180;
+a_lat     = 2000000.000000;
+period_x  = a_lat;
+period_y  = a_lat;
+period_z  = a_lat;
+PML_top   = 600000.000000 ;
+PML_bot   = 600000.000000;
+
+PML_lat   = 600000.000000;
+
+ro        = 500000.000000;
+eps_re_In = 9.000000000;
+eps_im_In = -1.000000000;
+eps_re_Out = 1.000000000;
+eps_im_Out = -0.000000000;
