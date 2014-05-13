@@ -13,24 +13,30 @@ using namespace std;
 
 // Data //
 static const double Pi         = atan(1.0) * 4;
-static const double paramaille = 6.0;
+
+static const double paramaille = 6;
 static const double nm         = 1000;
-static const double lambda0    = 1000000.00000000;
+
+static const double lambda0    = 1000000;
 static const double theta0     = 0.0 * Pi/180;
 static const double phi0       = 0.0 * Pi/180;
 static const double psi0       = 0.0 * Pi/180;
-static const double a_lat      = 2000000.000000;
+
+static const double a_lat      = 300 * nm;
 static const double period_x   = a_lat;
 static const double period_y   = a_lat;
 static const double period_z   = a_lat;
-static const double PML_top    = 600000.000000 ;
-static const double PML_bot    = 600000.000000;
-static const double PML_lat    = 600000.000000;
-static const double ro         = 500000.000000;
-static const double eps_re_In  = 9.000000000;
-static const double eps_im_In  = -1.000000000;
-static const double eps_re_Out = 1.000000000;
-static const double eps_im_Out = -0.000000000;
+
+static const double PML_top    = lambda0;
+static const double PML_bot    = lambda0;
+static const double PML_lat    = lambda0;
+
+static const double ro         = lambda0 / 10;
+
+static const double eps_re_In  =  9;
+static const double eps_im_In  = -1;
+static const double eps_re_Out =  1;
+static const double eps_im_Out = -0;
 
 // Geomtrical Predicates //
 static bool isInScat_In(fullVector<double>& xyz){
@@ -293,8 +299,8 @@ static void epsilon(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
 
   else if(isInPML(xyz)){
     tensor(0, 0) = epsilon_Out * Lxx(xyz);
-    tensor(1, 1) = epsilon_Out * Lzz(xyz);
-    tensor(2, 2) = epsilon_Out * Lyy(xyz);
+    tensor(1, 1) = epsilon_Out * Lyy(xyz);
+    tensor(2, 2) = epsilon_Out * Lzz(xyz);
   }
 }
 
@@ -315,8 +321,8 @@ static void epsilon1(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
 
   else if(isInPML(xyz)){
     tensor(0, 0) = epsilon_Out * Lxx(xyz);
-    tensor(1, 1) = epsilon_Out * Lzz(xyz);
-    tensor(2, 2) = epsilon_Out * Lyy(xyz);
+    tensor(1, 1) = epsilon_Out * Lyy(xyz);
+    tensor(2, 2) = epsilon_Out * Lzz(xyz);
   }
 }
 
@@ -337,8 +343,8 @@ static void mu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
 
   else if(isInPML(xyz)){
     tensor(0, 0) = Lxx(xyz);
-    tensor(1, 1) = Lzz(xyz);
-    tensor(2, 2) = Lyy(xyz);
+    tensor(1, 1) = Lyy(xyz);
+    tensor(2, 2) = Lzz(xyz);
   }
 }
 
@@ -359,8 +365,8 @@ static void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
 
   else if(isInPML(xyz)){
     tensor(0, 0) = Complex(1, 0) / Lxx(xyz);
-    tensor(1, 1) = Complex(1, 0) / Lzz(xyz);
-    tensor(2, 2) = Complex(1, 0) / Lyy(xyz);
+    tensor(1, 1) = Complex(1, 0) / Lyy(xyz);
+    tensor(2, 2) = Complex(1, 0) / Lzz(xyz);
   }
 }
 
@@ -428,16 +434,16 @@ void compute(const Options& option){
   All_domains.add(PMLx);
 
   // Formulation //
-  FunctionSpaceVector fs(All_domains, 2);
+  cout << "Assembling" << endl << flush;
+  FunctionSpaceVector fs(All_domains, 1);
   FormulationSteadyWave<Complex>
     wave(All_domains, fs, (omega0 / cel), nu, epsilon, source);
 
   // System //
   System<Complex> sys;
   sys.addFormulation(wave);
-
-  cout << "Assembling" << endl << flush;
   sys.assemble();
+
   cout << "Solving: " << sys.getSize() << endl << flush;
   sys.solve();
 
