@@ -14,7 +14,7 @@ using namespace std;
 // Data //
 static const double Pi         = atan(1.0) * 4;
 
-static const double paramaille = 6;
+static const double paramaille = 10;
 static const double nm         = 1000;
 
 static const double lambda0    = 1000000;
@@ -435,7 +435,7 @@ void compute(const Options& option){
 
   // Formulation //
   cout << "Assembling" << endl << flush;
-  FunctionSpaceVector fs(All_domains, 1);
+  FunctionSpaceVector fs(All_domains, 2);
   FormulationSteadyWave<Complex>
     wave(All_domains, fs, (omega0 / cel), nu, epsilon, source);
 

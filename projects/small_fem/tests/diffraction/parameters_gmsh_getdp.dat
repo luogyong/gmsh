@@ -1,4 +1,4 @@
-paramaille = 8.0;
+paramaille = 10.0;
 nm         = 1000;
 
 lambda0   = 1000000.00000000;
