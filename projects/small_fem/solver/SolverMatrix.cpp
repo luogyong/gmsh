@@ -1,4 +1,5 @@
 #include <complex>
+#include <iomanip>
 #include <sstream>
 #include "SolverMatrix.h"
 
@@ -21,12 +22,12 @@ string SolverMatrix<double>::toMatlab(string matrixName) const{
     end = data[i].end();
 
     for(; it != end; it++)
-      stream << std::scientific << it->second << ", ";
+      stream << std::setprecision(16) << std::scientific << it->second << ", ";
   }
   stream << "], ";
 
   // Number of rows and columns
-  stream << nRow << ", " << nCol << ")";
+  stream << nRow << ", " << nCol << ");";
 
   // Return
   return stream.str();
@@ -49,14 +50,14 @@ string SolverMatrix<std::complex<double> >::toMatlab(string matrixName) const{
     end = data[i].end();
 
     for(; it != end; it++)
-      stream << std::scientific
+      stream << std::scientific << std::setprecision(16)
              << "(" << it->second.real() << " + i * "<< it->second.imag() << ")"
              << ", ";
   }
   stream << "], ";
 
   // Number of rows and columns
-  stream << nRow << ", " << nCol << ")";
+  stream << nRow << ", " << nCol << ");";
 
   // Return
   return stream.str();

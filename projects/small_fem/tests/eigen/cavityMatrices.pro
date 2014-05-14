@@ -3,6 +3,17 @@ Group{
   Omega  = Region[7]; // Omega
 }
 
+Function{
+  //Eps[] = TensorDiag[1, 1, 1];
+  //Nu[]  = TensorDiag[1, 1, 1];
+
+  //Eps[] = TensorDiag[1, 2, 3];
+  //Nu[]  = TensorDiag[1, 2, 3];
+
+  Eps[] = TensorDiag[X[] + 10, Y[] + 10, Z[] + 10];
+  Nu[]  = TensorDiag[X[] + 10, Y[] + 10, Z[] + 10];
+}
+
 Jacobian {
   { Name JVol ;
     Case {
@@ -48,11 +59,25 @@ Constraint {
 FunctionSpace {
   { Name Hcurl_e ; Type Form1;
     BasisFunction {
-      { Name se ; NameOfCoef ee ; Function BF_Edge ; Support Region[{Omega,Border}] ; Entity EdgesOf[All]; }
+      // Ordre 1 Complet //
+      { Name se   ; NameOfCoef ee   ; Function BF_Edge    ; Support Region[{Omega,Border}] ; Entity EdgesOf[All]; }
+      { Name se2e ; NameOfCoef we2e ; Function BF_Edge_2E ; Support Region[{Omega,Border}] ; Entity EdgesOf[All]; }
+
+      // Ordre 2 Complet //
+      { Name se3fa; NameOfCoef we3fa; Function BF_Edge_3F_a ; Support Region[{Omega,Border}] ; Entity FacetsOf[All]; }
+      { Name se3fb; NameOfCoef we3fb; Function BF_Edge_3F_b ; Support Region[{Omega,Border}] ; Entity FacetsOf[All]; }
+      { Name se3fc; NameOfCoef we3fc; Function BF_Edge_3F_c ; Support Region[{Omega,Border}] ; Entity FacetsOf[All]; }
+      { Name se4e ; NameOfCoef we4e ; Function BF_Edge_4E   ; Support Region[{Omega,Border}] ; Entity EdgesOf[All]; }
     }
 
     Constraint {
       { NameOfCoef ee   ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e; }
+      { NameOfCoef we2e ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e; }
+
+      { NameOfCoef we3fa; EntityType FacetsOf ; NameOfConstraint Dirichlet_e; }
+      { NameOfCoef we3fb; EntityType FacetsOf ; NameOfConstraint Dirichlet_e; }
+      { NameOfCoef we3fc; EntityType FacetsOf ; NameOfConstraint Dirichlet_e; }
+      { NameOfCoef we4e ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e; }
     }
   }
 }
@@ -63,7 +88,7 @@ Formulation {
       { Name e; Type Local;  NameOfSpace Hcurl_e; }
     }
     Equation {
-      Galerkin { [ Dof{d e} , {d e} ];
+      Galerkin { [ Nu[] * Dof{d e} , {d e} ];
         In Omega; Integration IOrder2; Jacobian JVol;  }
     }
   }
@@ -73,7 +98,7 @@ Formulation {
       { Name e; Type Local;  NameOfSpace Hcurl_e; }
     }
     Equation {
-      Galerkin { [ Dof{e} , {e} ];
+      Galerkin { [ Eps[] * Dof{e} , {e} ];
         In Omega; Integration IOrder4; Jacobian JVol;  }
     }
   }

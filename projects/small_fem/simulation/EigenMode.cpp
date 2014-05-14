@@ -15,18 +15,51 @@ using namespace std;
 static const size_t scal = 0;
 static const size_t vect = 1;
 
-fullVector<complex<double> > fVect(fullVector<double>& xyz){
-  fullVector<complex<double> > f(3);
+void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
+  tensor.scale(0);
 
-  f(0) = complex<double>(0, 0);
-  f(1) = complex<double>(0, 0);
-  f(2) = complex<double>(0, 0);
+  tensor(0, 0) = Complex(xyz(0) + 10, 0);
+  tensor(1, 1) = Complex(xyz(1) + 10, 0);
+  tensor(2, 2) = Complex(xyz(2) + 10, 0);
+}
+
+void eps(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
+  tensor.scale(0);
+
+  tensor(0, 0) = Complex(xyz(0) + 10, 0);
+  tensor(1, 1) = Complex(xyz(1) + 10, 0);
+  tensor(2, 2) = Complex(xyz(2) + 10, 0);
+}
+
+/*
+void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
+  tensor.scale(0);
+
+  tensor(0, 0) = Complex(1, 0);
+  tensor(1, 1) = Complex(2, 0);
+  tensor(2, 2) = Complex(3, 0);
+}
+
+void eps(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
+  tensor.scale(0);
+
+  tensor(0, 0) = Complex(1, 0);
+  tensor(1, 1) = Complex(2, 0);
+  tensor(2, 2) = Complex(3, 0);
+}
+*/
+fullVector<Complex> fVect(fullVector<double>& xyz){
+  fullVector<Complex> f(3);
+
+  f(0) = Complex(0, 0);
+  f(1) = Complex(0, 0);
+  f(2) = Complex(0, 0);
 
   return f;
 }
 
-complex<double> fScal(fullVector<double>& xyz){
-  return complex<double>(0, 0);
+Complex fScal(fullVector<double>& xyz){
+  return Complex(0, 0);
 }
 
 void compute(const Options& option){
@@ -69,8 +102,8 @@ void compute(const Options& option){
     fs = new FunctionSpaceVector(domain, order);
 
   // Formulations & System //
-  FormulationStiffness<complex<double> > stiff(volume, *fs, *fs);
-  FormulationMass<complex<double> >       mass(volume, *fs, *fs);
+  FormulationStiffness<Complex> stiff(volume, *fs, *fs, nu);
+  FormulationMass<Complex>       mass(volume, *fs, *fs, eps);
 
   SystemEigen sys;
   sys.addFormulation(stiff);
@@ -78,9 +111,9 @@ void compute(const Options& option){
 
   // Dirichlet //
   if(type == scal)
-    SystemHelper<complex<double> >::dirichlet(sys, *fs, border, fScal);
+    SystemHelper<Complex>::dirichlet(sys, *fs, border, fScal);
   else
-    SystemHelper<complex<double> >::dirichlet(sys, *fs, border, fVect);
+    SystemHelper<Complex>::dirichlet(sys, *fs, border, fVect);
 
   // Assemble and Solve //
   cout << "Eigenvalues problem: " << sys.getSize() << endl
@@ -92,7 +125,7 @@ void compute(const Options& option){
   sys.solve();
 
   // Display //
-  fullVector<complex<double> > eigenValue;
+  fullVector<Complex> eigenValue;
   const size_t nEigenValue = sys.getNComputedSolution();
   sys.getEigenValues(eigenValue);
 
@@ -110,7 +143,7 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
-    FEMSolution<complex<double> > feSol;
+    FEMSolution<Complex> feSol;
     sys.getSolution(feSol, *fs, volume);
     feSol.write("eigen_mode");
   }

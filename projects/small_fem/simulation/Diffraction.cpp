@@ -8,6 +8,7 @@
 #include "FormulationSteadyWave.h"
 #include "System.h"
 #include "FEMSolution.h"
+#include "NodeSolution.h"
 
 using namespace std;
 
@@ -40,71 +41,71 @@ static const double eps_im_Out = -0;
 
 // Geomtrical Predicates //
 static bool isInScat_In(fullVector<double>& xyz){
-  return sqrt(xyz(0) * xyz(0) + xyz(1) * xyz(1) + xyz(2) * xyz(2)) < abs(ro);
+  return sqrt(xyz(0) * xyz(0) + xyz(1) * xyz(1) + xyz(2) * xyz(2)) <= abs(ro);
 }
 
 static bool isInScat_Out(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) < period_x / 2) && // Not In PML
-    (abs(xyz(1)) < period_y / 2) && //    |
-    (abs(xyz(2)) < period_z / 2) && //    _
+    (abs(xyz(0)) <= period_x / 2) && // Not In PML
+    (abs(xyz(1)) <= period_y / 2) && //    |
+    (abs(xyz(2)) <= period_z / 2) && //    _
     !isInScat_In(xyz);              // Not In Scat
 }
 
 static bool isInDomain(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) < period_x / 2) && // Not In PML
-    (abs(xyz(1)) < period_y / 2) && //    |
-    (abs(xyz(2)) < period_z / 2);   //    _
+    (abs(xyz(0)) <= period_x / 2) && // Not In PML
+    (abs(xyz(1)) <= period_y / 2) && //    |
+    (abs(xyz(2)) <= period_z / 2);   //    _
 }
 
 static bool isInPMLxyz(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) > period_x / 2) &&
-    (abs(xyz(1)) > period_y / 2) &&
-    (abs(xyz(2)) > period_z / 2);
+    (abs(xyz(0)) >= period_x / 2) &&
+    (abs(xyz(1)) >= period_y / 2) &&
+    (abs(xyz(2)) >= period_z / 2);
 }
 
 static bool isInPMLxz(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) > period_x / 2) &&
-    (abs(xyz(1)) < period_y / 2) &&
-    (abs(xyz(2)) > period_z / 2);
+    (abs(xyz(0)) >= period_x / 2) &&
+    (abs(xyz(1)) <= period_y / 2) &&
+    (abs(xyz(2)) >= period_z / 2);
 }
 
 static bool isInPMLyz(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) < period_x / 2) &&
-    (abs(xyz(1)) > period_y / 2) &&
-    (abs(xyz(2)) > period_z / 2);
+    (abs(xyz(0)) <= period_x / 2) &&
+    (abs(xyz(1)) >= period_y / 2) &&
+    (abs(xyz(2)) >= period_z / 2);
 }
 
 static bool isInPMLxy(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) > period_x / 2) &&
-    (abs(xyz(1)) > period_y / 2) &&
-    (abs(xyz(2)) < period_z / 2);
+    (abs(xyz(0)) >= period_x / 2) &&
+    (abs(xyz(1)) >= period_y / 2) &&
+    (abs(xyz(2)) <= period_z / 2);
 }
 
 static bool isInPMLz(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) < period_x / 2) &&
-    (abs(xyz(1)) < period_y / 2) &&
-    (abs(xyz(2)) > period_z / 2);
+    (abs(xyz(0)) <= period_x / 2) &&
+    (abs(xyz(1)) <= period_y / 2) &&
+    (abs(xyz(2)) >= period_z / 2);
 }
 
 static bool isInPMLy(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) < period_x / 2) &&
-    (abs(xyz(1)) > period_y / 2) &&
-    (abs(xyz(2)) < period_z / 2);
+    (abs(xyz(0)) <= period_x / 2) &&
+    (abs(xyz(1)) >= period_y / 2) &&
+    (abs(xyz(2)) <= period_z / 2);
 }
 
 static bool isInPMLx(fullVector<double>& xyz){
   return
-    (abs(xyz(0)) > period_x / 2) &&
-    (abs(xyz(1)) < period_y / 2) &&
-    (abs(xyz(2)) < period_z / 2);
+    (abs(xyz(0)) >= period_x / 2) &&
+    (abs(xyz(1)) <= period_y / 2) &&
+    (abs(xyz(2)) <= period_z / 2);
 }
 
 static bool isInPML(fullVector<double>& xyz){
@@ -392,7 +393,6 @@ static fullVector<Complex> source(fullVector<double>& xyz){
 
 // FEM //
 void compute(const Options& option){
-
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
 
@@ -432,10 +432,40 @@ void compute(const Options& option){
   All_domains.add(PMLz);
   All_domains.add(PMLy);
   All_domains.add(PMLx);
+  /*
+  // Vertex //
+  set<const MVertex*, VertexComparator> vertex;
+  All_domains.getAllVertex(vertex);
+
+  set<const MVertex*, VertexComparator>::iterator it  = vertex.begin();
+  set<const MVertex*, VertexComparator>::iterator end = vertex.end();
+
+  fullVector<double>  xyz(3);
+  fullMatrix<Complex> tensor(3, 3);
+  Complex             scalar;
+
+  map<const MVertex*, Complex> data;
+
+  for(; it != end; it++){
+    xyz(0) = (*it)->x();
+    xyz(1) = (*it)->y();
+    xyz(2) = (*it)->z();
+
+    epsilon(xyz, tensor);
+    scalar = tensor(0, 0); //Lxx(xyz);
+
+    //cout << scalar << endl;
+    data.insert(pair<const MVertex*, Complex>((*it), scalar));
+  }
+
+  NodeSolution sol;
+  sol.addNodeValue(0, 0, msh, data);
+  sol.write("test");
+  */
 
   // Formulation //
   cout << "Assembling" << endl << flush;
-  FunctionSpaceVector fs(All_domains, 2);
+  FunctionSpaceVector fs(All_domains, 0);
   FormulationSteadyWave<Complex>
     wave(All_domains, fs, (omega0 / cel), nu, epsilon, source);
 
@@ -452,6 +482,7 @@ void compute(const Options& option){
   FEMSolution<Complex> feSol;
   sys.getSolution(feSol, fs, All_domains);
   feSol.write("test");
+
 }
 
 int main(int argc, char** argv){

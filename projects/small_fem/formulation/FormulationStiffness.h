@@ -28,6 +28,11 @@ class FormulationStiffness: public FormulationBlock<scalar>{
                        const FunctionSpace& field,
                        const FunctionSpace& test);
 
+  FormulationStiffness(const GroupOfElement& domain,
+                       const FunctionSpace& field,
+                       const FunctionSpace& test,
+                       void (*m)(fullVector<double>&, fullMatrix<scalar>&));
+
   virtual ~FormulationStiffness(void);
 
   virtual scalar weak(size_t dofI, size_t dofJ, size_t elementId) const;

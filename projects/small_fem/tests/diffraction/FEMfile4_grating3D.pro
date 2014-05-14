@@ -19,13 +19,13 @@ Group {
                 Domain         = Region[{Scat_In,Scat_Out}];
                 PMLs           = Region[{PMLxyz,PMLxy,PMLxz,PMLyz,PMLx,PMLy,PMLz}];
                 All_domains    = Region[{Scat_In,Scat_Out,PMLxyz,PMLxy,PMLxz,PMLyz,PMLx,PMLy,PMLz}];
-                
+
 //                SurfNeumann    = Region[{SurfBlochXm,SurfBlochXp,SurfBlochYm,SurfBlochYp}];
 }
 
 
 
-Function{       
+Function{
 		mu0              = 4*Pi*100.0*nm;
 		epsilon0         = 8.854187817e-3*nm;
                 cel              = 1.0/Sqrt[epsilon0 * mu0];
@@ -46,8 +46,8 @@ Function{
         	Prop[]           =  Ae * Complex[ Cos[alpha0*X[]+beta0*Y[]+gamma0*Z[]] , Sin[alpha0*X[]+beta0*Y[]+gamma0*Z[]] ];
         	Einc[PMLs]       =  Vector[0,0,0];
         	Einc[Domain]     =  Vector[Ex0*Prop[],Ey0*Prop[],Ez0*Prop[]];
-                Pinc             =  0.5*Ae*Ae*Sqrt[epsilon0/mu0] * Cos[theta0]; 
-        	
+                Pinc             =  0.5*Ae*Ae*Sqrt[epsilon0/mu0] * Cos[theta0];
+
                 a_pml           = 1.;
                 b_pml           = 1.;
                 sx[Scat_In]          = 1.;
@@ -59,45 +59,45 @@ Function{
                 sx[PMLxyz]      = Complex[a_pml,-b_pml];
                 sy[PMLxyz]      = Complex[a_pml,-b_pml];
                 sz[PMLxyz]      = Complex[a_pml,-b_pml];
-                
+
                 sx[PMLxz]       = Complex[a_pml,-b_pml];
                 sy[PMLxz]       = 1.0;
                 sz[PMLxz]       = Complex[a_pml,-b_pml];
-                
+
                 sx[PMLyz]       = 1.0;
                 sy[PMLyz]       = Complex[a_pml,-b_pml];
                 sz[PMLyz]       = Complex[a_pml,-b_pml];
-                
+
                 sx[PMLxy]       = Complex[a_pml,-b_pml];
                 sy[PMLxy]       = Complex[a_pml,-b_pml];
                 sz[PMLxy]       = 1.0;
-                
+
                 sx[PMLx]        = Complex[a_pml,-b_pml];
                 sy[PMLx]        = 1.0;
                 sz[PMLx]        = 1.0;
-                
+
                 sx[PMLy]        = 1.0;
                 sy[PMLy]        = Complex[a_pml,-b_pml];
                 sz[PMLy]        = 1.0;
-                
+
                 sx[PMLz]        = 1.0;
                 sy[PMLz]        = 1.0;
                 sz[PMLz]        = Complex[a_pml,-b_pml];
-                
+
 		Lxx[]           = sy[]*sz[]/sx[];
-		Lyy[]           = sz[]*sx[]/sy[]; 
+		Lyy[]           = sz[]*sx[]/sy[];
 		Lzz[] 		= sx[]*sy[]/sz[];
 
-                
+
                 epsilon_In[]    = Complex[eps_re_In  , eps_im_In];
                 epsilon_Out[]   = Complex[eps_re_Out , eps_im_Out];
-                
+
                 epsilon[Scat_In]   	= epsilon_In[]    * TensorDiag[1.,1.,1.];
                 epsilon[Scat_Out]  	= epsilon_Out[]  * TensorDiag[1.,1.,1.];
                 epsilon[PMLs]    	= epsilon_Out[]  * TensorDiag[Lxx[],Lyy[],Lzz[]];
 
                 epsilon1[Scat_In]  	= epsilon_Out[]   * TensorDiag[1.,1.,1.];
-                epsilon1[Scat_Out] 	= epsilon_Out[]  * TensorDiag[1.,1.,1.];                
+                epsilon1[Scat_Out] 	= epsilon_Out[]  * TensorDiag[1.,1.,1.];
                 epsilon1[PMLs] 		= epsilon_Out[]  * TensorDiag[Lxx[],Lyy[],Lzz[]];
 
                 mu[Scat_In]        	= TensorDiag[1.,1.,1.];
@@ -122,7 +122,7 @@ Function{
 
 Jacobian {
   { Name JVol ;
-    Case { 
+    Case {
       { Region All ; Jacobian Vol ; }
     }
   }
@@ -140,14 +140,11 @@ Jacobian {
 
 Integration {
   { Name Int_1 ;
-    Case { 
+    Case {
       { Type Gauss ;
-        Case { 
-          { GeoElement Point       ; NumberOfPoints   4 ; }
-          { GeoElement Line        ; NumberOfPoints  32 ; }
-          { GeoElement Triangle    ; NumberOfPoints  16 ; } //1, 3, 4, 6, 7, 12, 13, 16
-          { GeoElement Tetrahedron ; NumberOfPoints  29 ; }
-          { GeoElement Prism       ; NumberOfPoints  51 ; } 
+        Case {
+          { GeoElement Triangle;    NumberOfPoints  6; }
+          { GeoElement Tetrahedron; NumberOfPoints 15; }
         }
       }
     }
@@ -159,19 +156,21 @@ FunctionSpace {
     BasisFunction {
       { Name sn; NameOfCoef un; Function BF_Edge;
         Support Region[All_domains]; Entity EdgesOf[All]; }
+      /*
       { Name sn2; NameOfCoef un2; Function BF_Edge_2E;
         Support Region[All_domains]; Entity EdgesOf[All]; }
       { Name sn3; NameOfCoef un3; Function BF_Edge_3F_b;
-        Support Region[All_domains]; Entity FacetsOf[All_domains]; }
+        Support Region[All_domains]; Entity FacetsOf[All]; }
       { Name sn4; NameOfCoef un4; Function BF_Edge_3F_c;
-        Support Region[All_domains]; Entity FacetsOf[All_domains]; }
+        Support Region[All_domains]; Entity FacetsOf[All]; }
       { Name sn5; NameOfCoef un5; Function BF_Edge_4E;
-        Support Region[All_domains]; Entity EdgesOf[All_domains]; }
+        Support Region[All_domains]; Entity EdgesOf[All]; }
+      */
     }
 //    Constraint {
 //      { NameOfCoef un;  EntityType EdgesOf ; NameOfConstraint Dirichlet; }
 //      { NameOfCoef un2; EntityType EdgesOf ; NameOfConstraint Dirichlet; }
-      
+
 /*     { NameOfCoef un3; EntityType FacetsOf ; NameOfConstraint BlochX; }*/
 /*     { NameOfCoef un3; EntityType FacetsOf ; NameOfConstraint BlochY; }*/
 /*     { NameOfCoef un3; EntityType FacetsOf ; NameOfConstraint Dirichlet; }*/
@@ -186,7 +185,7 @@ FunctionSpace {
 }
 
 Formulation {{Name helmholtz_vector; Type FemEquation;
-    		Quantity {{ Name u; Type Local; NameOfSpace Hcurl;}}    
+    		Quantity {{ Name u; Type Local; NameOfSpace Hcurl;}}
 		Equation { Galerkin {[-nu[]*Dof{Curl u} , {Curl u}];
                  		In All_domains; Jacobian JVol; Integration Int_1;  }
                    	   Galerkin { [(omega0/cel)^2*epsilon[]*Dof{u} , {u}];
@@ -202,8 +201,8 @@ Resolution {
     System {
       { Name M; NameOfFormulation helmholtz_vector; Type ComplexValue; Frequency Freq; }
     }
-    Operation { 
-      Generate[M]; Solve[M]; SaveSolution[M];  
+    Operation {
+      Generate[M]; Solve[M]; SaveSolution[M];
     }
   }
 }
@@ -213,7 +212,7 @@ Resolution {
         // Hinc[] : Complex[0,1] * 1/omega0 * 1/mu0 * Curl Einc[];
         // H_d    : Complex[0,1] * 1/omega0 * 1/mu0 * {Curl u};
 
-PostProcessing {   
+PostProcessing {
     { Name get_E; NameOfFormulation helmholtz_vector;NameOfSystem M;
             Quantity {
 //             E diffracted 3 components, Im and Re parts
@@ -251,9 +250,9 @@ PostProcessing {
 /*                { Name nuZZ_re; Value { Local { [Re[  CompZZ[ nu[] ] ]]; In All_domains; Jacobian JVol; } } }*/
 /*                { Name nuZZ_im; Value { Local { [Im[  CompZZ[ nu[] ] ]]; In All_domains; Jacobian JVol; } } }
 */
-		
+
 		{ Name   dummy1; Value { Local { [Re[  CompXX[epsilon[]] ]]; In All_domains; Jacobian JVol; } } }
-                
+
 /*                { Name test; Value {  Pinc; In Domain; Jacobian JVol; } } }*/
 
                 { Name normalized_losses ; Value { Integral { [ 0.5*omega0*epsilon0*Fabs[Im[epsilon_In[]]]*(SquNorm[{u}+Einc[]])  ] ; In Scat_In ; Integration Int_1 ; Jacobian JVol ; } } }
@@ -280,8 +279,8 @@ PostProcessing {
 /*                { Name dummy1; Value { Local { [Re[  CompXX[epsilon[]] ]]; In All_domains; Jacobian JVol; } } }*/
 /*                { Name dummy2; Value { Local { [Re[  CompXX[epsilon1[]] ]]; In All_domains; Jacobian JVol; } } }*/
 
-                
-                
+
+
 /*//             H diffracted 3 components, Im and Re parts                 */
 /*                { Name hx_d_re; Value { Local { [ -Im[CompX[ 1/omega0*1/mu0 * {Curl u} ] ] ]; In All_domains; Jacobian JVol; } } }*/
 /*                { Name hx_d_im; Value { Local { [  Re[CompX[ 1/omega0*1/mu0 * {Curl u} ] ] ]; In All_domains; Jacobian JVol; } } }*/
@@ -307,7 +306,7 @@ PostProcessing {
 /*//                 {  Name int_sur_div_P_Sub2 ; Value { Integral { [ 1/Pinc*1/period_x*1/period_y*CompZ[ 0.5*Re[ (Einc[]+{u})/\Conj[ Complex[0,1]/(omega0*mu0)*{Curl u} + Hinc[]] ] ]   ] ; In SurfIntegSub2 ; Integration Int_1 ; Jacobian JSur ; } } }*/
 /*//             Computes the volume of a region */
 /*                {  Name blabla              ; Value { Integral { [1] ; In Rode ; Integration Int_1 ; Jacobian JVol ; } } }*/
-                
+
 }}}
 
 
@@ -323,7 +322,7 @@ PostOperation {
         Print [ ez_im_scat  , OnElementsOf All_domains, File "./Views/Ez_im_scat.pos", Smoothing ];
         Print [ inc         , OnElementsOf All_domains, File "./Views/inc.pos", Smoothing ];
         Print [ normE2      , OnElementsOf All_domains, File "./Views/normE2.pos", Smoothing ];
-        
+
 /*        */
 /*        */
 /*        Print [ sourcex_re  , OnElementsOf All_domains, File "./Views/sourcex_re.pos"];*/
@@ -349,7 +348,7 @@ PostOperation {
 
 /*        Print [ test  , OnElementsOf PMLs, File "./Views/test.pos"];*/
 /*        Print [ dummy1  , OnElementsOf PMLs, File "./Views/dummy1.pos"];*/
-        
+
         Print[ normalized_losses[Scat_In]           , OnGlobal, File "./Views/temp-Q.txt", Format Table ];
 
 
@@ -362,7 +361,7 @@ PostOperation {
 /*        Print [ poz_t_int, OnElementsOf All_domains, File "poz_t_int.pos"]; //, Smoothing ];*/
 /*        Print [ dummy1  , OnElementsOf All_domains, File "dummy1.pos"];*/
 /*        Print [ dummy2  , OnElementsOf All_domains, File "dummy2.pos"];*/
-        
+
 /*        Print [ ex_d_im  , OnElementsOf All_domains, File "map_imEX_diffacted.pos"];*/
 /*        Print [ ey_d_im  , OnElementsOf All_domains, File "map_imEY_diffacted.pos"];*/
 /*        Print [ ez_d_im  , OnElementsOf All_domains, File "map_imEZ_diffacted.pos"];*/
@@ -376,6 +375,3 @@ PostOperation {
         }
 }
 }
-
-
-

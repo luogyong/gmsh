@@ -28,6 +28,16 @@ class FormulationMass: public FormulationBlock<scalar>{
                   const FunctionSpace& field,
                   const FunctionSpace& test);
 
+  FormulationMass(const GroupOfElement& domain,
+                  const FunctionSpace& field,
+                  const FunctionSpace& test,
+                  void (*m)(fullVector<double>&, fullMatrix<scalar>&));
+
+  FormulationMass(const GroupOfElement& domain,
+                  const FunctionSpace& field,
+                  const FunctionSpace& test,
+                  scalar (*m)(fullVector<double>&));
+
   virtual ~FormulationMass(void);
 
   virtual scalar weak(size_t dofI, size_t dofJ, size_t elementId) const;

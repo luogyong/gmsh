@@ -134,6 +134,11 @@ void SystemEigen::assemble(void){
                               B, nNZ, PETSC_FALSE);
   }
 
+  /*
+  tmpA.writeToMatlabFile("Asf.m", "Asf");
+  tmpB.writeToMatlabFile("Bsf.m", "Bsf");
+  */
+
   // The SystemEigen is assembled //
   assembled = true;
 }
