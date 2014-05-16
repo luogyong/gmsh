@@ -94,3 +94,55 @@ void Interpolator<scalar>::interpolate(const GroupOfElement& goe,
     }
   }
 }
+
+template<typename scalar>
+void Interpolator<scalar>::
+interpolate(const GroupOfElement& goe,
+            const GroupOfElement& point,
+            const FunctionSpace& fs,
+            const std::map<Dof, scalar>& coef,
+            std::map<const MVertex*, std::vector<scalar> >& data){
+
+  // Get the Vertices of 'point' //
+  std::set<const MVertex*, VertexComparator> vertex;
+  point.getAllVertex(vertex);
+
+  // Get those Vertices coordinates //
+  const size_t nVertex = vertex.size();
+  fullMatrix<double> coordinate(nVertex, 3);
+
+        std::set<const MVertex*, VertexComparator>::iterator it;
+  const std::set<const MVertex*, VertexComparator>::iterator end = vertex.end();
+
+  it = vertex.begin();
+  for(size_t i = 0; it != end; it++, i++){
+    coordinate(i, 0) = (*it)->x();
+    coordinate(i, 1) = (*it)->y();
+    coordinate(i, 2) = (*it)->z();
+  }
+
+  // Interpolate //
+  fullMatrix<scalar> value;
+  interpolate(goe, fs, coef, coordinate, value);
+
+  // Get Data Map //
+  const size_t nDim = value.size2();
+  std::vector<scalar> tmp(nDim);
+
+  it = vertex.begin();
+  for(size_t i = 0; it != end; it++, i++){
+    // Pair
+    std::pair<const MVertex*, std::vector<scalar> > pair;
+
+    // Vertex
+    pair.first = (*it);
+
+    // Value
+    pair.second.resize(nDim);
+    for(size_t j = 0; j < nDim; j++)
+      pair.second.at(j) = value(i, j);
+
+    // Add to data
+    data.insert(pair);
+  }
+}

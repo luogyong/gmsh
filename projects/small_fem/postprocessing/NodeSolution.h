@@ -13,6 +13,7 @@
    @brief TODO
  */
 
+template<typename scalar>
 class NodeSolution{
  private:
   PViewDataGModel* pView;
@@ -24,9 +25,23 @@ class NodeSolution{
   void addNodeValue(size_t step,
                     double time,
                     const Mesh& mesh,
-                    std::map<const MVertex*, std::complex<double> >& data);
+                    std::map<const MVertex*, scalar>& data);
+
+  void addNodeValue(size_t step,
+                    double time,
+                    const Mesh& mesh,
+                    std::map<const MVertex*, std::vector<scalar> >& data);
 
   void write(std::string fileName) const;
 };
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "NodeSolutionInclusion.h"
 
 #endif

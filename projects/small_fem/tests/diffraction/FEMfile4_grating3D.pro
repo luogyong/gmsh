@@ -143,8 +143,8 @@ Integration {
     Case {
       { Type Gauss ;
         Case {
-          { GeoElement Triangle;    NumberOfPoints  6; }
-          { GeoElement Tetrahedron; NumberOfPoints 15; }
+          //{ GeoElement Triangle;    NumberOfPoints  6; }
+          { GeoElement Tetrahedron; NumberOfPoints 4; }
         }
       }
     }
@@ -217,6 +217,7 @@ PostProcessing {
             Quantity {
 //             E diffracted 3 components, Im and Re parts
 
+                { Name e         ; Value { Local { [{u}]; In All_domains; Jacobian JVol; } } }
                 { Name ex_re_scat; Value { Local { [Re[  CompX[{u}] ]]; In All_domains; Jacobian JVol; } } }
                 { Name ey_re_scat; Value { Local { [Re[  CompY[{u}] ]]; In All_domains; Jacobian JVol; } } }
                 { Name ez_re_scat; Value { Local { [Re[  CompZ[{u}] ]]; In All_domains; Jacobian JVol; } } }
@@ -314,14 +315,15 @@ PostProcessing {
 PostOperation {
 { Name Ed; NameOfPostProcessing get_E ;
     Operation {
-        Print [ ex_re_scat  , OnElementsOf All_domains, File "./Views/Ex_re_scat.pos", Smoothing ];
-        Print [ ey_re_scat  , OnElementsOf All_domains, File "./Views/Ey_re_scat.pos", Smoothing ];
-        Print [ ez_re_scat  , OnElementsOf All_domains, File "./Views/Ez_re_scat.pos", Smoothing ];
-        Print [ ex_im_scat  , OnElementsOf All_domains, File "./Views/Ex_im_scat.pos", Smoothing ];
-        Print [ ey_im_scat  , OnElementsOf All_domains, File "./Views/Ey_im_scat.pos", Smoothing ];
-        Print [ ez_im_scat  , OnElementsOf All_domains, File "./Views/Ez_im_scat.pos", Smoothing ];
-        Print [ inc         , OnElementsOf All_domains, File "./Views/inc.pos", Smoothing ];
-        Print [ normE2      , OnElementsOf All_domains, File "./Views/normE2.pos", Smoothing ];
+      Print [ e, OnElementsOf All_domains, File "./Views/E.pos"/*, Smoothing */];
+      Print [ ex_re_scat  , OnElementsOf All_domains, File "./Views/Ex_re_scat.pos"/*, Smoothing */];
+        Print [ ey_re_scat  , OnElementsOf All_domains, File "./Views/Ey_re_scat.pos"/*, Smoothing */];
+        Print [ ez_re_scat  , OnElementsOf All_domains, File "./Views/Ez_re_scat.pos"/*, Smoothing */];
+        Print [ ex_im_scat  , OnElementsOf All_domains, File "./Views/Ex_im_scat.pos"/*, Smoothing */];
+        Print [ ey_im_scat  , OnElementsOf All_domains, File "./Views/Ey_im_scat.pos"/*, Smoothing */];
+        Print [ ez_im_scat  , OnElementsOf All_domains, File "./Views/Ez_im_scat.pos"/*, Smoothing */];
+        Print [ inc         , OnElementsOf All_domains, File "./Views/inc.pos"/*, Smoothing */];
+        Print [ normE2      , OnElementsOf All_domains, File "./Views/normE2.pos"/*, Smoothing*/];
 
 /*        */
 /*        */

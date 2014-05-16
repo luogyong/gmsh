@@ -6,8 +6,14 @@
 #include "System.h"
 #include "SystemHelper.h"
 
+#include "FunctionSpaceScalar.h"
+#include "FunctionSpaceVector.h"
+
 #include "FormulationSteadyWave.h"
 #include "FormulationPML.h"
+
+#include "Interpolator.h"
+#include "NodeSolution.h"
 
 #include "Timer.h"
 #include "SmallFem.h"
@@ -33,6 +39,8 @@ public:
   static void        setK(double k);
   static Complex    fMass(fullVector<double>& xyz);
   static void  fStiffness(fullVector<double>& xyz, fullMatrix<Complex>& tensor);
+  static void  fOverStiffness(fullVector<double>& xyz,
+                              fullMatrix<Complex>& tensor);
 
 private:
   static double  DampingProfileX(fullVector<double>& xyz);
@@ -52,6 +60,36 @@ double PMLData::SizePMLX  = SizePML;
 double PMLData::SizePMLY  = SizePML;
 double PMLData::Xmax      = 10;
 double PMLData::Ymax      = 10;
+
+fullVector<Complex> fVolVec(fullVector<double>& xyz){
+  fullVector<Complex> ret(3);
+
+  ret(0) = Complex(0, 0);
+  ret(1) = Complex(0, 0);
+  ret(2) = Complex(0, 0);
+
+  return ret;
+}
+
+fullVector<Complex> fSourceVec(fullVector<double>& xyz){
+  fullVector<Complex> ret(3);
+
+  ret(0) = Complex(0, 0);
+  ret(1) = Complex(1, 0);
+  ret(2) = Complex(0, 0);
+
+  return ret;
+}
+
+fullVector<Complex> fInfinityVec(fullVector<double>& xyz){
+  fullVector<Complex> ret(3);
+
+  ret(0) = Complex(0, 0);
+  ret(1) = Complex(0, 0);
+  ret(2) = Complex(0, 0);
+
+  return ret;
+}
 
 Complex fSourceScal(fullVector<double>& xyz){
   return Complex(1, 0);
@@ -88,21 +126,26 @@ void compute(const Options& option){
   Complex (*fMass)(fullVector<double>& xyz)     = PMLData::fMass;
   void    (*fStif)(fullVector<double>& xyz,
                    fullMatrix<Complex>& tensor) = PMLData::fStiffness;
+  void    (*fOverStif)(fullVector<double>& xyz,
+                       fullMatrix<Complex>& tensor) = PMLData::fOverStiffness;
 
   // Formulation //
   assemble.start();
-  FunctionSpaceScalar fs(domain, order);
-
+  FunctionSpaceVector fs(domain, order);
+  /*
   FormulationSteadyWave<Complex> wave(volume, fs, k);
   FormulationPML pml(outerSpace, fs, k, fStif, fMass);
+  */
+  FormulationSteadyWave<Complex> wave(volume,    fs, k);
+  FormulationSteadyWave<Complex> pml(outerSpace, fs, k, fOverStif, fStif, fVolVec);
 
   // System //
   System<Complex> sys;
   sys.addFormulation(wave);
   sys.addFormulation(pml);
 
-  SystemHelper<Complex>::dirichlet(sys, fs, source,   fSourceScal);
-  SystemHelper<Complex>::dirichlet(sys, fs, infinity, fInfinityScal);
+  SystemHelper<Complex>::dirichlet(sys, fs, source,   fSourceVec);
+  //SystemHelper<Complex>::dirichlet(sys, fs, infinity, fInfinityVec);
 
   cout << "Free Space (Order: "  << order
        << " --- Wavenumber: "    << k
@@ -128,6 +171,54 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
+
+    // Get Dofs In //
+    set<Dof> dof;
+    fs.getKeys(volume, dof);
+
+    set<Dof>::iterator    end = dof.end();
+    set<Dof>::iterator     it = dof.begin();
+    map<Dof, Complex>   solIn;
+
+    for(; it != end; it++)
+      solIn.insert(pair<Dof, Complex>(*it, 0));
+
+    sys.getSolution(solIn, 0);
+
+    // Get Dofs Out //
+    dof.clear();
+    fs.getKeys(outerSpace, dof);
+    map<Dof, Complex> solOut;
+
+    it  = dof.begin();
+    end = dof.end();
+
+    for(; it != end; it++)
+      solOut.insert(pair<Dof, Complex>(*it, 0));
+
+    sys.getSolution(solOut, 0);
+
+    // Get Visu Mesh //
+    Mesh           visuMsh(option.getValue("-ref")[1]);
+    GroupOfElement visuGoeIn  = visuMsh.getFromPhysical(7);
+    GroupOfElement visuGoeOut = visuMsh.getFromPhysical(8);
+
+    // Vertex, Value Map //
+    std::map<const MVertex*, vector<Complex> > mapOut;
+    Interpolator<Complex>::interpolate(outerSpace, visuGoeOut, fs, solOut, mapOut);
+
+    std::map<const MVertex*, vector<Complex> > mapIn;
+    Interpolator<Complex>::interpolate(volume, visuGoeIn, fs, solIn, mapIn);
+
+    // Print //
+    NodeSolution<Complex> nSolOut;
+    nSolOut.addNodeValue(0, 0, visuMsh, mapOut);
+    nSolOut.write("pmlRefOut");
+
+    NodeSolution<Complex> nSolIn;
+    nSolIn.addNodeValue(0, 0, visuMsh, mapIn);
+    nSolIn.write("pmlRefIn");
+
     FEMSolution<Complex> feSolIn;
     FEMSolution<Complex> feSolOut;
     sys.getSolution(feSolIn,  fs, volume);
@@ -145,7 +236,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-nopos");
+  SmallFem::Keywords("-msh,-o,-k,-ref,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
@@ -197,5 +288,14 @@ void PMLData::fStiffness(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
 
   tensor(0, 0) = Ky(xyz) / Kx(xyz);
   tensor(1, 1) = Kx(xyz) / Ky(xyz);
+  tensor(2, 2) = Complex(0, 0);
+}
+
+void PMLData::fOverStiffness(fullVector<double>& xyz,
+                             fullMatrix<Complex>& tensor){
+  tensor.scale(0);
+
+  tensor(0, 0) = Kx(xyz) / Ky(xyz);
+  tensor(1, 1) = Ky(xyz) / Kx(xyz);
   tensor(2, 2) = Complex(0, 0);
 }

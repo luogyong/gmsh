@@ -29,6 +29,13 @@ class Interpolator{
                           const std::map<Dof, scalar>& coef,
                           const fullMatrix<double>& point,
                           fullMatrix<scalar>& values);
+
+  static void interpolate(const GroupOfElement& goe,
+                          const GroupOfElement& point,
+                          const FunctionSpace& fs,
+                          const std::map<Dof, scalar>& coef,
+                          std::map<const MVertex*,
+                                   std::vector<scalar> >& values);
  private:
   static void interpolate(const MElement& element,
                           const FunctionSpace& fs,

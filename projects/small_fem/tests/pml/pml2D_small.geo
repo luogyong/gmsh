@@ -2,10 +2,12 @@ r = 1;
 R = 10;
 D = 8;
 
-d   = 2;
-clr =      r / d;
-clR =      R / d;
-clD = (R + D) / d;
+d   = 1;
+dd  = 6;
+ddd = 8;
+clr =      r  / d;
+clR =      R  / ddd;
+clD = (R + D) / dd;
 
 Point(0) = { 0,  0, 0, clr};
 

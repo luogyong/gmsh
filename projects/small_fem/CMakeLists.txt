@@ -124,6 +124,7 @@ include_directories(
   postprocessing
   solver
   context
+  simulation
 
   ## Gmsh
   ${CMAKE_CURRENT_BINARY_DIR}/gmsh/Common
@@ -165,7 +166,7 @@ add_executable(lagr    simulation/Lagrange.cpp)
 add_executable(emode   simulation/EigenMode.cpp)
 
 add_executable(pml simulation/Pml.cpp)
-add_executable(dif simulation/Diffraction.cpp)
+add_executable(dif simulation/Diffraction.cpp simulation/DiffractionHelper.cpp)
 add_executable(ddm simulation/Ddm.cpp)
 add_executable(cir simulation/DdmCircle.cpp)
 

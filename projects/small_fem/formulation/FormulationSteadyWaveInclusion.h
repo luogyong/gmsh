@@ -150,7 +150,7 @@ template<typename scalar>
 scalar FormulationSteadyWave<scalar>::
 rhs(size_t equationI, size_t elementId) const{
   if(src)
-    return src->getTerm(0, equationI, elementId) * -1.0;
+    return src->getTerm(0, equationI, elementId);
   else
     return 0;
 }
