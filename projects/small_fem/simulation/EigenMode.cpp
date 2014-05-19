@@ -18,17 +18,17 @@ static const size_t vect = 1;
 void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
   tensor.scale(0);
 
-  tensor(0, 0) = Complex(xyz(0) + 10, 0);
-  tensor(1, 1) = Complex(xyz(1) + 10, 0);
-  tensor(2, 2) = Complex(xyz(2) + 10, 0);
+  tensor(0, 0) = Complex(xyz(0) + 10, xyz(0) - 10);
+  tensor(1, 1) = Complex(xyz(1) + 10, xyz(1) - 10);
+  tensor(2, 2) = Complex(xyz(2) + 10, xyz(2) - 10);
 }
 
 void eps(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
   tensor.scale(0);
 
-  tensor(0, 0) = Complex(xyz(0) + 10, 0);
-  tensor(1, 1) = Complex(xyz(1) + 10, 0);
-  tensor(2, 2) = Complex(xyz(2) + 10, 0);
+  tensor(0, 0) = Complex(xyz(0) + 10, xyz(0) - 10);
+  tensor(1, 1) = Complex(xyz(1) + 10, xyz(1) - 10);
+  tensor(2, 2) = Complex(xyz(2) + 10, xyz(2) - 10);
 }
 
 /*

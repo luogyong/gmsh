@@ -10,6 +10,7 @@
 
 template<typename scalar>
 FEMSolution<scalar>::FEMSolution(void){
+  isModulusPhase = false;
   pView = new PViewDataGModel(PViewDataGModel::ElementNodeData);
 }
 
@@ -17,6 +18,16 @@ template<typename scalar>
 FEMSolution<scalar>::~FEMSolution(void){
   pView->destroyData();
   delete pView;
+}
+
+template<typename scalar>
+void FEMSolution<scalar>::setModulusPhase(void){
+  isModulusPhase = true;
+}
+
+template<typename scalar>
+void FEMSolution<scalar>::setRealImaginary(void){
+  isModulusPhase = false;
 }
 
 template<typename scalar>

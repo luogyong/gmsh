@@ -117,11 +117,21 @@ toPView(GModel& model, map<int, vector<complex<double> > >& data,
     vector<double> vReal(nCoef);
     vector<double> vImag(nCoef);
 
-    for(size_t i = 0; i < nCoef; i++)
-      vReal[i] = it->second[i].real();
+    if(isModulusPhase){
+      for(size_t i = 0; i < nCoef; i++)
+        vReal[i] = std::abs(it->second[i]);
 
-    for(size_t i = 0; i < nCoef; i++)
-      vImag[i] = it->second[i].imag();
+      for(size_t i = 0; i < nCoef; i++)
+        vImag[i] = std::arg(it->second[i]);
+    }
+
+    else{
+      for(size_t i = 0; i < nCoef; i++)
+        vReal[i] = it->second[i].real();
+
+      for(size_t i = 0; i < nCoef; i++)
+        vImag[i] = it->second[i].imag();
+    }
 
     real.insert(pair<int, vector<double> >(eNum, vReal));
     imag.insert(pair<int, vector<double> >(eNum, vImag));

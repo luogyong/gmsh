@@ -221,8 +221,12 @@ void compute(const Options& option){
 
     FEMSolution<Complex> feSolIn;
     FEMSolution<Complex> feSolOut;
+    feSolIn.setModulusPhase();
+    feSolOut.setModulusPhase();
+
     sys.getSolution(feSolIn,  fs, volume);
     sys.getSolution(feSolOut, fs, outerSpace);
+
     feSolIn.write("pmlIn");
     feSolOut.write("pmlOut");
   }

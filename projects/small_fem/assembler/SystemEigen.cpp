@@ -135,8 +135,8 @@ void SystemEigen::assemble(void){
   }
 
   /*
-  tmpA.writeToMatlabFile("Asf.m", "Asf");
-  tmpB.writeToMatlabFile("Bsf.m", "Bsf");
+  tmpA.writeToMatlabFile("Asf_mat.m", "Asf");
+  tmpB.writeToMatlabFile("Bsf_mat.m", "Bsf");
   */
 
   // The SystemEigen is assembled //

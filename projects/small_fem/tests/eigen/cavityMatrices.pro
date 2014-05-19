@@ -10,8 +10,15 @@ Function{
   //Eps[] = TensorDiag[1, 2, 3];
   //Nu[]  = TensorDiag[1, 2, 3];
 
-  Eps[] = TensorDiag[X[] + 10, Y[] + 10, Z[] + 10];
-  Nu[]  = TensorDiag[X[] + 10, Y[] + 10, Z[] + 10];
+  I[] = Complex[0, 1];
+
+  Eps[] = TensorDiag[(X[] + 10) + I[] * (X[] - 10),
+                     (Y[] + 10) + I[] * (Y[] - 10),
+                     (Z[] + 10) + I[] * (Z[] - 10)];
+
+  Nu[]  = TensorDiag[(X[] + 10) + I[] * (X[] - 10),
+                     (Y[] + 10) + I[] * (Y[] - 10),
+                     (Z[] + 10) + I[] * (Z[] - 10)];
 }
 
 Jacobian {
@@ -107,7 +114,7 @@ Formulation {
 Resolution {
   { Name Maxwell_A ;
     System {
-      { Name A ; NameOfFormulation Maxwell_A ; }
+      { Name A ; NameOfFormulation Maxwell_A ; Type Complex ;}
     }
     Operation {
       Generate[A] ; Print[A] ;
@@ -116,7 +123,7 @@ Resolution {
 
   { Name Maxwell_B ;
     System {
-      { Name B ; NameOfFormulation Maxwell_B ; }
+      { Name B ; NameOfFormulation Maxwell_B ; Type Complex ;}
     }
     Operation {
       Generate[B] ; Print[B] ;

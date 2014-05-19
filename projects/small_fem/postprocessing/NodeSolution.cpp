@@ -68,13 +68,13 @@ addNodeValue(size_t step,
   vector<double> tmpImag(nComp);
 
   for(; it != end; it++){
-    tmpReal[0] = it->second.at(0).real();
-    tmpReal[1] = it->second.at(1).real();
-    tmpReal[2] = it->second.at(2).real();
+    tmpReal[0] = std::abs(it->second.at(0));//.real();
+    tmpReal[1] = std::abs(it->second.at(1));//.real();
+    tmpReal[2] = std::abs(it->second.at(2));//.real();
 
-    tmpImag[0] = it->second.at(0).imag();
-    tmpImag[1] = it->second.at(1).imag();
-    tmpImag[2] = it->second.at(2).imag();
+    tmpImag[0] = std::arg(it->second.at(0));//.imag();
+    tmpImag[1] = std::arg(it->second.at(1));//.imag();
+    tmpImag[2] = std::arg(it->second.at(2));//.imag();
 
     gmshDataReal.insert
       (pair<int, vector<double> >(it->first->getNum(), tmpReal));

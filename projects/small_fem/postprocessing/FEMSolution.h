@@ -27,11 +27,15 @@
 template<typename scalar>
 class FEMSolution{
  private:
+  bool             isModulusPhase;
   PViewDataGModel* pView;
 
  public:
    FEMSolution(void);
   ~FEMSolution(void);
+
+  void setModulusPhase(void);
+  void setRealImaginary(void);
 
   void clear(void);
   void addCoefficients(size_t step,
@@ -56,11 +60,21 @@ class FEMSolution{
 
 /**
    @fn FEMSolution::FEMSolution
-   Instanciates a new FEMSolution which is empty
+   Instanciates a new FEMSolution which is empty, and calls setRealImaginary
    **
 
    @fn FEMSolution::~FEMSolution
    Deletes this FEMSolution
+   **
+
+   @fn FEMSolution::setModulusPhase
+   This FEMSolution will use complex number in a modulus - phase fashion
+   (no impact on real FEMSolution)
+   **
+
+   @fn FEMSolution::setRealImaginary
+   This FEMSolution will use complex number in a real - imaginary part fashion
+   (no impact on real FEMSolution)
    **
 
    @fn FEMSolution::clear
