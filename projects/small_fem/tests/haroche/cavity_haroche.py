@@ -1,8 +1,8 @@
-import os
-#import scipy as sc
-#import scipy.io as sio
+import os 
+import scipy as sc
+import scipy.io as sio
 import numpy as np
-#import pylab as pl
+import pylab as pl
 import sys
 pi    = np.pi
 # os.system('rm '+str_path+'/*.pos')
@@ -14,8 +14,8 @@ pi    = np.pi
 
 
 #### your configuration (nproc is your number of available processors)
-str_gmsh_path    = ''
-str_getdp_path   = ''
+str_gmsh_path    = '~/programs/gmsh/Gmsh-2.8.4-stable.app/Contents/MacOS/'
+str_getdp_path   = '~/programs/getdp/getdp_build_svn/'
 str_mesh_filename = 'haroche.msh'
 str_pro_filename  = 'cavity_haroche.pro'
 
@@ -38,7 +38,7 @@ eig_target= (2.*np.pi*cel/lambda_vp)**2
 print eig_target
 #### write all above variables in a text file, used as an input to both gmsh and getdp
 par_gmsh_getdp =open('parameters_gmsh_getdp.dat', 'w')
-par_gmsh_getdp.write('nm      		 = %3.15e;\n'%(nm))
+par_gmsh_getdp.write('nm      		 = %3.15e;\n'%(nm))        
 par_gmsh_getdp.write('epsilon0  	 = %3.15e;\n'%(epsilon0))
 par_gmsh_getdp.write('mu0  		     = %3.15e;\n'%(mu0))
 par_gmsh_getdp.write('cel    		 = %3.15e;\n'%(cel))
@@ -71,15 +71,15 @@ os.system(str_gmsh_path+'gmsh geometry_haroche_realistic.geo -3 -o '+str_mesh_fi
 os.system(str_getdp1+str_slepc_options)
 # os.system(str_getdp2);
 # # os.system(str_getdp2_adj);
-#
+# 
 # os.system(str_gmsh_path+'gmsh  FEMfile3_nanowire_periodic_surf.geo eigenVectors_Xcomp.pos eigenVectors_Ycomp.pos eigenVectors_Zcomp.pos '+str_mesh_filename)
 ###
 vp_real = np.loadtxt('./EigenValuesReal.txt',usecols=[5])
 vp_imag = np.loadtxt('./EigenValuesImag.txt',usecols=[5])
 
 omega2=(vp_real+1j*vp_imag)**2
-#pl.plot(np.sqrt(-omega2.real).sort())
-#print np.sort(2*pi*cel/vp_real*1e9)
+pl.plot(np.sqrt(-omega2.real).sort())
+print np.sort(2*pi*cel/vp_real*1e9)
 # pl.figure()
 # pl.plot(vp_real,vp_imag,'o')
 # pl.figure()
@@ -87,10 +87,10 @@ omega2=(vp_real+1j*vp_imag)**2
 # pl.show()
 
 omega_real_sort = np.sort(-omega2.real)
-#pl.figure()
-#pl.plot(omega_real_sort,'o')
+pl.figure()
+pl.plot(omega_real_sort,'o')
 # pl.figure()
 # pl.plot(omega2.imag,'-')
-#pl.show()
+pl.show()
 # vp_real_adj = np.loadtxt('./EigenValuesReal_adj.txt',usecols=[5])
 # vp_imag_adj = np.loadtxt('./EigenValuesImag_adj.txt',usecols=[5])
