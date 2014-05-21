@@ -167,6 +167,7 @@ add_executable(emode   simulation/EigenMode.cpp)
 
 add_executable(pml simulation/Pml.cpp)
 add_executable(dif simulation/Diffraction.cpp simulation/DiffractionHelper.cpp)
+add_executable(har simulation/Haroche.cpp simulation/HarocheHelper.cpp)
 add_executable(ddm simulation/Ddm.cpp)
 add_executable(cir simulation/DdmCircle.cpp)
 
@@ -187,6 +188,7 @@ target_link_libraries(emode sf)
 
 target_link_libraries(pml sf)
 target_link_libraries(dif sf)
+target_link_libraries(har sf)
 target_link_libraries(ddm sf)
 target_link_libraries(cir sf)
 

@@ -5,6 +5,8 @@
 #include "SystemAbstract.h"
 #include "petscmat.h"
 
+#include "SmallFem.h"
+
 /**
    @class SystemEigen
    @brief This class assembles an eigenvalue system
@@ -23,35 +25,39 @@
    The Solver used is <a href="http://www.grycap.upv.es/slepc/">SLEPc</a>.
  */
 
-class SystemEigen: public SystemAbstract<std::complex<double> >{
+class SystemEigen: public SystemAbstract<Complex>{
  protected:
-  std::list<const FormulationBlock<std::complex<double> >*> formulationB;
+  std::list<const FormulationBlock<Complex>*> formulationB;
   bool general;
 
   Mat* A;
   Mat* B;
 
+  std::string whichEigenpair;
+  PetscScalar target;
+
   PetscInt nEigenValues;
-  fullVector<std::complex<double> >* eigenValue;
-  std::vector<fullVector<std::complex<double> > >* eigenVector;
+  fullVector<Complex>* eigenValue;
+  std::vector<fullVector<Complex> >* eigenVector;
 
  public:
   SystemEigen(void);
   virtual ~SystemEigen(void);
 
-  void addFormulationB(const Formulation<std::complex<double> >& formulation);
+  void addFormulationB(const Formulation<Complex>& formulation);
 
   virtual size_t getNComputedSolution(void)                             const;
-  virtual void   getSolution(fullVector<std::complex<double> >& sol,
-                             size_t nSol)                               const;
-  virtual void   getSolution(std::map<Dof, std::complex<double> >& sol,
-                             size_t nSol)                               const;
-  virtual void   getSolution(FEMSolution<std::complex<double> >& feSol,
+  virtual void   getSolution(fullVector<Complex>& sol, size_t nSol)     const;
+  virtual void   getSolution(std::map<Dof, Complex >& sol, size_t nSol) const;
+  virtual void   getSolution(FEMSolution<Complex>& feSol,
                              const FunctionSpace& fs,
                              const GroupOfElement& domain)              const;
 
   bool isGeneral(void) const;
-  void getEigenValues(fullVector<std::complex<double> >& eig) const;
+  void getEigenValues(fullVector<Complex>& eig) const;
+
+  void setWhichEigenpairs(std::string type);
+  void setTarget(Complex target);
   void setNumberOfEigenValues(size_t nEigenValues);
 
   virtual void assemble(void);
@@ -60,9 +66,9 @@ class SystemEigen: public SystemAbstract<std::complex<double> >{
   virtual void writeMatrix(std::string fileName,
                            std::string matrixName) const;
  private:
-  void assembleCom(SolverMatrix<std::complex<double> >& tmpMat,
-                   SolverVector<std::complex<double> >& tmpRHS,
-                   const FormulationBlock<std::complex<double> >& formulation,
+  void assembleCom(SolverMatrix<Complex>& tmpMat,
+                   SolverVector<Complex>& tmpRHS,
+                   const FormulationBlock<Complex>& formulation,
                    formulationPtr term);
 };
 

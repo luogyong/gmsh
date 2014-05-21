@@ -13,8 +13,12 @@ SystemEigen::SystemEigen(void){
   eigenValue  = NULL;
   eigenVector = NULL;
 
+  // Default //
+  whichEigenpair = string("smallest_magnitude");
+  target         = 0;
+  nEigenValues   = 10;
+
   // The SystemEigen is not assembled and not solved//
-  nEigenValues = 0;
   assembled    = false;
   solved       = false;
 }
@@ -169,27 +173,49 @@ void SystemEigen::solve(void){
 
   // Set Options //
   EPSSetDimensions(solver, nEigenValues, PETSC_DECIDE, PETSC_DECIDE);
-  EPSSetTolerances(solver, 1E-12, 1E6);
-  EPSSetWhichEigenpairs(solver, EPS_SMALLEST_MAGNITUDE);
+  EPSSetTolerances(solver, 1E-6, 100);
+
+  // Which Eigenpair //
+  if(!whichEigenpair.compare("smallest_magnitude")){
+    EPSSetWhichEigenpairs(solver, EPS_SMALLEST_MAGNITUDE);
+  }
+
+  else if(!whichEigenpair.compare("target_real")){
+    EPSSetWhichEigenpairs(solver, EPS_TARGET_REAL);
+    EPSSetTarget(solver, target);
+  }
+
+  else if(!whichEigenpair.compare("target_magnitude")){
+    EPSSetWhichEigenpairs(solver, EPS_TARGET_MAGNITUDE);
+    EPSSetTarget(solver, target);
+  }
+
+  else
+    throw
+      Exception("%s -- %s %s %s", "SystemEigen::solve",
+                                  "set SystemEigen::setWhichEigenpair()",
+                                  "to a legal value: set to",
+                                  whichEigenpair.c_str());
 
   // Use Krylov Schur Solver and MUMPS //
-  //KSP ksp; // Krylov subspace solver
-  //PC  pc;  // Preconditioner
-  //ST  st;  // Spectral transform
+  KSP ksp; // Krylov subspace solver
+  PC  pc;  // Preconditioner
+  ST  st;  // Spectral transform
 
   EPSSetType(solver, "krylovschur");
-  /*
+
   EPSGetST(solver, &st);
+  STSetType(st, STSINVERT);
   STGetKSP(st, &ksp);
 
   KSPSetType(ksp, "preonly");
   KSPGetPC(ksp, &pc);
   PCSetType(pc, "lu");
   PCFactorSetMatSolverPackage(pc, "mumps");
-  */
+
   // Override with PETSc Database //
   EPSSetFromOptions(solver);
-  //STSetFromOptions(st);
+  STSetFromOptions(st);
 
   // Solve //
   EPSSolve(solver);
@@ -233,6 +259,14 @@ bool SystemEigen::isGeneral(void) const{
 
 void SystemEigen::getEigenValues(fullVector<complex<double> >& eig) const{
   eig.setAsProxy(*eigenValue, 0, eigenValue->size());
+}
+
+void SystemEigen::setWhichEigenpairs(std::string type){
+  this->whichEigenpair = type;
+}
+
+void SystemEigen::setTarget(Complex target){
+  this->target = target.real() + PETSC_i * target.imag();
 }
 
 void SystemEigen::

@@ -73,9 +73,8 @@ void compute(const Options& option){
   domain.add(volume);
   domain.add(border);
 
-  // Get Parameters //
+  // Get Order //
   const size_t order = atoi(option.getValue("-o")[1].c_str());
-  const size_t nWave = atoi(option.getValue("-n")[1].c_str());
 
   // Get Type //
   size_t type;
@@ -121,7 +120,17 @@ void compute(const Options& option){
   sys.assemble();
 
   cout << "Solving..." << endl << flush;
-  sys.setNumberOfEigenValues(nWave);
+
+  // Set number of eigenvalue (if any, else default)
+  try{
+    const size_t nWave = atoi(option.getValue("-n")[1].c_str());
+    sys.setNumberOfEigenValues(nWave);
+  }
+
+  catch(...){
+  }
+
+  // Solve
   sys.solve();
 
   // Display //
