@@ -88,8 +88,9 @@ void compute(const Options& option){
 
   // FunctionSpace //
   const size_t order = atoi(option.getValue("-o")[1].c_str());
-
   FunctionSpaceVector fs(All_domains, order);
+
+  cout << "Number of Dofs: " << fs.getAllDofs().size() << endl;
 
   // Formulation //
   cout << "Assembling" << endl << flush;
