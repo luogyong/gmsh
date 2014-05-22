@@ -39,6 +39,7 @@ void compute(const Options& option){
   GroupOfElement Mirror = msh.getFromPhysical(148);
   GroupOfElement SurfYZ = msh.getFromPhysical(147);
   GroupOfElement SurfXZ = msh.getFromPhysical(146);
+  GroupOfElement SurfXY = msh.getFromPhysical(149);
 
   // Full Domain
   GroupOfElement All_domains(msh);
@@ -54,6 +55,7 @@ void compute(const Options& option){
 
   All_domains.add(SurfYZ);
   All_domains.add(SurfXZ);
+  All_domains.add(SurfXY);	
 
   // Full Volume
   GroupOfElement All_volumes(msh);
@@ -66,6 +68,12 @@ void compute(const Options& option){
   All_volumes.add(PMLxyz);
   All_volumes.add(PMLxz);
   All_volumes.add(PMLyz);
+
+  // Full Surface
+  GroupOfElement All_surfaces(msh);
+  All_surfaces.add(SurfYZ);
+  All_surfaces.add(SurfXZ);
+  All_surfaces.add(SurfXY);	
 
   // FunctionSpace //
   const size_t order = atoi(option.getValue("-o")[1].c_str());
@@ -177,7 +185,7 @@ void compute(const Options& option){
 
   catch(...){
     FEMSolution<Complex> feSol;
-    sys.getSolution(feSol, fs, All_volumes);
+    sys.getSolution(feSol, fs, All_surfaces);
     feSol.write("haroche");
   }
 }
