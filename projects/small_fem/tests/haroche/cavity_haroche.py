@@ -32,10 +32,14 @@ paramaille_pml  = lambda_m/3.
 paramaille_mir  = lambda_m/3.
 
 #### opto-geometric parameters
-lambda_vp = 5.8e-3
-neig      = 30
+#lambda_vp = 5.8e-3
+#eig_target= (2.*np.pi*cel/lambda_vp)**2
+freq_target = 51.099e9
+lambda_vp = cel/freq_target
 eig_target= (2.*np.pi*cel/lambda_vp)**2
-print eig_target
+
+neig = 70
+
 #### write all above variables in a text file, used as an input to both gmsh and getdp
 par_gmsh_getdp =open('parameters_gmsh_getdp.dat', 'w')
 par_gmsh_getdp.write('nm      		 = %3.15e;\n'%(nm))        
@@ -52,7 +56,7 @@ par_gmsh_getdp.write('neig       	 = %d    ;\n'%(neig))
 par_gmsh_getdp.close()
 
 ### define strings to be "oscommanded"
-str_getdp1        = str_getdp_path+'getdp '+str_pro_filename+' -pre all -msh  '+str_mesh_filename+' -cal -pos postop_eigenvectors -v 50 -bin'
+str_getdp1        = str_getdp_path+'getdp '+str_pro_filename+' -pre all -msh  '+str_mesh_filename+' -cal -pos postop_eigenvectors_full -v 50 -bin'
 str_slepc_options =  ' -eps_monitor -eps_view \
                 -eps_type krylovschur \
                -st_ksp_type preonly \
@@ -69,28 +73,29 @@ str_slepc_options =  ' -eps_monitor -eps_view \
 os.system(str_gmsh_path+'gmsh geometry_haroche_realistic.geo -3 -o '+str_mesh_filename)
 # ### calling getdp : preprocess and solve, using mpi if required
 os.system(str_getdp1+str_slepc_options)
-# os.system(str_getdp2);
-# # os.system(str_getdp2_adj);
-# 
-# os.system(str_gmsh_path+'gmsh  FEMfile3_nanowire_periodic_surf.geo eigenVectors_Xcomp.pos eigenVectors_Ycomp.pos eigenVectors_Zcomp.pos '+str_mesh_filename)
-###
+
 vp_real = np.loadtxt('./EigenValuesReal.txt',usecols=[5])
 vp_imag = np.loadtxt('./EigenValuesImag.txt',usecols=[5])
+print 'EigenFreq (GHz)', 2e9*np.pi*vp_real.transpose()
+print 'vp imag', vp_imag.transpose()
 
-omega2=(vp_real+1j*vp_imag)**2
-pl.plot(np.sqrt(-omega2.real).sort())
-print np.sort(2*pi*cel/vp_real*1e9)
+os.system(str_gmsh_path+'gmsh haroche_postplot.geo &')
+# os.system(str_gmsh_path+'gmsh eigenVectors_CompX_faces.pos geometry_haroche_realistic.geo &')
+
+# omega2=(vp_real+1j*vp_imag)**2
+# pl.plot(np.sqrt(-omega2.real).sort())
+# print np.sort(2*pi*cel/vp_real*1e9)
 # pl.figure()
 # pl.plot(vp_real,vp_imag,'o')
 # pl.figure()
 # pl.plot(-vp_real,-vp_imag,'o')
 # pl.show()
 
-omega_real_sort = np.sort(-omega2.real)
-pl.figure()
-pl.plot(omega_real_sort,'o')
+# omega_real_sort = np.sort(-omega2.real)
+# pl.figure()
+# pl.plot(omega_real_sort,'o')
 # pl.figure()
 # pl.plot(omega2.imag,'-')
-pl.show()
+# pl.show()
 # vp_real_adj = np.loadtxt('./EigenValuesReal_adj.txt',usecols=[5])
 # vp_imag_adj = np.loadtxt('./EigenValuesImag_adj.txt',usecols=[5])

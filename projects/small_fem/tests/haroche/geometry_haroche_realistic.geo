@@ -233,5 +233,6 @@ Physical Volume(145) = {132}; // PML YZ
 
 Physical Surface(146) = {2, 70, 72, 120};   // XOZ parallel faces (for sym, apply neumann/diri)
 Physical Surface(147) = {1, 112, 118, 114}; // YOZ parallel faces (for sym, apply neumann/diri)
+Physical Surface(149) = {8,64,66,68}; // XOY parallel faces (for sym, apply neumann/diri)
 Physical Surface(148) = {3};   // mirror
 Physical Point(1000000) = {1}; // YOZ parallel faces (for sym, apply neumann/diri)

@@ -13,6 +13,7 @@ Group {
 // 
 // 	Physical Surface(146) = {2, 70, 72, 120};   // XOZ parallel faces (for sym, apply neumann/diri)
 // 	Physical Surface(147) = {1, 112, 118, 114}; // YOZ parallel faces (for sym, apply neumann/diri)
+//  Physical Surface(149) = {8,64,66,68}; // XOY parallel faces (for sym, apply neumann/diri)
 //  Physical Surface(148) = {3};   // mirror 	
 	// SubDomains
 	Air     = Region[138];
@@ -30,7 +31,8 @@ Group {
 	Mirror    = Region[148];
 	SurfYZ    = Region[147];
 	SurfXZ    = Region[146];
-	
+	SurfXY    = Region[149];
+	Surf_post = Region[{SurfXY, SurfXZ, SurfYZ}];
 	
 	PrintPoint     = Region[1000000];
 }
@@ -123,6 +125,7 @@ Integration {
       { Type Gauss ;
         Case { 
           { GeoElement Point       ; NumberOfPoints   1 ; }
+          { GeoElement Triangle    ; NumberOfPoints   3 ; }  // 4 pour l'ordre 1 // 15 pour l'ordre 2
           { GeoElement Tetrahedron ; NumberOfPoints   4 ; }  // 4 pour l'ordre 1 // 15 pour l'ordre 2
         }
       }
@@ -190,6 +193,7 @@ PostProcessing {
 			{ Name EigenValuesReal;  Value { Local{ [$EigenvalueReal]; In PrintPoint; Jacobian JVol; } } }
 			{ Name EigenValuesImag;  Value { Local{ [$EigenvalueImag]; In PrintPoint; Jacobian JVol; } } }
 			{ Name u; Value { Local { [ {u} ] ; In All_domains; Jacobian JVol; } } }
+			{ Name ux; Value { Local { [ CompX[{u}] ] ; In Surf_post; Jacobian JSur; } } }
 			{ Name epsilon_XX; Value { Local { [ CompXX[epsilon[]] ] ; In All_domains; Jacobian JVol; } } }
 		}
 	}
@@ -198,12 +202,18 @@ PostProcessing {
 
 
 PostOperation {
-	{ Name postop_eigenvectors; NameOfPostProcessing postpro_eigenvectors ;
+	{ Name postop_eigenvectors_light; NameOfPostProcessing postpro_eigenvectors ;
+		Operation {
+			Print [EigenValuesReal, OnElementsOf PrintPoint, Format TimeTable, File "EigenValuesReal.txt"];
+			Print [EigenValuesImag, OnElementsOf PrintPoint, Format TimeTable, File "EigenValuesImag.txt"];
+			Print [ ux , OnElementsOf Surf_post, File "eigenVectors_CompX_faces.pos" , EigenvalueLegend];
+		}
+	}
+	{ Name postop_eigenvectors_full; NameOfPostProcessing postpro_eigenvectors ;
 		Operation {
 			Print [EigenValuesReal, OnElementsOf PrintPoint, Format TimeTable, File "EigenValuesReal.txt"];
 			Print [EigenValuesImag, OnElementsOf PrintPoint, Format TimeTable, File "EigenValuesImag.txt"];
 			Print [ u  , OnElementsOf All_domains, File "eigenVectors.pos"       , EigenvalueLegend];
-			// Print [ epsilon_XX  , OnElementsOf All_domains, File "epsilon_XX.pos"       , EigenvalueLegend];
 		}
 	}
 }
