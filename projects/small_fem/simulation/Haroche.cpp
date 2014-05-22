@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdio>
 
 #include "Mesh.h"
 #include "SystemEigen.h"
@@ -11,6 +12,16 @@
 #include "SmallFem.h"
 
 using namespace std;
+
+void dump(string filename, fullVector<Complex>& eig){
+  FILE* file = fopen(filename.c_str(), "w");
+
+  for(int i = 0; i < eig.size(); i++)
+    fprintf(file, "Eig Omega^2 %d:\t%.16e\t%.16e\n",
+            i, eig(i).real(), eig(i).imag());
+
+  fclose(file);
+}
 
 fullVector<Complex> fZero(fullVector<double>& xyz){
   fullVector<Complex> f(3);
@@ -55,7 +66,7 @@ void compute(const Options& option){
 
   All_domains.add(SurfYZ);
   All_domains.add(SurfXZ);
-  All_domains.add(SurfXY);	
+  All_domains.add(SurfXY);
 
   // Full Volume
   GroupOfElement All_volumes(msh);
@@ -73,7 +84,7 @@ void compute(const Options& option){
   GroupOfElement All_surfaces(msh);
   All_surfaces.add(SurfYZ);
   All_surfaces.add(SurfXZ);
-  All_surfaces.add(SurfXY);	
+  All_surfaces.add(SurfXY);
 
   // FunctionSpace //
   const size_t order = atoi(option.getValue("-o")[1].c_str());
@@ -177,6 +188,9 @@ void compute(const Options& option){
     cout << "#" << i + 1  << "\t"
          << std::scientific
          << eigenValue(i) << endl;
+
+  // Dump on disk
+  dump("eigenValues.txt", eigenValue);
 
   // Draw
   try{
