@@ -141,8 +141,25 @@ void compute(const Options& option){
   sys.addFormulationB(massZ);
 
   // Dirichlet //
+  // Mirror
   SystemHelper<Complex>::dirichlet(sys, fs, Mirror, fZero);
-  SystemHelper<Complex>::dirichlet(sys, fs, SurfYZ, fZero);
+
+  // Symmetry
+  try{
+    int sym = atoi(option.getValue("-sym")[1].c_str());
+
+    if(sym == 0)
+      SystemHelper<Complex>::dirichlet(sys, fs, SurfYZ, fZero);
+
+    else
+      SystemHelper<Complex>::dirichlet(sys, fs, SurfXZ, fZero);
+  }
+
+  catch(...){
+    // If no symmetry given, use YZ
+    cout << "No symmetry given: defaulting to YZ" << endl;
+    SystemHelper<Complex>::dirichlet(sys, fs, SurfYZ, fZero);
+  }
 
   // Assemble //
   sys.assemble();
@@ -207,7 +224,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-shift,-nopos");
+  SmallFem::Keywords("-msh,-o,-n,-shift,-sym,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

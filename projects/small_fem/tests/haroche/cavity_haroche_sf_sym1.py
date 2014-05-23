@@ -21,7 +21,8 @@ paramaille_mir  = lambda_m / refinement
 ## Solver Parameters ##
 neig      = 10
 geo_order = 2
-fem_order = 0
+fem_order = 2
+symmetry  = 1
 
 ## Eigen Problem Shift ##
 freq_target = 51.099e9
@@ -68,18 +69,21 @@ os.system('har'  + \
           ' -o %d'        %fem_order  + \
           ' -n %d'        %neig       + \
           ' -shift %3.5e' %eig_target + \
+          ' -sym %d'      %symmetry   + \
           ' -solver -eps_monitor')
 
 ## Renaming Output ##
 os.rename('haroche.msh', \
           'haroche_femorder_%d' %fem_order  + \
           '_geoorder_%d'        %geo_order  + \
-          '_paramaille_%d'      %refinement +'.msh')
+          '_paramaille_%d'      %refinement + \
+          '_sym_%d'             %symmetry   + '.msh')
 
 os.rename('eigenValues.txt', \
           'eigenValues_femorder_%d' %fem_order  + \
           '_geoorder_%d'            %geo_order  + \
-          '_paramaille_%d'          %refinement +'.txt')
+          '_paramaille_%d'          %refinement + \
+          '_sym_%d'                 %symmetry   + '.txt')
 
 ## Done ##
 stop = time.time()
