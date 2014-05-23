@@ -29,9 +29,6 @@ freq_target = 51.099e9
 lambda_vp   = cel / freq_target
 eig_target  = (2. * pi * cel / lambda_vp)**2
 
-print lambda_vp
-print lambda_m
-
 ## Start ##
 start = time.time()
 
