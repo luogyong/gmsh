@@ -5,9 +5,9 @@ import numpy
 # 2D mesh algorithm (1=MeshAdapt, 2=Automatic, 5=Delaunay, 6=Frontal, 7=bamg, 8=delquad)
 # 3D mesh algorithm (1=Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D)
 
-GmshSetOption('Mesh', 'CharacteristicLengthFactor', 0.9)
-GmshSetOption('Mesh', 'Algorithm', 1.0)
-GmshSetOption('Mesh', 'Algorithm3D',4.0)
+GmshSetOption('Mesh', 'Algorithm',    1.0)
+GmshSetOption('Mesh', 'Algorithm3D',  1.0)
+GmshSetOption('Mesh', 'ElementOrder', 2.0)
 
 ## Pyhsics ##
 #############
@@ -51,11 +51,13 @@ pml_z = lambda_haroche
 ## Mesh Parameters ##
 #####################
 ## Mesh Size
-refinement      = 3.
+refinement_air  = 7.
+refinement_pml  = 5.
+refinement_mir  = 10.
 
-paramaille_air  = lambda_haroche / refinement
-paramaille_pml  = lambda_haroche / refinement
-paramaille_mir  = lambda_haroche / refinement
+paramaille_air  = lambda_haroche / refinement_air
+paramaille_pml  = lambda_haroche / refinement_pml
+paramaille_mir  = lambda_haroche / refinement_mir
 
 
 ## Geomtrical Model ##
@@ -79,89 +81,79 @@ myModel1.computeBooleanDifference(myModel3);
 myModel4.computeBooleanDifference(myModel1);
 
 ## Extrusion of boundary surface to get PML region
-face = myModel4.bindingsGetFaces()
-myModel4.extrude(face[8] , [0, 0, 0], [pml_x, 0, 0])
+myModel4.extrude(myModel4.getFaceByTag(9) , [0, 0, 0], [pml_x, 0, 0])
+myModel4.extrude(myModel4.getFaceByTag(12), [0, 0, 0], [0, 0, pml_z])
+myModel4.extrude(myModel4.getFaceByTag(8) , [0, 0, 0], [0, 0, pml_z])
+myModel4.extrude(myModel4.getFaceByTag(23), [0, 0, 0], [0, pml_y, 0])
+myModel4.extrude(myModel4.getFaceByTag(14), [0, 0, 0], [0, pml_y, 0])
+myModel4.extrude(myModel4.getFaceByTag(25), [0, 0, 0], [0, pml_y, 0])
+myModel4.extrude(myModel4.getFaceByTag(19), [0, 0, 0], [0, pml_y, 0])
 
-face = myModel4.bindingsGetFaces()
-myModel4.extrude(face[11], [0, 0, 0], [0, 0, pml_z])
-
-face = myModel4.bindingsGetFaces()
-myModel4.extrude(face[7] , [0, 0, 0], [0, 0, pml_z])
-
-face = myModel4.bindingsGetFaces()
-myModel4.extrude(face[22], [0, 0, 0], [0, pml_y, 0])
-
-face = myModel4.bindingsGetFaces()
-myModel4.extrude(face[13], [0, 0, 0], [0, pml_y, 0])
-
-face = myModel4.bindingsGetFaces()
-myModel4.extrude(face[24], [0, 0, 0], [0, pml_y, 0])
-
-face = myModel4.bindingsGetFaces()
-myModel4.extrude(face[18], [0, 0, 0], [0, pml_y, 0])
+myModel4.occconnect()
 
 ## Mesh size at Vertices
-vertex = myModel4.bindingsGetVertices()
-
-for i in range(1, len(vertex)):
+for i in range(1, myModel4.getNumVertices()):
     myModel4.getVertexByTag(i).setPrescribedMeshSizeAtVertex(paramaille_pml)
 
-vertex[36].setPrescribedMeshSizeAtVertex(paramaille_mir)
-vertex[37].setPrescribedMeshSizeAtVertex(paramaille_mir)
-vertex[41].setPrescribedMeshSizeAtVertex(paramaille_mir)
+myModel4.getVertexByTag(28).setPrescribedMeshSizeAtVertex(paramaille_mir)
+myModel4.getVertexByTag(29).setPrescribedMeshSizeAtVertex(paramaille_mir)
+myModel4.getVertexByTag(33).setPrescribedMeshSizeAtVertex(paramaille_mir)
 
-vertex[0].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[10].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[17].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[22].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[26].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[30].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[33].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[35].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[38].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[39].setPrescribedMeshSizeAtVertex(paramaille_air)
-vertex[40].setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(1).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(3).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(5).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(7).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(9).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(11).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(18).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(27).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(30).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(31).setPrescribedMeshSizeAtVertex(paramaille_air)
+myModel4.getVertexByTag(32).setPrescribedMeshSizeAtVertex(paramaille_air)
 
-## Physical Entites
+
+## Physical Entites ##
+######################
 myModel4.getRegionByTag(8).addPhysicalEntity(138)  # Air
-myModel4.getRegionByTag(7).addPhysicalEntity(139)  # PML X
+myModel4.getRegionByTag(1).addPhysicalEntity(139)  # PML X
 myModel4.getRegionByTag(4).addPhysicalEntity(141)  # PML Y
-myModel4.getRegionByTag(6).addPhysicalEntity(142)  # PML Z
-myModel4.getRegionByTag(2).addPhysicalEntity(140)  # PML XY
+myModel4.getRegionByTag(2).addPhysicalEntity(142)  # PML Z
+myModel4.getRegionByTag(6).addPhysicalEntity(140)  # PML XY
 myModel4.getRegionByTag(3).addPhysicalEntity(145)  # PML XZ
 myModel4.getRegionByTag(5).addPhysicalEntity(144)  # PML YZ
-myModel4.getRegionByTag(1).addPhysicalEntity(143)  # PML XYZ
+myModel4.getRegionByTag(7).addPhysicalEntity(143)  # PML XYZ
 
-myModel4.getFaceByTag(40).addPhysicalEntity(146)   # XOZ
-myModel4.getFaceByTag(32).addPhysicalEntity(146)   # XOZ
-myModel4.getFaceByTag(25).addPhysicalEntity(146)   # XOZ
+myModel4.getFaceByTag(1).addPhysicalEntity(146)    # XOZ
+myModel4.getFaceByTag(10).addPhysicalEntity(146)   # XOZ
+myModel4.getFaceByTag(14).addPhysicalEntity(146)   # XOZ
 myModel4.getFaceByTag(35).addPhysicalEntity(146)   # XOZ
 
-myModel4.getFaceByTag(39).addPhysicalEntity(147)   # YOZ
-myModel4.getFaceByTag(22).addPhysicalEntity(147)   # YOZ
-myModel4.getFaceByTag(14).addPhysicalEntity(147)   # YOZ
-myModel4.getFaceByTag(30).addPhysicalEntity(147)   # YOZ
+myModel4.getFaceByTag(7).addPhysicalEntity(147)    # YOZ
+myModel4.getFaceByTag(20).addPhysicalEntity(147)   # YOZ
+myModel4.getFaceByTag(24).addPhysicalEntity(147)   # YOZ
+myModel4.getFaceByTag(34).addPhysicalEntity(147)   # YOZ
 
-myModel4.getFaceByTag(8).addPhysicalEntity(149)    # XOY
-myModel4.getFaceByTag(44).addPhysicalEntity(149)   # XOY
-myModel4.getFaceByTag(36).addPhysicalEntity(149)   # XOY
-myModel4.getFaceByTag(19).addPhysicalEntity(149)   # XOY
+myModel4.getFaceByTag(4).addPhysicalEntity(149)    # XOY
+myModel4.getFaceByTag(17).addPhysicalEntity(149)   # XOY
+myModel4.getFaceByTag(28).addPhysicalEntity(149)   # XOY
+myModel4.getFaceByTag(39).addPhysicalEntity(149)   # XOY
 
-myModel4.getFaceByTag(41).addPhysicalEntity(148)   # Mirror
+myModel4.getFaceByTag(36).addPhysicalEntity(148)   # Mirror
 
 myModel4.getVertexByTag(1).addPhysicalEntity(1000000) # Dummy point for GetDP
 
 
-## Mesh ##
-##########
+## Mesh & Save ##
+#################
 myModel4.mesh(3)
-myModel4.save("haroche_mesh.msh")
+myModel4.save("haroche.msh")
+myModel4.save("haroche.brep")
 
 
 ## Display ##
 #############
-myModel4.setAsCurrent();
-myModel4.setVisibility(1);
-FlGui.instance()
-FlGui.run()
-FlGui.close()
+# myModel4.setAsCurrent();
+# myModel4.setVisibility(1);
+# FlGui.instance()
+# FlGui.run()
+# FlGui.close()
