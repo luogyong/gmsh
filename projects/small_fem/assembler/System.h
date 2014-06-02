@@ -2,6 +2,7 @@
 #define _SYSTEM_H_
 
 #include "SystemAbstract.h"
+#include "SolverMUMPS.h"
 
 /**
    @class System
@@ -20,6 +21,8 @@ class System: public SystemAbstract<scalar>{
   SolverVector<scalar>* b;
   fullVector<scalar>*   x;
 
+  SolverMUMPS<scalar> solver;
+
  public:
   System(void);
   virtual ~System(void);
@@ -34,6 +37,9 @@ class System: public SystemAbstract<scalar>{
   virtual void assemble(void);
   virtual void solve(void);
 
+  void assembleAgainRHS(void);
+  void solveAgain(void);
+
   virtual void writeMatrix(std::string fileName,
                            std::string matrixName) const;
 };
@@ -46,6 +52,21 @@ class System: public SystemAbstract<scalar>{
 
    @fn System::~System
    Deletes this System
+   **
+
+   @fn System::assembleAgainRHS
+   This method reassemble the right hand sides of the Formulation%s given by
+   System::addFormulation().
+
+   This method works only if the full system was already assembled by
+   System::assemble().
+   **
+
+   @fn System::solveAgain
+   This method solve the new system given by System::assembleAgainRHS.
+
+   This method works only if the full sysem was already solved by
+   System::solve().
 */
 
 //////////////////////////////////////

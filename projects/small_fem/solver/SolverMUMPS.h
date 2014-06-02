@@ -3,11 +3,11 @@
 
 #include <vector>
 
-#include "Solver.h"
 #include "mumps_c_types.h"
 #include "dmumps_c.h"
 #include "zmumps_c.h"
 
+#include "Solver.h"
 #include "SmallFem.h"
 
 /**

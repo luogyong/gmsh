@@ -53,6 +53,7 @@ class SolverDDM{
   std::map<Dof, Complex>* rhs;
 
   typedef struct{
+    bool once;
     int myId;
     DDMContext* DDMctx;
     const GroupOfElement* dirichlet;

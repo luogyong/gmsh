@@ -127,3 +127,23 @@ assemble(SolverMatrix<scalar>& A,
     }
   }
 }
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+assembleRHSOnly(SolverVector<scalar>& b,
+                size_t elementId,
+                const std::vector<Dof>& dofTest,
+                const FormulationBlock<scalar>& formulation){
+
+  const size_t N = dofTest.size();
+  size_t dofI;
+
+  for(size_t i = 0; i < N; i++){
+    dofI = dofM.getGlobalId(dofTest[i]);
+
+    // If not a fixed Dof line: assemble
+    if(dofI != DofManager<scalar>::isFixedId())
+      b.add(dofI, formulation.rhs(i, elementId));
+
+  }
+}

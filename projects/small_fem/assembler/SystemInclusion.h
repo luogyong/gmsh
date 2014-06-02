@@ -5,8 +5,6 @@
 // Damn you gcc: we want 'export' !      //
 ///////////////////////////////////////////
 
-#include "SolverMUMPS.h"
-
 template<typename scalar>
 System<scalar>::System(void){
   // Init //
@@ -80,13 +78,53 @@ void System<scalar>::solve(void){
     assemble();
 
   // Use SolverMUMPS //
-  SolverMUMPS<scalar> solver;
-  x = new fullVector<scalar>;
-
-  solver.solve(*A, *b, *x);
+  x = new fullVector<scalar>;     // RHS memory
+  this->solver.solve(*A, *b, *x); // Solve
 
   // System solved ! //
   this->solved = true;
+}
+
+template<typename scalar>
+void System<scalar>::assembleAgainRHS(void){
+  // Is the full system assembled ? //
+  if(!this->assembled)
+    throw Exception
+      ("System::assembleAgainRHS() needs a first call to System::assemble()");
+
+  // Set RHS to zero //
+  this->b->reset();
+
+  // Iterate on Formulations //
+  typename std::list<const FormulationBlock<scalar>*>::iterator it =
+    this->formulation.begin();
+
+  typename std::list<const FormulationBlock<scalar>*>::iterator end =
+    this->formulation.end();
+
+  for(; it != end; it++){
+    // Get All Dofs (Test only) per Element
+    std::vector<std::vector<Dof> > dofTest;
+    (*it)->test().getKeys((*it)->domain(), dofTest);
+
+    // Assemble
+    const size_t E = dofTest.size();
+
+    #pragma omp parallel for
+    for(size_t i = 0; i < E; i++)
+      SystemAbstract<scalar>::assembleRHSOnly(*b, i, dofTest[i], **it);
+  }
+}
+
+template<typename scalar>
+void System<scalar>::solveAgain(void){
+  // Is the full system solved ? //
+  if(!this->solved)
+    throw Exception
+      ("System::solveAgain() needs a first call to System::solve()");
+
+  this->solver.setRHS(*b);
+  this->solver.solve(*x);
 }
 
 template<typename scalar>

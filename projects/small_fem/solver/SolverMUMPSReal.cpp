@@ -1,5 +1,3 @@
-#include <complex>
-
 #include "SolverMUMPS.h"
 #include "Exception.h"
 #include "mpi.h"

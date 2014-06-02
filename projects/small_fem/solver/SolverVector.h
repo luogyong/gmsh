@@ -32,6 +32,7 @@ class SolverVector{
   size_t getNumberOfMutexWait(void) const;
   scalar get(size_t i) const;
 
+  void    reset(void);
   void    clear(void);
   void    resize(size_t size);
   void    add(size_t i, scalar value);
@@ -70,6 +71,10 @@ class SolverVector{
    @param i A valid index of this SolverVector
    @return Returns a @em copy of the value of this SolverVector
    stored at the ith index (stating at index 0)
+   **
+
+   @fn SolverVector::reset
+   Sets all this SolverVector entries to zero
    **
 
    @fn SolverVector::clear

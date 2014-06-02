@@ -53,6 +53,7 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   inValue.resize(size, 0);
 
   // FullContext //
+  this->fullCtx.once       = false;
   this->fullCtx.myId       = this->myId;
   this->fullCtx.DDMctx     = this->context;
   this->fullCtx.dirichlet  = this->dirichlet;
@@ -143,24 +144,30 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   context.setDDMDofs(ddmG);
   ddm.update();
 
-  // Volume Problem //
-  System<Complex> volume;
-  volume.addFormulation(wave);
-  volume.addFormulation(sommerfeld);
-  volume.addFormulation(ddm);
 
-  // Constraint
-  const GroupOfElement& dirichlet = *fullCtx->dirichlet;
-  const FunctionSpace&  fs        = *fullCtx->fs;
+  if(!fullCtx->once){
+    // Volume Problem //
+    System<Complex> volume;
+    volume.addFormulation(wave);
+    volume.addFormulation(sommerfeld);
+    volume.addFormulation(ddm);
 
-  SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZero);
+    // Constraint
+    const GroupOfElement& dirichlet = *fullCtx->dirichlet;
+    const FunctionSpace&  fs        = *fullCtx->fs;
 
-  // Assemble & Solve
-  volume.assemble();
-  volume.solve();
+    SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZero);
 
-  // Put new System in DDM Context //
-  context.setSystem(volume);
+    // Assemble & Solve
+    volume.assemble();
+    volume.solve();
+
+    // Put new System in DDM Context //
+    context.setSystem(volume);
+
+    // Once //
+    fullCtx->once = true;
+  }
 
   // Update G //
   upDdm.update(); // update volume solution (at DDM border)

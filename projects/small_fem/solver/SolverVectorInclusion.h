@@ -51,6 +51,12 @@ size_t SolverVector<scalar>::getNumberOfMutexWait(void) const{
 }
 
 template<typename scalar>
+void SolverVector<scalar>::reset(void){
+  for(size_t i = 0; i < N; i++)
+    v[i] = 0;
+}
+
+template<typename scalar>
 void SolverVector<scalar>::clear(void){
   if(lock)
     delete[] lock;

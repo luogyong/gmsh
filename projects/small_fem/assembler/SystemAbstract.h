@@ -76,6 +76,11 @@ class SystemAbstract{
                 const std::vector<Dof>& dofTest,
                 formulationPtr& term,
                 const FormulationBlock<scalar>& formulation);
+
+  void assembleRHSOnly(SolverVector<scalar>& b,
+                       size_t elementId,
+                       const std::vector<Dof>& dofTest,
+                       const FormulationBlock<scalar>& formulation);
 };
 
 
