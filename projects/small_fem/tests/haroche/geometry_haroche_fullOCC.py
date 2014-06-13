@@ -51,9 +51,9 @@ pml_z = lambda_haroche
 ## Mesh Parameters ##
 #####################
 ## Mesh Size
-refinement_air  = 7.
+refinement_air  = 5.
 refinement_pml  = 5.
-refinement_mir  = 10.
+refinement_mir  = 5.
 
 paramaille_air  = lambda_haroche / refinement_air
 paramaille_pml  = lambda_haroche / refinement_pml
@@ -139,6 +139,8 @@ myModel4.getFaceByTag(28).addPhysicalEntity(149)   # XOY
 myModel4.getFaceByTag(39).addPhysicalEntity(149)   # XOY
 
 myModel4.getFaceByTag(36).addPhysicalEntity(148)   # Mirror
+myModel4.getFaceByTag(37).addPhysicalEntity(148)   # Mirror
+myModel4.getFaceByTag(38).addPhysicalEntity(148)   # Mirror
 
 myModel4.getVertexByTag(1).addPhysicalEntity(1000000) # Dummy point for GetDP
 

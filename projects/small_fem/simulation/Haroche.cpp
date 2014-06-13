@@ -95,50 +95,59 @@ void compute(const Options& option){
   // Formulation //
   cout << "Assembling" << endl << flush;
 
-  FormulationStiffness<Complex> stifAir(Air, fs, fs, Material::Air::Nu);
-  FormulationMass<Complex>      massAir(Air, fs, fs, Material::Air::Epsilon);
+  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
+                                       (Air,    fs, fs, Material::Air::Nu);
+  Formulation<Complex>* stifXYZ = new FormulationStiffness<Complex>
+                                       (PMLxyz, fs, fs, Material::XYZ::Nu);
+  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
+                                       (PMLxy,  fs, fs, Material::XY::Nu);
+  Formulation<Complex>* stifYZ  = new FormulationStiffness<Complex>
+                                       (PMLyz,  fs, fs, Material::YZ::Nu);
+  Formulation<Complex>* stifXZ  = new FormulationStiffness<Complex>
+                                       (PMLxz,  fs, fs, Material::XZ::Nu);
+  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
+                                       (PMLx,   fs, fs, Material::X::Nu);
+  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
+                                       (PMLy,   fs, fs, Material::Y::Nu);
+  Formulation<Complex>* stifZ   = new FormulationStiffness<Complex>
+                                       (PMLz,   fs, fs, Material::Z::Nu);
 
-  FormulationStiffness<Complex> stifXYZ(PMLxyz, fs, fs, Material::XYZ::Nu);
-  FormulationMass<Complex>      massXYZ(PMLxyz, fs, fs, Material::XYZ::Epsilon);
-
-  FormulationStiffness<Complex> stifXY(PMLxy, fs, fs, Material::XY::Nu);
-  FormulationMass<Complex>      massXY(PMLxy, fs, fs, Material::XY::Epsilon);
-
-  FormulationStiffness<Complex> stifYZ(PMLyz, fs, fs, Material::YZ::Nu);
-  FormulationMass<Complex>      massYZ(PMLyz, fs, fs, Material::YZ::Epsilon);
-
-  FormulationStiffness<Complex> stifXZ(PMLxz, fs, fs, Material::XZ::Nu);
-  FormulationMass<Complex>      massXZ(PMLxz, fs, fs, Material::XZ::Epsilon);
-
-  FormulationStiffness<Complex> stifX(PMLx, fs, fs, Material::X::Nu);
-  FormulationMass<Complex>      massX(PMLx, fs, fs, Material::X::Epsilon);
-
-  FormulationStiffness<Complex> stifY(PMLy, fs, fs, Material::Y::Nu);
-  FormulationMass<Complex>      massY(PMLy, fs, fs, Material::Y::Epsilon);
-
-  FormulationStiffness<Complex> stifZ(PMLz, fs, fs, Material::Z::Nu);
-  FormulationMass<Complex>      massZ(PMLz, fs, fs, Material::Z::Epsilon);
-
+  Formulation<Complex>* massAir = new FormulationMass<Complex>
+                                       (Air,    fs, fs, Material::Air::Epsilon);
+  Formulation<Complex>* massXYZ = new FormulationMass<Complex>
+                                       (PMLxyz, fs, fs, Material::XYZ::Epsilon);
+  Formulation<Complex>* massXY  = new FormulationMass<Complex>
+                                       (PMLxy,  fs, fs, Material::XY::Epsilon);
+  Formulation<Complex>* massYZ  = new FormulationMass<Complex>
+                                       (PMLyz,  fs, fs, Material::YZ::Epsilon);
+  Formulation<Complex>* massXZ  = new FormulationMass<Complex>
+                                       (PMLxz,  fs, fs, Material::XZ::Epsilon);
+  Formulation<Complex>* massX   = new FormulationMass<Complex>
+                                       (PMLx,   fs, fs, Material::X::Epsilon);
+  Formulation<Complex>* massY   = new FormulationMass<Complex>
+                                       (PMLy,   fs, fs, Material::Y::Epsilon);
+  Formulation<Complex>* massZ   = new FormulationMass<Complex>
+                                       (PMLz,   fs, fs, Material::Z::Epsilon);
   // System //
   SystemEigen sys;
 
-  sys.addFormulation(stifAir);
-  sys.addFormulation(stifXYZ);
-  sys.addFormulation(stifXY);
-  sys.addFormulation(stifYZ);
-  sys.addFormulation(stifXZ);
-  sys.addFormulation(stifX);
-  sys.addFormulation(stifY);
-  sys.addFormulation(stifZ);
+  sys.addFormulation(*stifAir);
+  sys.addFormulation(*stifXYZ);
+  sys.addFormulation(*stifXY);
+  sys.addFormulation(*stifYZ);
+  sys.addFormulation(*stifXZ);
+  sys.addFormulation(*stifX);
+  sys.addFormulation(*stifY);
+  sys.addFormulation(*stifZ);
 
-  sys.addFormulationB(massAir);
-  sys.addFormulationB(massXYZ);
-  sys.addFormulationB(massXY);
-  sys.addFormulationB(massYZ);
-  sys.addFormulationB(massXZ);
-  sys.addFormulationB(massX);
-  sys.addFormulationB(massY);
-  sys.addFormulationB(massZ);
+  sys.addFormulationB(*massAir);
+  sys.addFormulationB(*massXYZ);
+  sys.addFormulationB(*massXY);
+  sys.addFormulationB(*massYZ);
+  sys.addFormulationB(*massXZ);
+  sys.addFormulationB(*massX);
+  sys.addFormulationB(*massY);
+  sys.addFormulationB(*massZ);
 
   // Dirichlet //
   // Mirror
@@ -163,6 +172,25 @@ void compute(const Options& option){
 
   // Assemble //
   sys.assemble();
+
+  // Free formulations //
+  delete stifAir;
+  delete stifXYZ;
+  delete stifXY;
+  delete stifYZ;
+  delete stifXZ;
+  delete stifX;
+  delete stifY;
+  delete stifZ;
+
+  delete massAir;
+  delete massXYZ;
+  delete massXY;
+  delete massYZ;
+  delete massXZ;
+  delete massX;
+  delete massY;
+  delete massZ;
 
   // Solve //
   cout << "Solving: " << sys.getSize() << endl << flush;
@@ -208,7 +236,7 @@ void compute(const Options& option){
          << eigenValue(i) << endl;
 
   // Dump on disk
-  dump("eigenValues.txt", eigenValue);
+  dump("harocheValues.txt", eigenValue);
 
   // Draw
   try{
@@ -218,7 +246,7 @@ void compute(const Options& option){
   catch(...){
     FEMSolution<Complex> feSol;
     sys.getSolution(feSol, fs, All_surfaces);
-    feSol.write("haroche");
+    feSol.write("harocheModes");
   }
 }
 

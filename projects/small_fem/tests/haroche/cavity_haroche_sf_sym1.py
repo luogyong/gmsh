@@ -73,13 +73,13 @@ os.system('har'  + \
           ' -solver -eps_monitor')
 
 ## Renaming Output ##
-os.rename('haroche.msh', \
+os.rename('harocheModes.msh', \
           'haroche_femorder_%d' %fem_order  + \
           '_geoorder_%d'        %geo_order  + \
           '_paramaille_%d'      %refinement + \
           '_sym_%d'             %symmetry   + '.msh')
 
-os.rename('eigenValues.txt', \
+os.rename('harocheValues.txt', \
           'eigenValues_femorder_%d' %fem_order  + \
           '_geoorder_%d'            %geo_order  + \
           '_paramaille_%d'          %refinement + \

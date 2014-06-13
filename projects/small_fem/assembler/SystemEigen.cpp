@@ -89,9 +89,9 @@ void SystemEigen::assemble(void){
   // Alloc Temp Sparse Matrices (not with PETSc) //
   const size_t size = dofM.getUnfixedDofNumber();
 
-  SolverVector<Complex> tmpRHS(size);
-  SolverMatrix<Complex> tmpA(size, size);
-  SolverMatrix<Complex> tmpB(size, size);
+  SolverVector<Complex>* tmpRHS = new SolverVector<Complex>(size);
+  SolverMatrix<Complex>* tmpA   = new SolverMatrix<Complex>(size, size);
+  SolverMatrix<Complex>* tmpB   = new SolverMatrix<Complex>(size, size);
 
   // Get Formulation Terms //
   formulationPtr term = &FormulationBlock<Complex>::weak;
@@ -103,42 +103,62 @@ void SystemEigen::assemble(void){
   it  = formulation.begin();
   end = formulation.end();
 
+  // Assemble tmpA
   for(; it != end; it++)
-    assembleCom(tmpA, tmpRHS, **it, term);
+    assembleCom(*tmpA, *tmpRHS, **it, term);
+
+  // Serialize tmpA & Free
+  vector<int>*              row = new vector<int>;
+  vector<int>*              col = new vector<int>;
+  vector<Complex>*        value = new vector<Complex>;
+  int                       nNZ;
+
+  nNZ =  tmpA->serializeCStyle(*row, *col, *value);
+  delete tmpA;
+
+  // Copy tmpA (CStyle) into Assembled PETSc matrix
+  A = new Mat;
+  MatCreateSeqAIJFromTriple(MPI_COMM_SELF, size, size,
+                            row->data(), col->data(), value->data(),
+                            A, nNZ, PETSC_FALSE);
+  // Free
+  delete row;
+  delete col;
+  delete value;
 
   // Iterate on Formulations B //
   if(general){
     it  = formulationB.begin();
     end = formulationB.end();
 
+    // Assemble tmpB
     for(; it != end; it++)
-      assembleCom(tmpB, tmpRHS, **it, term);
-  }
+      assembleCom(*tmpB, *tmpRHS, **it, term);
 
-  // Copy tmpA into Assembled PETSc matrix //
-  // Data
-  vector<int>              row;
-  vector<int>              col;
-  vector<Complex> value;
-  int                      nNZ;
+    // Serialize tmpB & Free
+    row   = new vector<int>;
+    col   = new vector<int>;
+    value = new vector<Complex>;
+    nNZ   = tmpB->serializeCStyle(*row, *col, *value);
+    delete  tmpB;
 
-  // Serialize (CStyle) tmpA & Copy
-  nNZ = tmpA.serializeCStyle(row, col, value);
-  A   = new Mat;
-
-  MatCreateSeqAIJFromTriple(MPI_COMM_SELF, size, size,
-                            row.data(), col.data(), value.data(),
-                            A, nNZ, PETSC_FALSE);
-
-  // Copy tmpB (CStyle) into Assembled PETSc matrix (if needed) //
-  if(general){
-    nNZ = tmpB.serializeCStyle(row, col, value);
-    B   = new Mat;
-
+    // Copy tmpB (CStyle) into Assembled PETSc matrix
+    B = new Mat;
     MatCreateSeqAIJFromTriple(MPI_COMM_SELF, size, size,
-                              row.data(), col.data(), value.data(),
+                              row->data(), col->data(), value->data(),
                               B, nNZ, PETSC_FALSE);
+    // Free
+    delete row;
+    delete col;
+    delete value;
   }
+
+  else{
+    delete tmpB;
+  }
+
+  // Free
+  delete tmpRHS;
 
   /*
   tmpA.writeToMatlabFile("Asf_mat.m", "Asf");
