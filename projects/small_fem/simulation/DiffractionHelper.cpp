@@ -6,27 +6,13 @@ using namespace std;
 
 // Math constant //
 const double Math::Pi = atan(1.0) * 4;
+const double Math::nm = 1e-9;
 
 // Wave //
-const double Wave::lambda0 = 1000000;
-const double Wave::theta0  = 0.0 * Math::Pi / 180;
-const double Wave::phi0    = 0.0 * Math::Pi / 180;
-const double Wave::psi0    = 0.0 * Math::Pi / 180;
-
-// Geometry //
-const double Geometry::paramaille = 10;
-const double Geometry::nm         = 1000;
-
-const double Geometry::a_lat      = 300 * nm;
-const double Geometry::period_x   = a_lat;
-const double Geometry::period_y   = a_lat;
-const double Geometry::period_z   = a_lat;
-
-const double Geometry::PML_top    = Wave::lambda0;
-const double Geometry::PML_bot    = Wave::lambda0;
-const double Geometry::PML_lat    = Wave::lambda0;
-
-const double Geometry::ro         = Wave::lambda0 / 10;
+const double Wave::lambda0 = 1000 * Math::nm;
+const double Wave::theta0  =    0 * Math::Pi / 180;
+const double Wave::phi0    =    0 * Math::Pi / 180;
+const double Wave::psi0    =    0 * Math::Pi / 180;
 
 // Constant //
 const double Constant::cel    = 1.0 / sqrt(Material::epsilon0 * Material::mu0);
@@ -35,7 +21,6 @@ const double Constant::omega0 = 2.0 * Math::Pi * Freq;
 const double Constant::k0     = 2.0 * Math::Pi / Wave::lambda0;
 
 const double Constant::Ae     = 1.0;
-const double Constant::Ah     = Ae * sqrt(Material::epsilon0 / Material::mu0);
 const double Constant::alpha0 = k0 * sin(Wave::theta0) * cos(Wave::phi0);
 const double Constant::beta0  = k0 * sin(Wave::theta0) * sin(Wave::phi0);
 const double Constant::gamma0 = k0 * cos(Wave::theta0);
@@ -48,14 +33,6 @@ const double Constant::Ey0    =
   Ae * sin(Wave::psi0) * cos(Wave::phi0);
 const double Constant::Ez0    =
   -Ae * cos(Wave::psi0) * sin(Wave::theta0);
-const double Constant::Hx0    =
-  -1 / (omega0 * Material::mu0) * (beta0  * Ez0 - gamma0 * Ey0);
-const double Constant::Hy0    =
-  -1 / (omega0 * Material::mu0) * (gamma0 * Ex0 - alpha0 * Ez0);
-const double Constant::Hz0    =
-  -1 / (omega0 * Material::mu0) * (alpha0 * Ey0 - beta0  * Ex0);
-const double Constant::Pinc   =
-  0.5 * Ae * Ae * sqrt(Material::epsilon0 / Material::mu0) * cos(Wave::theta0);
 
 // Signal //
 Complex Signal::Prop(fullVector<double>& xyz){
@@ -129,8 +106,8 @@ fullVector<Complex> Signal::PML::source(fullVector<double>& xyz){
 }
 
 // PML //
-const Complex PML::a   = Complex(1, 1);
-const Complex PML::one = Complex(1, 0);
+const Complex PML::a   = Complex(1, -1);
+const Complex PML::one = Complex(1,  0);
 
 // Volume
 Complex PML::Volume::sx(fullVector<double>& xyz){
@@ -334,8 +311,8 @@ Complex PML::Z::Lzz(fullVector<double>& xyz){
 
 // Material //
 // Constant
-const double  Material::mu0      =  4 * Math::Pi * 100.0 * Geometry::nm;
-const double  Material::epsilon0 =  8.854187817E-3 * Geometry::nm;
+const double  Material::mu0      =  4 * Math::Pi * 100.0 * Math::nm;
+const double  Material::epsilon0 =  8.854187817E-3       * Math::nm;
 const Complex Material::epsIn    =  Complex(9, -1);
 const Complex Material::epsOut   =  Complex(1,  0);
 

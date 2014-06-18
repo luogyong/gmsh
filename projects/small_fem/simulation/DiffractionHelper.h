@@ -15,6 +15,7 @@
 class Math{
  public:
   static const double Pi;
+  static const double nm;
 };
 
 // Wave //
@@ -24,25 +25,6 @@ class Wave{
   static const double theta0;
   static const double phi0;
   static const double psi0;
-};
-
-// Geometry //
-class Geometry{
- public:
-  static const double paramaille;
-  static const double nm;
-
-  static const double a_lat;
-  static const double period_x;
-  static const double period_y;
-  static const double period_z;
-
-  static const double PML_top;
-  static const double PML_bot;
-  static const double PML_lat;
-
-  static const double ro;
-
 };
 
 // Material //
@@ -135,7 +117,6 @@ class Constant{
   static const double k0;
 
   static const double Ae;
-  static const double Ah;
   static const double alpha0;
   static const double beta0;
   static const double gamma0;
@@ -143,10 +124,6 @@ class Constant{
   static const double Ex0;
   static const double Ey0;
   static const double Ez0;
-  static const double Hx0;
-  static const double Hy0;
-  static const double Hz0;
-  static const double Pinc;
 };
 
 // Signal //

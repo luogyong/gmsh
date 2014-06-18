@@ -3,8 +3,8 @@
 using namespace std;
 
 // PML //
-const Complex PML::a   = Complex(1, 1);
-const Complex PML::one = Complex(1, 0);
+const Complex PML::a   = Complex(1, -1);
+const Complex PML::one = Complex(1,  0);
 
 // Air
 Complex PML::Air::sx(fullVector<double>& xyz){

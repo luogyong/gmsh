@@ -9,7 +9,6 @@
 
 #include "System.h"
 #include "FEMSolution.h"
-// #include "NodeSolution.h"
 
 using namespace std;
 
@@ -53,14 +52,14 @@ void compute(const Options& option){
                                     Signal::In::source);
 
   FormulationSteadyWave<Complex> out(Scat_Out, fs, k,
-                                    Material::Out::Nu,
-                                    Material::Out::Epsilon,
-                                    Signal::Out::source);
+                                     Material::Out::Nu,
+                                     Material::Out::Epsilon,
+                                     Signal::Out::source);
 
   FormulationSteadyWave<Complex> xyz(PMLxyz, fs, k,
-                                    Material::XYZ::Nu,
-                                    Material::XYZ::Epsilon,
-                                    Signal::PML::source);
+                                     Material::XYZ::Nu,
+                                     Material::XYZ::Epsilon,
+                                     Signal::PML::source);
 
   FormulationSteadyWave<Complex> xz(PMLxz, fs, k,
                                     Material::XZ::Nu,
@@ -78,19 +77,19 @@ void compute(const Options& option){
                                     Signal::PML::source);
 
   FormulationSteadyWave<Complex> x(PMLx, fs, k,
-                                    Material::X::Nu,
-                                    Material::X::Epsilon,
-                                    Signal::PML::source);
+                                   Material::X::Nu,
+                                   Material::X::Epsilon,
+                                   Signal::PML::source);
 
   FormulationSteadyWave<Complex> y(PMLy, fs, k,
-                                    Material::Y::Nu,
-                                    Material::Y::Epsilon,
-                                    Signal::PML::source);
+                                   Material::Y::Nu,
+                                   Material::Y::Epsilon,
+                                   Signal::PML::source);
 
   FormulationSteadyWave<Complex> z(PMLz, fs, k,
-                                    Material::Z::Nu,
-                                    Material::Z::Epsilon,
-                                    Signal::PML::source);
+                                   Material::Z::Nu,
+                                   Material::Z::Epsilon,
+                                   Signal::PML::source);
   // System //
   System<Complex> sys;
 
