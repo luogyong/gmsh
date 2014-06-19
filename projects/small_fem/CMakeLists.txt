@@ -151,7 +151,7 @@ add_definitions(-g)
 ## Build
 add_library(sf STATIC ${sources})
 set_target_properties(sf PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(sf lib ${SLEPC_LIBS} ${PETSC_LIBS})
+target_link_libraries(sf lib ${SLEPC_LIBS} ${PETSC_LIBS} -lrt)
 
 ## Make sure of dependencies
 add_dependencies(sf lib gmsh)

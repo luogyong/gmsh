@@ -42,8 +42,8 @@ std::string Timer::unit(void){
 double Timer::timeDiff(void){
   if(start_s.tv_nsec < stop_s.tv_nsec)
     return (stop_s.tv_sec - start_s.tv_sec)
-      + ((double)(stop_s.tv_nsec - start_s.tv_nsec) / 1000000000);
+      + ((double)(stop_s.tv_nsec - start_s.tv_nsec) / 1e9);
   else
     return (stop_s.tv_sec - start_s.tv_sec - 1)
-      + ((double)(1000000000 + stop_s.tv_nsec - start_s.tv_nsec) / 1000000000);
+      + ((double)(1000000000 + stop_s.tv_nsec - start_s.tv_nsec) / 1e9);
 }
