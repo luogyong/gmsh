@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include "DiffractionHelper.h"
+#include "ScatteringHelper.h"
 
 using namespace std;
 

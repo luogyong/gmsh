@@ -1,7 +1,8 @@
 #include <iostream>
 
-#include "DiffractionHelper.h"
+#include "ScatteringHelper.h"
 #include "SmallFem.h"
+#include "Timer.h"
 
 #include "GroupOfElement.h"
 #include "FunctionSpaceVector.h"
@@ -13,7 +14,15 @@
 using namespace std;
 
 void compute(const Options& option){
+  // Timers
+  Timer full;
+  Timer timer;
+
   // Get Domains //
+  full.start();
+  timer.start();
+  cout << "Reading... " << flush;
+
   Mesh msh(option.getValue("-msh")[1]);
 
   GroupOfElement PMLxyz   = msh.getFromPhysical(1000);
@@ -38,13 +47,19 @@ void compute(const Options& option){
   All_domains.add(PMLy);
   All_domains.add(PMLx);
 
+  timer.stop();
+  cout << "done in " << timer.time() << "[" << timer.unit() << "]! "
+       << endl << flush;
+
   // FunctionSpace //
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   FunctionSpaceVector fs(All_domains, order);
 
   // Formulation //
-  cout << "Assembling" << endl << flush;
   const double k = (Constant::omega0 / Constant::cel);
+
+  timer.start();
+  cout << "Assembling... " << flush;
 
   FormulationSteadyWave<Complex> in(Scat_In, fs, k,
                                     Material::In::Nu,
@@ -105,19 +120,45 @@ void compute(const Options& option){
 
   sys.assemble();
 
-  cout << "Solving: " << sys.getSize() << endl << flush;
+  timer.stop();
+  cout << "done in " << timer.time() << "[" << timer.unit() << "]! "
+       << endl << flush;
+
+  timer.start();
+  cout << "Solving: " << sys.getSize() << "... " << flush;
+
   sys.solve();
 
+  timer.stop();
+  cout << "done in " << timer.time() << "[" << timer.unit() << "]! "
+       << endl << flush;
+
   // Post-Pro //
-  cout << "Drawing" << endl << flush;
-  FEMSolution<Complex> feSol;
-  sys.getSolution(feSol, fs, All_domains);
-  feSol.write("test");
+  try{
+    option.getValue("-nopos");
+  }
+  catch(...){
+    timer.start();
+    cout << "Drawing... " << flush;
+
+    FEMSolution<Complex> feSol;
+    sys.getSolution(feSol, fs, All_domains);
+    feSol.write("scat");
+
+    timer.stop();
+    cout << "done in " << timer.time() << "[" << timer.unit() << "]! "
+         << endl << flush;
+  }
+
+  // Full time
+  full.stop();
+  cout << "Elapsed time: " << full.time() << "[" << full.unit() << "]"
+       << endl << flush;
 }
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o");
+  SmallFem::Keywords("-msh,-o,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

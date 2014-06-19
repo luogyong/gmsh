@@ -1,14 +1,14 @@
-#ifndef _DIFFRACTIONHELPER_H_
-#define _DIFFRACTIONHELPER_H_
+#ifndef _SCATTERINGHELPER_H_
+#define _SCATTERINGHELPER_H_
 
 #include "SmallFem.h"
 #include "fullMatrix.h"
 
 /**
-   @class Diffraction Helper
-   @brief Helping stuff for simulation/Diffraction
+   @class Scattering Helper
+   @brief Helping stuff for simulation/Scattering
 
-   Helping stuff for simulation/Diffraction
+   Helping stuff for simulation/Scattering
  */
 
 // Math constant //
