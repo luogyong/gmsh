@@ -40,10 +40,6 @@ class FormulationSteadySlow: public FormulationBlock<double>{
   GroupOfJacobian* jac1;
   GroupOfJacobian* jac2;
 
-  // Materials //
-  void (*nu)(fullVector<double>& xyz, fullMatrix<double>& tensor);
-  void (*eps)(fullVector<double>& xyz, fullMatrix<double>& tensor);
-
   // Function Space & Basis //
   const FunctionSpaceVector* fspace;
   const Basis*               basis;
@@ -52,12 +48,6 @@ class FormulationSteadySlow: public FormulationBlock<double>{
   FormulationSteadySlow(const GroupOfElement& domain,
                         const FunctionSpaceVector& fs,
                         double k);
-
-  FormulationSteadySlow(const GroupOfElement& domain,
-                        const FunctionSpaceVector& fs,
-                        double k,
-                        void (*nu)(fullVector<double>&, fullMatrix<double>&),
-                        void (*eps)(fullVector<double>&, fullMatrix<double>&));
 
   virtual ~FormulationSteadySlow(void);
 
@@ -69,11 +59,6 @@ class FormulationSteadySlow: public FormulationBlock<double>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
-
- private:
-  void init(const GroupOfElement& domain,
-            const FunctionSpaceVector& fs,
-            double k);
 };
 
 /**

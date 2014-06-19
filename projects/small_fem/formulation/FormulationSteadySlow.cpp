@@ -2,8 +2,6 @@
 
 #include "Quadrature.h"
 #include "Mapper.h"
-
-#include "ReferenceSpaceManager.h"
 #include "FormulationSteadySlow.h"
 
 using namespace std;
@@ -11,32 +9,6 @@ using namespace std;
 FormulationSteadySlow::FormulationSteadySlow(const GroupOfElement& domain,
                                              const FunctionSpaceVector& fs,
                                              double k){
-  // Dummy materials //
-  nu  = dummy;
-  eps = dummy;
-
-  // Init //
-  init(domain, fs, k);
-}
-
-FormulationSteadySlow::
-FormulationSteadySlow(const GroupOfElement& domain,
-                      const FunctionSpaceVector& fs,
-                      double k,
-                      void (*nu)(fullVector<double>&, fullMatrix<double>&),
-                      void (*eps)(fullVector<double>&, fullMatrix<double>&)){
-  // Materials //
-  this->nu  = nu;
-  this->eps = eps;
-
-  // Init //
-  init(domain, fs, k);
-}
-
-void FormulationSteadySlow::init(const GroupOfElement& domain,
-                                 const FunctionSpaceVector& fs,
-                                 double k){
-
   // Check domain stats: uniform mesh //
   pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
@@ -88,18 +60,11 @@ FormulationSteadySlow::~FormulationSteadySlow(void){
 
 double FormulationSteadySlow::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
-
   // Init Some Stuff //
-  fullVector<double> phiI(3);
-  fullVector<double> phiK(3);
-  fullVector<double> phiJ(3);
-
-  fullMatrix<double> T(3, 3);
-
-  fullVector<double> xyz(3);
-  double pxyz[3];
-
   const fullMatrix<double>* jac;
+
+  fullVector<double> phiI(3);
+  fullVector<double> phiJ(3);
 
   double integral1 = 0;
   double integral2 = 0;
@@ -130,21 +95,8 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
     Mapper::hDiv(eCurlFun, dofI, g, *jac, det, phiI);
     Mapper::hDiv(eCurlFun, dofJ, g, *jac, det, phiJ);
 
-    // Compute Nu in the *physical* coordinate
-    ReferenceSpaceManager::
-      mapFromABCtoXYZ(element, (*gC1)(g, 0), (*gC1)(g, 1), (*gC1)(g, 2), pxyz);
-
-    xyz(0) = pxyz[0];
-    xyz(1) = pxyz[1];
-    xyz(2) = pxyz[2];
-
-    nu(xyz, T); // T = Nu(x, y, z);
-
-    // phiK = Nu * phiI
-    T.mult(phiI, phiK);
-
     integral1 +=
-      ((phiK * phiJ)) * fabs(det) * (*gW1)(g);
+      ((phiI * phiJ)) * fabs(det) * (*gW1)(g);
   }
 
 
@@ -156,21 +108,8 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
     Mapper::hCurl(eFun, dofI, g, *jac, phiI);
     Mapper::hCurl(eFun, dofJ, g, *jac, phiJ);
 
-    // Compute Epsilon in the *physical* coordinate
-    ReferenceSpaceManager::
-      mapFromABCtoXYZ(element, (*gC2)(g, 0), (*gC2)(g, 1), (*gC2)(g, 2), pxyz);
-
-    xyz(0) = pxyz[0];
-    xyz(1) = pxyz[1];
-    xyz(2) = pxyz[2];
-
-    eps(xyz, T); // T = Eps(x, y, z);
-
-    // phiK = Eps * phiI
-    T.mult(phiI, phiK);
-
     integral2 +=
-      ((phiK * phiJ) * kSquare) * fabs(det) * (*gW2)(g);
+      ((phiI * phiJ) * kSquare) * fabs(det) * (*gW2)(g);
   }
 
   return integral1 - integral2;
@@ -194,12 +133,4 @@ const GroupOfElement& FormulationSteadySlow::domain(void) const{
 
 bool FormulationSteadySlow::isBlock(void) const{
   return true;
-}
-
-void FormulationSteadySlow::dummy(fullVector<double>& xyz,
-                                  fullMatrix<double>& tensor){
-  tensor.scale(0);
-  tensor(0, 0) = 1;
-  tensor(1, 1) = 1;
-  tensor(2, 2) = 1;
 }
