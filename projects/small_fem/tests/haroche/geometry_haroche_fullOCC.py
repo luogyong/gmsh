@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 from gmshpy import *
 import numpy
+import sys
 
-# 2D mesh algorithm (1=MeshAdapt, 2=Automatic, 5=Delaunay, 6=Frontal, 7=bamg, 8=delquad)
-# 3D mesh algorithm (1=Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D)
-
-GmshSetOption('Mesh', 'Algorithm',    1.0)
-GmshSetOption('Mesh', 'Algorithm3D',  1.0)
-GmshSetOption('Mesh', 'ElementOrder', 2.0)
 
 ## Pyhsics ##
 #############
@@ -50,14 +45,42 @@ pml_z = lambda_haroche
 
 ## Mesh Parameters ##
 #####################
-## Mesh Size
-refinement_air  = 5.
-refinement_pml  = 5.
-refinement_mir  = 5.
+if len(sys.argv) == 1:
+    refinement_air  = 5.
+    refinement_pml  = 5.
+    refinement_mir  = 5.
+    order           = 2.
+
+    print('No mesh size given: using 5 5 5 2')
+
+elif len(sys.argv) != 5:
+    refinement_air = float(sys.argv[1])
+    refinement_pml = float(sys.argv[1])
+    refinement_mir = float(sys.argv[1])
+    order          = 2.
+
+    print('Using first mesh data for air, pml and mirror (order 2)')
+
+else:
+    refinement_air = float(sys.argv[1])
+    refinement_pml = float(sys.argv[2])
+    refinement_mir = float(sys.argv[3])
+    order          = float(sys.argv[4])
 
 paramaille_air  = lambda_haroche / refinement_air
 paramaille_pml  = lambda_haroche / refinement_pml
 paramaille_mir  = lambda_haroche / refinement_mir
+
+
+## Options ##
+#############
+# 2D mesh algorithm (1=MeshAdapt, 2=Automatic, 5=Delaunay, 6=Frontal, 7=bamg, 8=delquad)
+# 3D mesh algorithm (1=Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D)
+
+GmshSetOption('Mesh', 'Algorithm',    1.0)
+GmshSetOption('Mesh', 'Algorithm3D',  1.0)
+GmshSetOption('General', 'Verbosity', 4.0)
+GmshSetOption('Mesh', 'ElementOrder', order)
 
 
 ## Geomtrical Model ##
@@ -147,13 +170,26 @@ myModel4.getVertexByTag(1).addPhysicalEntity(1000000) # Dummy point for GetDP
 
 ## Mesh & Save ##
 #################
+brepName = 'haroche.brep'
+meshName = 'haroche'                         + \
+           '_geoorder_%d'    %order          + \
+           '_air_%d'         %refinement_air + \
+           '_pml_%d'         %refinement_pml + \
+           '_mir_%d'         %refinement_mir + '.msh'
+
 myModel4.mesh(3)
-myModel4.save("haroche.msh")
-myModel4.save("haroche.brep")
+myModel4.save(meshName)
+myModel4.save(brepName)
 
 
 ## Display ##
 #############
+print('Data used: ')
+print('  ** Air   : ' + str(refinement_air))
+print('  ** PML   : ' + str(refinement_pml))
+print('  ** Mirror: ' + str(refinement_mir))
+print('  ** Order : ' + str(order))
+
 # myModel4.setAsCurrent();
 # myModel4.setVisibility(1);
 # FlGui.instance()

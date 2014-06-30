@@ -15,10 +15,15 @@ using namespace std;
 
 void dump(string filename, fullVector<Complex>& eig){
   FILE* file = fopen(filename.c_str(), "w");
+  double pi  = 4 * atan(1);
 
+  fprintf(file, "Eig\tReal(Omega^2)\tImag(Omega^2)\tf[MHz]\tt[ms]\n");
   for(int i = 0; i < eig.size(); i++)
-    fprintf(file, "Eig Omega^2 %d:\t%.16e\t%.16e\n",
-            i, eig(i).real(), eig(i).imag());
+    fprintf(file, "%d:\t%.16e\t%.16e\t%.16e\t%.16e\n",
+            i,
+            eig(i).real(), eig(i).imag(),
+            sqrt(eig(i)).real()  / (2 * pi) * 1e-9,
+            1.0 / (sqrt(eig(i)).imag() / (2 * pi)) * 1e3);
 
   fclose(file);
 }

@@ -46,8 +46,13 @@
 using namespace std;
 
 void compute(const Options& option){
-  QuadReferenceSpace ref;
-  cout << ref.toLatex() << endl;
+  Timer timer;
+  timer.start();
+  HexReferenceSpace ref;
+  //cout << ref.toLatex() << endl;
+  timer.stop();
+
+  cout << timer.time() << endl;
 }
 
 int main(int argc, char** argv){
