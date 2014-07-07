@@ -15,6 +15,7 @@ using namespace std;
 static const size_t scal = 0;
 static const size_t vect = 1;
 
+/*
 void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
   tensor.scale(0);
 
@@ -31,7 +32,6 @@ void eps(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
   tensor(2, 2) = Complex(xyz(2) + 10, xyz(2) - 10);
 }
 
-/*
 void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
   tensor.scale(0);
 
@@ -101,8 +101,8 @@ void compute(const Options& option){
     fs = new FunctionSpaceVector(domain, order);
 
   // Formulations & System //
-  FormulationStiffness<Complex> stiff(volume, *fs, *fs, nu);
-  FormulationMass<Complex>       mass(volume, *fs, *fs, eps);
+  FormulationStiffness<Complex> stiff(volume, *fs, *fs);//, nu);
+  FormulationMass<Complex>       mass(volume, *fs, *fs);//, eps);
 
   SystemEigen sys;
   sys.addFormulation(stiff);

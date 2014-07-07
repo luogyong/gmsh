@@ -45,27 +45,10 @@ pml_z = lambda_haroche
 
 ## Mesh Parameters ##
 #####################
-if len(sys.argv) == 1:
-    refinement_air  = 5.
-    refinement_pml  = 5.
-    refinement_mir  = 5.
-    order           = 2.
-
-    print('No mesh size given: using 5 5 5 2')
-
-elif len(sys.argv) != 5:
-    refinement_air = float(sys.argv[1])
-    refinement_pml = float(sys.argv[1])
-    refinement_mir = float(sys.argv[1])
-    order          = 2.
-
-    print('Using first mesh data for air, pml and mirror (order 2)')
-
-else:
-    refinement_air = float(sys.argv[1])
-    refinement_pml = float(sys.argv[2])
-    refinement_mir = float(sys.argv[3])
-    order          = float(sys.argv[4])
+refinement_air = float(sys.argv[1])
+refinement_pml = float(sys.argv[2])
+refinement_mir = float(sys.argv[3])
+order          = float(sys.argv[4])
 
 paramaille_air  = lambda_haroche / refinement_air
 paramaille_pml  = lambda_haroche / refinement_pml
@@ -162,8 +145,8 @@ myModel4.getFaceByTag(28).addPhysicalEntity(149)   # XOY
 myModel4.getFaceByTag(39).addPhysicalEntity(149)   # XOY
 
 myModel4.getFaceByTag(36).addPhysicalEntity(148)   # Mirror
-myModel4.getFaceByTag(37).addPhysicalEntity(148)   # Mirror
-myModel4.getFaceByTag(38).addPhysicalEntity(148)   # Mirror
+#myModel4.getFaceByTag(37).addPhysicalEntity(148)   # Mirror
+#myModel4.getFaceByTag(38).addPhysicalEntity(148)   # Mirror
 
 myModel4.getVertexByTag(1).addPhysicalEntity(1000000) # Dummy point for GetDP
 

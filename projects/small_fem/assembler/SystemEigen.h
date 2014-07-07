@@ -30,13 +30,19 @@ class SystemEigen: public SystemAbstract<Complex>{
   std::list<const FormulationBlock<Complex>*> formulationB;
   bool general;
 
+  std::vector<size_t> procSize;
+  std::vector<size_t> procMinRange;
+  std::vector<size_t> procMaxRange;
+
   Mat* A;
   Mat* B;
 
-  std::string whichEigenpair;
+  PetscInt    nEigenValues;
+  PetscInt    maxIt;
+  PetscReal   tol;
   PetscScalar target;
+  std::string whichEigenpair;
 
-  PetscInt nEigenValues;
   fullVector<Complex>* eigenValue;
   std::vector<fullVector<Complex> >* eigenVector;
 
@@ -56,9 +62,11 @@ class SystemEigen: public SystemAbstract<Complex>{
   bool isGeneral(void) const;
   void getEigenValues(fullVector<Complex>& eig) const;
 
-  void setWhichEigenpairs(std::string type);
-  void setTarget(Complex target);
   void setNumberOfEigenValues(size_t nEigenValues);
+  void setMaxIteration(size_t maxIt);
+  void setTolerance(double tol);
+  void setTarget(Complex target);
+  void setWhichEigenpairs(std::string type);
 
   virtual void assemble(void);
   virtual void solve(void);
@@ -70,6 +78,8 @@ class SystemEigen: public SystemAbstract<Complex>{
                    SolverVector<Complex>& tmpRHS,
                    const FormulationBlock<Complex>& formulation,
                    formulationPtr term);
+
+  Mat* toPetscAndDelete(SolverMatrix<Complex>* tmp, size_t size, int myProc);
 };
 
 

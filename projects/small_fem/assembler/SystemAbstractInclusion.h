@@ -5,6 +5,8 @@
 // Damn you gcc: we want 'export' !              //
 ///////////////////////////////////////////////////
 
+#include <cmath>
+
 template<typename scalar>
 SystemAbstract<scalar>::~SystemAbstract(void){
 }
@@ -145,5 +147,100 @@ assembleRHSOnly(SolverVector<scalar>& b,
     if(dofI != DofManager<scalar>::isFixedId())
       b.add(dofI, formulation.rhs(i, elementId));
 
+  }
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+getProcSize(size_t nRow, size_t nProc, std::vector<size_t>& size){
+  size_t i;
+  size_t up  = ceil((double)(nRow) / (double)(nProc));
+  size_t rem = nRow - up * nProc;
+
+  size.resize(nProc);
+
+  for(i = 0; i < nProc; i++)
+    size[i] = up;
+
+  for(i = 0; rem + size[i] <= 0; i++){
+    rem    += size[i];
+    size[i] = 0;
+  }
+
+  size[i] += rem;
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+getProcMinRange(const std::vector<size_t>& size,
+                std::vector<size_t>& min){
+
+  const size_t nProc = size.size();
+
+  min.resize(nProc);
+  min[0] = 0;
+
+  for(size_t i = 1, j = 0; i < nProc; i++, j++)
+    min[i] = min[j] + size[j];
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+getProcMaxRange(const std::vector<size_t>& size,
+                std::vector<size_t>& max){
+
+  const size_t nProc = size.size();
+  max.resize(nProc);
+  max[0] = size[0];
+
+  for(size_t i = 1, j = 0; i < nProc; i++, j++)
+    max[i] = max[j] + size[i];
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+petscSparsity(PetscInt* nonZero,
+              const std::vector<int>& row,
+              const std::vector<int>& col,
+              int iMin,
+              int iMax,
+              bool isDiagonal){
+  // Size
+  const int size = row.size(); // Assumed equal to col.size()
+
+  // Loop
+  for(int i = 0; i < size; i++){
+    int iRow = row[i];
+
+    if(iRow >= iMin && iRow < iMax){
+      int iCol = col[i];
+
+      if((iCol >= iMin && iCol < iMax) == isDiagonal)
+        nonZero[iRow - iMin]++;
+    }
+  }
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+petscSerialize(int rowMin,
+               int rowMax,
+               const std::vector<int>&    row,
+               const std::vector<int>&    col,
+               const std::vector<scalar>& value,
+               Mat& A){
+  // Size
+  const int size = row.size(); // Assumed equal to col.size()
+
+  // Loop
+  int iRow;
+  int i;
+  for(i = 0; i < size; i++){
+    // Get Row
+    iRow = row[i];
+
+    // Is in row range ?
+    if(iRow >= rowMin && iRow < rowMax)
+      MatSetValues(A, 1, &iRow, 1, &col[i], &value[i], INSERT_VALUES);
   }
 }

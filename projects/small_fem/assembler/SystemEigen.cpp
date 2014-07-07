@@ -16,9 +16,11 @@ SystemEigen::SystemEigen(void){
   eigenVector = NULL;
 
   // Default //
-  whichEigenpair = string("smallest_magnitude");
-  target         = 0;
   nEigenValues   = 10;
+  maxIt          = 100;
+  tol            = 1E-6;
+  target         = 1;
+  whichEigenpair = string("smallest_magnitude");
 
   // The SystemEigen is not assembled and not solved//
   assembled    = false;
@@ -64,8 +66,7 @@ addFormulationB(const Formulation<Complex>& formulation){
 
 void SystemEigen::assembleCom(SolverMatrix<Complex>& tmpMat,
                               SolverVector<Complex>& tmpRHS,
-                              const FormulationBlock<Complex>&
-                                                                    formulation,
+                              const FormulationBlock<Complex>& formulation,
                               formulationPtr term){
   // Get All Dofs (Field & Test) per Element //
   vector<vector<Dof> > dofField;
@@ -76,10 +77,67 @@ void SystemEigen::assembleCom(SolverMatrix<Complex>& tmpMat,
   // Assemble Systems (tmpA and tmpB) //
   const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
 
-  #pragma omp parallel for
+  // #pragma omp parallel for
+  // WARNING: With current list style SolverMatrix, omp is not a good idea!
   for(size_t i = 0; i < E; i++)
     SystemAbstract<Complex>::assemble
       (tmpMat, tmpRHS, i, dofField[i], dofTest[i], term, formulation);
+}
+
+Mat* SystemEigen::toPetscAndDelete(SolverMatrix<Complex>* tmp,
+                                   size_t size, int myProc){
+  // Serialize tmp & free it //
+  vector<int>*       row = new vector<int>;
+  vector<int>*       col = new vector<int>;
+  vector<Complex>* value = new vector<Complex>;
+  //int                nNZ = tmp->serializeCStyle(*row, *col, *value);
+
+   tmp->serializeCStyle(*row, *col, *value);
+  //tmp->writeToMatlabFile("Asf_mat.m", "Asf");
+  delete tmp;
+
+  // Sparsity of PETSc matrix //
+  PetscInt* nonZeroDiag    = new PetscInt[procSize[myProc]];
+  PetscInt* nonZeroOffDiag = new PetscInt[procSize[myProc]];
+
+  for(size_t i = 0; i < procSize[myProc]; i++)
+    nonZeroDiag[i] = 0;
+
+  for(size_t i = 0; i < procSize[myProc]; i++)
+    nonZeroOffDiag[i] = 0;
+
+  petscSparsity(nonZeroDiag, *row, *col,
+    procMinRange[myProc], procMaxRange[myProc], true);
+
+  petscSparsity(nonZeroOffDiag, *row, *col,
+    procMinRange[myProc], procMaxRange[myProc], false);
+
+  // Copy tmp (CStyle) into PETSc matrix //
+  Mat* M = new Mat;
+
+  MatCreateAIJ(MPI_COMM_WORLD,
+               procSize[myProc], size, PETSC_DETERMINE, PETSC_DETERMINE,
+               42, nonZeroDiag, 42, nonZeroOffDiag, M);
+
+  petscSerialize(procMinRange[myProc], procMaxRange[myProc],
+                 *row, *col, *value, *M);
+
+  MatAssemblyBegin(*M, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd  (*M, MAT_FINAL_ASSEMBLY);
+
+  // MatCreateSeqAIJFromTriple(MPI_COMM_SELF, size, size,
+  //                           row->data(), col->data(), value->data(),
+  //                           M, nNZ, PETSC_FALSE);
+
+  // Free //
+  delete[] nonZeroDiag;
+  delete[] nonZeroOffDiag;
+  delete   row;
+  delete   col;
+  delete   value;
+
+  // Retrun //
+  return M;
 }
 
 void SystemEigen::assemble(void){
@@ -92,6 +150,17 @@ void SystemEigen::assemble(void){
   SolverVector<Complex>* tmpRHS = new SolverVector<Complex>(size);
   SolverMatrix<Complex>* tmpA   = new SolverMatrix<Complex>(size, size);
   SolverMatrix<Complex>* tmpB   = new SolverMatrix<Complex>(size, size);
+
+  // MPI Ranges //
+  int nProc;
+  int myProc;
+
+  MPI_Comm_size(MPI_COMM_WORLD, &nProc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+
+  getProcSize(size, nProc, procSize);
+  getProcMinRange(procSize, procMinRange);
+  getProcMaxRange(procSize, procMaxRange);
 
   // Get Formulation Terms //
   formulationPtr term = &FormulationBlock<Complex>::weak;
@@ -107,24 +176,8 @@ void SystemEigen::assemble(void){
   for(; it != end; it++)
     assembleCom(*tmpA, *tmpRHS, **it, term);
 
-  // Serialize tmpA & Free
-  vector<int>*              row = new vector<int>;
-  vector<int>*              col = new vector<int>;
-  vector<Complex>*        value = new vector<Complex>;
-  int                       nNZ;
-
-  nNZ =  tmpA->serializeCStyle(*row, *col, *value);
-  delete tmpA;
-
-  // Copy tmpA (CStyle) into Assembled PETSc matrix
-  A = new Mat;
-  MatCreateSeqAIJFromTriple(MPI_COMM_SELF, size, size,
-                            row->data(), col->data(), value->data(),
-                            A, nNZ, PETSC_FALSE);
-  // Free
-  delete row;
-  delete col;
-  delete value;
+  // Convert tmpA to PETSc matrix and free tmpA
+  A = toPetscAndDelete(tmpA, size, myProc); // Allocate A and Deletes tmpA
 
   // Iterate on Formulations B //
   if(general){
@@ -135,22 +188,8 @@ void SystemEigen::assemble(void){
     for(; it != end; it++)
       assembleCom(*tmpB, *tmpRHS, **it, term);
 
-    // Serialize tmpB & Free
-    row   = new vector<int>;
-    col   = new vector<int>;
-    value = new vector<Complex>;
-    nNZ   = tmpB->serializeCStyle(*row, *col, *value);
-    delete  tmpB;
-
-    // Copy tmpB (CStyle) into Assembled PETSc matrix
-    B = new Mat;
-    MatCreateSeqAIJFromTriple(MPI_COMM_SELF, size, size,
-                              row->data(), col->data(), value->data(),
-                              B, nNZ, PETSC_FALSE);
-    // Free
-    delete row;
-    delete col;
-    delete value;
+    // Convert tmpB to PETSc matrix and free tmpB
+    B = toPetscAndDelete(tmpB, size, myProc); // Allocate B and Deletes tmpB
   }
 
   else{
@@ -159,11 +198,6 @@ void SystemEigen::assemble(void){
 
   // Free
   delete tmpRHS;
-
-  /*
-  tmpA.writeToMatlabFile("Asf_mat.m", "Asf");
-  tmpB.writeToMatlabFile("Bsf_mat.m", "Bsf");
-  */
 
   // The SystemEigen is assembled //
   assembled = true;
@@ -200,6 +234,7 @@ void SystemEigen::solve(void){
   // Which Eigenpair //
   if(!whichEigenpair.compare("smallest_magnitude")){
     EPSSetWhichEigenpairs(solver, EPS_SMALLEST_MAGNITUDE);
+    EPSSetTarget(solver, target);
   }
 
   else if(!whichEigenpair.compare("target_real")){
@@ -283,14 +318,6 @@ void SystemEigen::getEigenValues(fullVector<Complex>& eig) const{
   eig.setAsProxy(*eigenValue, 0, eigenValue->size());
 }
 
-void SystemEigen::setWhichEigenpairs(std::string type){
-  this->whichEigenpair = type;
-}
-
-void SystemEigen::setTarget(Complex target){
-  this->target = target.real() + PETSC_i * target.imag();
-}
-
 void SystemEigen::
 setNumberOfEigenValues(size_t nEigenValues){
   const size_t nDof = dofM.getUnfixedDofNumber();
@@ -303,6 +330,22 @@ setNumberOfEigenValues(size_t nEigenValues){
 
   else
     this->nEigenValues = nEigenValues;
+}
+
+void SystemEigen::setMaxIteration(size_t maxIt){
+  this->maxIt = (PetscInt)(maxIt);
+}
+
+void SystemEigen::setTolerance(double tol){
+  this->tol = (PetscReal)(tol);
+}
+
+void SystemEigen::setTarget(Complex target){
+  this->target = target.real() + PETSC_i * target.imag();
+}
+
+void SystemEigen::setWhichEigenpairs(std::string type){
+  this->whichEigenpair = type;
 }
 
 size_t SystemEigen::getNComputedSolution(void) const{

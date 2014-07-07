@@ -48,20 +48,10 @@ os.rename('harocheModes.msh', \
           'sym_%d_'           %symmetry  + \
           meshName)
 
-          # 'haroche_femorder_%d' %fem_order  + \
-          # '_geoorder_%d'        %geo_order  + \
-          # '_paramaille_%d'      %refinement + \
-          # '_sym_%d'             %symmetry   + '.msh')
-
 os.rename('harocheValues.txt', \
           'eig_femorder_%d_' %fem_order + \
           'sym_%d_'          %symmetry  + \
           meshName                      + '.txt')
-
-          # 'eigenValues_femorder_%d' %fem_order  + \
-          # '_geoorder_%d'            %geo_order  + \
-          # '_paramaille_%d'          %refinement + \
-          # '_sym_%d'                 %symmetry   + '.txt')
 
 ## Done ##
 stop = time.time()

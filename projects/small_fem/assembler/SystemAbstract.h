@@ -1,6 +1,7 @@
 #ifndef _SYSTEMABSTRACT_H_
 #define _SYSTEMABSTRACT_H_
 
+#include <petscmat.h>
 #include <string>
 #include <list>
 
@@ -81,6 +82,27 @@ class SystemAbstract{
                        size_t elementId,
                        const std::vector<Dof>& dofTest,
                        const FormulationBlock<scalar>& formulation);
+
+  void getProcSize(size_t nRow, size_t nProc, std::vector<size_t>& size);
+  void getProcMinRange(const std::vector<size_t>& size,
+                       std::vector<size_t>& min);
+
+  void getProcMaxRange(const std::vector<size_t>& size,
+                       std::vector<size_t>& max);
+
+  void petscSparsity(PetscInt* nonZero,
+                     const std::vector<int>& row,
+                     const std::vector<int>& col,
+                     int iMin,
+                     int iMax,
+                     bool isDiagonal);
+
+  void petscSerialize(int rowMin,
+                      int rowMax,
+                      const std::vector<int>&     row,
+                      const std::vector<int>&     col,
+                      const std::vector<scalar>&  value,
+                      Mat& A);
 };
 
 
