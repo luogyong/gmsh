@@ -8,6 +8,7 @@
 #include "FormulationStiffness.h"
 #include "FormulationMass.h"
 
+#include "MPIOStream.h"
 #include "SmallFem.h"
 
 using namespace std;
@@ -63,6 +64,9 @@ Complex fScal(fullVector<double>& xyz){
 }
 
 void compute(const Options& option){
+  // MPI Stream //
+  MPIOStream cout(0, std::cout);
+
   // Get Domain //
   Mesh msh(option.getValue("-msh")[1]);
   GroupOfElement volume = msh.getFromPhysical(7);
@@ -134,27 +138,32 @@ void compute(const Options& option){
   sys.solve();
 
   // Display //
-  fullVector<Complex> eigenValue;
-  const size_t nEigenValue = sys.getNComputedSolution();
-  sys.getEigenValues(eigenValue);
+  int myProc;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
 
-  cout << "Number of found Eigenvalues: " << nEigenValue
-       << endl
-       << endl
-       << "Number\tEigen Value" << endl;
+  if(myProc == 0){
+    fullVector<Complex> eigenValue;
+    const size_t nEigenValue = sys.getNComputedSolution();
+    sys.getEigenValues(eigenValue);
 
-  for(size_t i = 0; i < nEigenValue; i++)
-    cout << "#" << i + 1  << "\t"
-         << eigenValue(i) << endl;
+    cout << "Number of found Eigenvalues: " << nEigenValue
+         << endl
+         << endl
+         << "Number\tEigen Value" << endl;
 
-  // Write Sol //
-  try{
-    option.getValue("-nopos");
-  }
-  catch(...){
-    FEMSolution<Complex> feSol;
-    sys.getSolution(feSol, *fs, volume);
-    feSol.write("eigen_mode");
+    for(size_t i = 0; i < nEigenValue; i++)
+      cout << "#" << i + 1  << "\t"
+           << eigenValue(i) << endl;
+
+    // Write Sol //
+    try{
+      option.getValue("-nopos");
+    }
+    catch(...){
+      FEMSolution<Complex> feSol;
+      sys.getSolution(feSol, *fs, volume);
+      feSol.write("eigen_mode");
+    }
   }
 
   // Clean //

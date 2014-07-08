@@ -116,7 +116,7 @@ Mat* SystemEigen::toPetscAndDelete(SolverMatrix<Complex>* tmp,
   Mat* M = new Mat;
 
   MatCreateAIJ(MPI_COMM_WORLD,
-               procSize[myProc], size, PETSC_DETERMINE, PETSC_DETERMINE,
+               procSize[myProc], procSize[myProc], size, size,
                42, nonZeroDiag, 42, nonZeroOffDiag, M);
 
   petscSerialize(procMinRange[myProc], procMaxRange[myProc],
@@ -201,6 +201,9 @@ void SystemEigen::assemble(void){
 
   // The SystemEigen is assembled //
   assembled = true;
+
+  // Wait for everything to be ok //
+  MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void SystemEigen::solve(void){
@@ -215,7 +218,7 @@ void SystemEigen::solve(void){
 
   // Build Solver //
   EPS solver;
-  EPSCreate(MPI_COMM_SELF, &solver);
+  EPSCreate(MPI_COMM_WORLD, &solver);
 
   if(general)
     EPSSetOperators(solver, *A, *B);
@@ -308,6 +311,9 @@ void SystemEigen::solve(void){
 
   // System solved ! //
   solved = true;
+
+  // Wait for everything to be ok //
+  MPI_Barrier(MPI_COMM_WORLD);
 }
 
 bool SystemEigen::isGeneral(void) const{
