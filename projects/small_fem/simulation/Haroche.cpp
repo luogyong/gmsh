@@ -9,6 +9,7 @@
 #include "FormulationMass.h"
 
 #include "HarocheHelper.h"
+#include "MPIOStream.h"
 #include "SmallFem.h"
 
 using namespace std;
@@ -39,7 +40,11 @@ fullVector<Complex> fZero(fullVector<double>& xyz){
 }
 
 void compute(const Options& option){
+  // MPI std::cout //
+  MPIOStream cout(0, std::cout);
+
   // Get Domains //
+  cout << "Reading domain... " << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
   GroupOfElement Air    = msh.getFromPhysical(138);
@@ -90,15 +95,18 @@ void compute(const Options& option){
   All_surfaces.add(SurfYZ);
   All_surfaces.add(SurfXZ);
   All_surfaces.add(SurfXY);
+  cout << "Done!" << endl << flush;
 
   // FunctionSpace //
+  cout << "FunctionSpace... " << flush;
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   FunctionSpaceVector fs(All_domains, order);
 
+  cout << "Done!" << endl << flush;
   cout << "Number of Dofs: " << fs.getAllDofs().size() << endl;
 
   // Formulation //
-  cout << "Assembling" << endl << flush;
+  cout << "Formulations... " << flush;
 
   Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
                                        (Air,    fs, fs, Material::Air::Nu);
@@ -133,7 +141,10 @@ void compute(const Options& option){
                                        (PMLy,   fs, fs, Material::Y::Epsilon);
   Formulation<Complex>* massZ   = new FormulationMass<Complex>
                                        (PMLz,   fs, fs, Material::Z::Epsilon);
+  cout << "Done!" << endl << flush;
+
   // System //
+  cout << "System... " << flush;
   SystemEigen sys;
 
   sys.addFormulation(*stifAir);
@@ -153,9 +164,11 @@ void compute(const Options& option){
   sys.addFormulationB(*massX);
   sys.addFormulationB(*massY);
   sys.addFormulationB(*massZ);
+  cout << "Done!" << endl << flush;
 
   // Dirichlet //
   // Mirror
+  cout << "Dirichlet... " << flush;
   SystemHelper<Complex>::dirichlet(sys, fs, Mirror, fZero);
 
   // Symmetry
@@ -174,9 +187,12 @@ void compute(const Options& option){
     cout << "No symmetry given: defaulting to YZ" << endl;
     SystemHelper<Complex>::dirichlet(sys, fs, SurfYZ, fZero);
   }
+  cout << "Done!" << endl << flush;
 
   // Assemble //
+  cout << "True assembling... " << endl << flush;
   sys.assemble();
+  cout << "Done" << endl << flush;
 
   // Free formulations //
   delete stifAir;
@@ -225,6 +241,7 @@ void compute(const Options& option){
 
   // Post-Pro //
   // Display
+  cout << "Post Pro" << endl << flush;
   const size_t nEigenValue = sys.getNComputedSolution();
   fullVector<Complex> eigenValue;
 

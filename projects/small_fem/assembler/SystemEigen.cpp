@@ -140,7 +140,11 @@ Mat* SystemEigen::toPetscAndDelete(SolverMatrix<Complex>* tmp,
   return M;
 }
 
+#include "MPIOStream.h"
 void SystemEigen::assemble(void){
+  // MPI Stream //
+  MPIOStream cout(0, std::cout);
+
   // Enumerate Dofs in DofManager //
   dofM.generateGlobalIdSpace();
 
@@ -173,10 +177,12 @@ void SystemEigen::assemble(void){
   end = formulation.end();
 
   // Assemble tmpA
+  cout << "True Assembly of A" << endl << flush;
   for(; it != end; it++)
     assembleCom(*tmpA, *tmpRHS, **it, term);
 
   // Convert tmpA to PETSc matrix and free tmpA
+  cout << "PETSc version of A" << endl << flush;
   A = toPetscAndDelete(tmpA, size, myProc); // Allocate A and Deletes tmpA
 
   // Iterate on Formulations B //
@@ -185,10 +191,12 @@ void SystemEigen::assemble(void){
     end = formulationB.end();
 
     // Assemble tmpB
+    cout << "True Assembly of B" << endl << flush;
     for(; it != end; it++)
       assembleCom(*tmpB, *tmpRHS, **it, term);
 
     // Convert tmpB to PETSc matrix and free tmpB
+    cout << "PETSc version of B" << endl << flush;
     B = toPetscAndDelete(tmpB, size, myProc); // Allocate B and Deletes tmpB
   }
 
