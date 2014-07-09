@@ -240,35 +240,40 @@ void compute(const Options& option){
   sys.solve();
 
   // Post-Pro //
-  // Display
-  cout << "Post Pro" << endl << flush;
-  const size_t nEigenValue = sys.getNComputedSolution();
-  fullVector<Complex> eigenValue;
+  int myProc;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
 
-  sys.getEigenValues(eigenValue);
+  if(myProc == 0){
+    // Display
+    cout << "Post Pro" << endl << flush;
+    const size_t nEigenValue = sys.getNComputedSolution();
+    fullVector<Complex> eigenValue;
 
-  cout << "Number of found Eigenvalues: " << nEigenValue
-       << endl
-       << endl
-       << "Number\tEigen Value" << endl;
+    sys.getEigenValues(eigenValue);
 
-  for(size_t i = 0; i < nEigenValue; i++)
-    cout << "#" << i + 1  << "\t"
-         << std::scientific
-         << eigenValue(i) << endl;
+    cout << "Number of found Eigenvalues: " << nEigenValue
+         << endl
+         << endl
+         << "Number\tEigen Value" << endl;
 
-  // Dump on disk
-  dump("harocheValues.txt", eigenValue);
+    for(size_t i = 0; i < nEigenValue; i++)
+      cout << "#" << i + 1  << "\t"
+           << std::scientific
+           << eigenValue(i) << endl;
 
-  // Draw
-  try{
-    option.getValue("-nopos");
-  }
+    // Dump on disk
+    dump("harocheValues.txt", eigenValue);
 
-  catch(...){
-    FEMSolution<Complex> feSol;
-    sys.getSolution(feSol, fs, All_surfaces);
-    feSol.write("harocheModes");
+    // Draw
+    try{
+      option.getValue("-nopos");
+    }
+
+    catch(...){
+      FEMSolution<Complex> feSol;
+      sys.getSolution(feSol, fs, All_surfaces);
+      feSol.write("harocheModes");
+    }
   }
 }
 
