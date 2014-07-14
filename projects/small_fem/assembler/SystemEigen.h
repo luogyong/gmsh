@@ -34,6 +34,8 @@ class SystemEigen: public SystemAbstract<Complex>{
   std::vector<size_t> procMinRange;
   std::vector<size_t> procMaxRange;
 
+  std::vector<size_t> nNZCountB;
+
   Mat* A;
   Mat* B;
 
@@ -74,12 +76,16 @@ class SystemEigen: public SystemAbstract<Complex>{
   virtual void writeMatrix(std::string fileName,
                            std::string matrixName) const;
  private:
-  void assembleCom(SolverMatrix<Complex>& tmpMat,
-                   SolverVector<Complex>& tmpRHS,
-                   const FormulationBlock<Complex>& formulation,
-                   formulationPtr term);
+  void countCom(std::list<const FormulationBlock<Complex>*>::iterator it,
+                std::list<const FormulationBlock<Complex>*>::iterator end,
+                std::vector<size_t>& nNZCount);
 
-  Mat* toPetscAndDelete(SolverMatrix<Complex>* tmp, size_t size, int myProc);
+  void assembleCom(std::list<const FormulationBlock<Complex>*>::iterator it,
+                   std::list<const FormulationBlock<Complex>*>::iterator end,
+                   SolverMatrix<Complex>& tmpMat,
+                   SolverVector<Complex>& tmpRHS);
+
+  Mat* toPetsc(SolverMatrix<Complex>* tmp, size_t size, int myProc);
 };
 
 
@@ -118,6 +124,31 @@ class SystemEigen: public SystemAbstract<Complex>{
 
    Sets the number of eigenvalues computed by
    SystemEigen::solve() to the given number
+   **
+
+   @fn SystemEigen::setMaxIteration
+   @param maxIt An integer
+
+   Sets the maximum number of iteration of SystemEigen::solve()
+   to the given value
+   **
+
+   @fn SystemEigen::setTolerance
+   @param tol A real value
+
+   Sets the convergence tolerance of SystemEigen::solve() to the given value
+   **
+
+   @fn SystemEigen::setTarget(Complex target)
+   @param target A complex value
+
+   Sets the eigenvalue target of SystemEigen::solve() to the given value
+   **
+
+  @fn SystemEigen::setWhichEigenpairs(std::string type)
+   @param type A string
+
+   Sets the type of eigenpairs that SystemEigen::solve() will look for
 */
 
 #endif

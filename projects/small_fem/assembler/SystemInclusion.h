@@ -12,6 +12,16 @@ System<scalar>::System(void){
   b = NULL;
   x = NULL;
 
+  // Per-thread non-zero term //
+  #pragma omp parallel
+  {
+    #pragma omp master
+    this->nNZCount.resize(omp_get_num_threads());
+  }
+
+  for(size_t i = 0; i < this->nNZCount.size(); i++)
+    this->nNZCount[i] = 0;
+
   // The system is not assembled and not solved //
   this->assembled = false;
   this->solved    = false;
@@ -34,22 +44,40 @@ void System<scalar>::assemble(void){
   // Enumerate Dofs in DofManager //
   this->dofM.generateGlobalIdSpace();
 
+  // Formulations Iterators //
+  typename std::list<const FormulationBlock<scalar>*>::iterator it;
+  typename std::list<const FormulationBlock<scalar>*>::iterator end;
+
+  // Count FE terms //
+  it  = this->formulation.begin();
+  end = this->formulation.end();
+
+  for(; it != end; it++){
+    // Get All Dofs (Field & Test) per Element
+    std::vector<std::vector<Dof> > dofField;
+    std::vector<std::vector<Dof> > dofTest;
+    (*it)->field().getKeys((*it)->domain(), dofField);
+    (*it)->test().getKeys((*it)->domain(), dofTest);
+
+    // Count
+    const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
+
+    #pragma omp parallel for
+    for(size_t i = 0; i < E; i++)
+      this->nNZCount[omp_get_thread_num()] =
+        SystemAbstract<scalar>::countTerms(this->nNZCount[omp_get_thread_num()],
+                                           i, dofField[i], dofTest[i], **it);
+  }
+
   // Alloc //
   const size_t size = this->dofM.getUnfixedDofNumber();
 
-  A = new SolverMatrix<scalar>(size, size);
+  A = new SolverMatrix<scalar>(size, size, this->nNZCount);
   b = new SolverVector<scalar>(size);
 
-  // Get Formulation Term //
-  typename SystemAbstract<scalar>::formulationPtr term =
-    &FormulationBlock<scalar>::weak;
-
-  // Iterate on Formulations //
-  typename std::list<const FormulationBlock<scalar>*>::iterator it =
-    this->formulation.begin();
-
-  typename std::list<const FormulationBlock<scalar>*>::iterator end =
-    this->formulation.end();
+  // Assemble //
+  it  = this->formulation.begin();
+  end = this->formulation.end();
 
   for(; it != end; it++){
     // Get All Dofs (Field & Test) per Element
@@ -64,7 +92,7 @@ void System<scalar>::assemble(void){
     #pragma omp parallel for
     for(size_t i = 0; i < E; i++)
       SystemAbstract<scalar>::
-        assemble(*A, *b, i, dofField[i], dofTest[i], term, **it);
+        assemble(*A, *b, i, dofField[i], dofTest[i], **it);
   }
 
   // The system is assembled //
@@ -96,11 +124,11 @@ void System<scalar>::assembleAgainRHS(void){
   this->b->reset();
 
   // Iterate on Formulations //
-  typename std::list<const FormulationBlock<scalar>*>::iterator it =
-    this->formulation.begin();
+  typename std::list<const FormulationBlock<scalar>*>::iterator it;
+  typename std::list<const FormulationBlock<scalar>*>::iterator end;
 
-  typename std::list<const FormulationBlock<scalar>*>::iterator end =
-    this->formulation.end();
+  it  = this->formulation.begin();
+  end = this->formulation.end();
 
   for(; it != end; it++){
     // Get All Dofs (Test only) per Element

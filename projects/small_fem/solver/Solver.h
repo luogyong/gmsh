@@ -28,7 +28,7 @@ class Solver{
    Deletes this Solver
    **
 
-   @fn Solver::solve
+   @fn Solver::solve(SolverMatrix<scalar>&,SolverVector<scalar>&,fullVector<scalar>&)
    @param A A SolverMatrix
    @param rhs A SolverVector
    @param x A fullVector

@@ -11,7 +11,7 @@ using namespace std;
 // Implementations are in a weird order...                               //
 // Mandatory to avoid : specialization of 'template' after instantiation //
 //                                                                       //
-// I definitely HATE templates...                                        //
+// I definitely HATE gcc for its template stuffs...                      //
 ///////////////////////////////////////////////////////////////////////////
 
 template<>
@@ -22,11 +22,11 @@ SolverMUMPS<double>::SolverMUMPS(void){
   isFactorized = false;
 
   // Clear //
-  row.clear();
-  col.clear();
-  value.clear();
+  row    = NULL;
+  col    = NULL;
+  value  = NULL;
   valueC = NULL;
-  rhsR.clear();
+  rhsR   = NULL;
   rhsC   = NULL;
 
   // MPI Self //
@@ -69,25 +69,25 @@ SolverMUMPS<double>::~SolverMUMPS(void){
 template<>
 void SolverMUMPS<double>::setMatrix(SolverMatrix<double>& A){
   // Size //
-  const int size = A.nRows();
+  nUnknown = A.nRows();
 
   // Is the given matrix square ? //
-  if((size_t)(size) != A.nColumns())
+  if((size_t)(nUnknown) != A.nColumns())
     throw Exception("SolverMUMPS -- The given matrix is not square: (%d, %d)",
-                    size, A.nColumns());
+                    nUnknown, A.nColumns());
 
-  // Serialize the given matrix //
-  const int nNZ = A.serialize(row, col, value);
+  // Get matrix data //
+  const int nNZ = A.get(&row, &col, &value);
 
   // Define the matrix in MUMPS //
-  idR->icntl[4]  = 0;        // Matrix in assembled format
-  idR->icntl[17] = 0;        // Matrix is centralized on the host
+  idR->icntl[4]  = 0;           // Matrix in assembled format
+  idR->icntl[17] = 0;           // Matrix is centralized on the host
 
-  idR->n   = size;           // Size of the (square) matrix of unknown
-  idR->nz  = nNZ;            // Number of non zero entries in the matrix
-  idR->irn = row.data();     // Row vector
-  idR->jcn = col.data();     // Column vector
-  idR->a   = value.data();   // Value vector
+  idR->n   = nUnknown;          // Size of the (square) matrix of unknown
+  idR->nz  = nNZ;               // Number of non zero entries in the matrix
+  idR->irn = row;               // Row vector
+  idR->jcn = col;               // Column vector
+  idR->a   = value;             // Value vector
 
   // State //
   hasMatrix    = true;
@@ -106,11 +106,11 @@ void SolverMUMPS<double>::setRHS(SolverVector<double>& rhs){
                     "SolverMUMPS", "The given RHS does not have the right size",
                     rhs.getSize(), idR->n);
 
-  // Copy //
-  copy(rhs, rhsR);
+  // Get vector data //
+  rhsR = rhs.getData();
 
   // Define the right hand side in MUMPS //
-  idR->rhs = rhsR.data(); // Right hand side
+  idR->rhs = rhsR; // Right hand side
 
   // State //
   hasRHS = true;
@@ -160,7 +160,7 @@ void SolverMUMPS<double>::solve(fullVector<double>& x){
   dmumps_c(idR);
 
   // The Right hand side is now the solution: copy it into 'x' //
-  copy(rhsR, x);
+  copy(rhsR, x, nUnknown);
 }
 
 template<>

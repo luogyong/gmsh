@@ -63,7 +63,7 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   this->fullCtx.ddm        = this->ddm;
   this->fullCtx.upDdm      = this->upDdm;
   this->fullCtx.outValue   = &this->outValue;
-  this->fullCtx.inValue   = &this->inValue;
+  this->fullCtx.inValue    = &this->inValue;
 
   // PETSc //
   // Unknown vector

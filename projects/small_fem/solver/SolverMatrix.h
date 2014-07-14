@@ -1,10 +1,8 @@
 #ifndef _SOLVERMATRIX_H_
 #define _SOLVERMATRIX_H_
 
-#include <cstring>
 #include <string>
 #include <vector>
-#include <list>
 #include <omp.h>
 
 /**
@@ -13,9 +11,10 @@
 
    This class represents a matrix used by a Solver.
 
-   Once constructed, a SolverMatrix can be serialized into
+   A SolverMatrix data can be recovered into
    three vectors, r[], c[] and a[], such that a[k] is
    the entry of the matrix at row (r[k] - 1) and column (c[k] - 1).
+   Values at the same position should be added.
 
    During the construction of the matrix, multiple values
    can be added in a thread-safe manner.
@@ -24,36 +23,32 @@
 template<typename scalar>
 class SolverMatrix{
  private:
-  // Total Number of waiting mutex //
-  size_t fail;
+  static const size_t maxSizeT;
 
+ private:
   // Size //
   size_t nRow;
   size_t nCol;
 
-  // Data //
-  // Each row is a list of the column entries
-  std::list<std::pair<size_t, scalar> >* data;
+  // Non zero terms & threads offset //
+  std::vector<size_t> nxt;
+  std::vector<size_t> min;
+  std::vector<size_t> max;
 
-  // Each row got also an omp lock to be thread-safe
-  omp_lock_t* lock;
+  // Data //
+  int*    row;
+  int*    col;
+  scalar* value;
 
  public:
-   SolverMatrix(size_t nRow, size_t nCol);
+   SolverMatrix(size_t nRow, size_t nCol, std::vector<size_t> nonZero);
   ~SolverMatrix(void);
 
   size_t nRows(void) const;
   size_t nColumns(void) const;
-  size_t getNumberOfMutexWait(void) const;
 
-  void   add(size_t row, size_t col, scalar value);
-  size_t serialize(std::vector<int>&    rowVector,
-                   std::vector<int>&    colVector,
-                   std::vector<scalar>& valueVector) const;
-
-  size_t serializeCStyle(std::vector<int>&    rowVector,
-                         std::vector<int>&    colVector,
-                         std::vector<scalar>& valueVector) const;
+  void   add(size_t row, size_t col, scalar   value);
+  size_t get(int**  row, int**  col, scalar** value);
 
   std::string toString(void) const;
   std::string toMatlab(std::string matrixName) const;
@@ -62,20 +57,26 @@ class SolverMatrix{
  private:
   SolverMatrix(void);
 
-  void        sortAndReduce(void) const;
-  std::string matlabCommon(std::string matrixName) const;
+  void   sort(void);
+  void   sort(size_t start, size_t end);
+  size_t partition(size_t start, size_t end);
+  void   swap(size_t i, size_t j);
 
-  static bool sortPredicate(const std::pair<size_t, scalar>& a,
-                            const std::pair<size_t, scalar>& b);
+  // void        sortAndReduce(void) const;
+  // std::string matlabCommon(std::string matrixName) const;
 };
 
 /**
-   @fn SolverMatrix::SolverMatrix(size_t nRow, size_t nCol)
+   @fn SolverMatrix::SolverMatrix
    @param nRow The number of row of this SolverMatrix
    @param nCol The number of column of this SolverMatrix
+   @param nonZero Per-Thread non zero term number
 
    Instanciates an new SolverMatrix of zero values with the given number of
-   rows and columns
+   rows and columns.
+
+   The number of non-zero term per-thread should also be given.
+   nonZero[i] is the number of non-zero term that will be added by thread i.
    **
 
    @fn SolverMatrix::~SolverMatrix
@@ -91,42 +92,29 @@ class SolverMatrix{
    @return Returns the number of columns of this SolverMatrix
    **
 
-   @fn SolverMatrix::getNumberOfMutexWait
-   @return Returns the total number of threads that were blocked by a mutex
-   **
-
    @fn SolverMatrix::add
    @param row A row index of this SolverMatrix
    @param col A column index of this SolverMatrix
    @param value A real number
 
-   Adds the given value at the given row and column
+   Adds the given value at the given row and column.
+   Indices are given in a C style manner (that is starting at 0)
    **
 
-   @fn SolverMatrix::serialize
-   @param rowVector A vector of integers
-   @param colVector A vector of integers
-   @param valueVector A vector of reals
+   @fn SolverMatrix::get
+   @param row A pointer to an int*
+   @param col A pointer to an int*
+   @param value A pointer to a scalar*
 
-   @return Returns the number of non zero entries in this SolverMatrix
+   @return Returns the size of this SolverMatrix non zero entries
 
-   Serializes this SolverMatrix.
-   The three given vector will be such that:
-   A[rowVector[k] - 1, colVector[k] - 1] = valueVector[k],
+   *row now points the memory array storing the rows.
+   *col now points the memory array storing the columns.
+   *value now points the memory array storing the values.
+
+   The three memory arrays are such that:
+   A[(*row)[k] - 1, (*col)[k] - 1] = *(value)[k],
    where A is this SolverMatrix.
-   **
-
-   @fn SolverMatrix::serializeCStyle
-
-   @param rowVector A vector of integers
-   @param colVector A vector of integers
-   @param valueVector A vector of reals
-
-   @return Returns the number of non zero entries in this SolverMatrix
-
-   Same as SolverMatrix::serialize, but does the job in C style indexing.
-   Thus, the three given vector will be such that:
-   A[rowVector[k], colVector[k]] = valueVector[k],
    **
 
    @fn SolverMatrix::toString
@@ -162,29 +150,35 @@ class SolverMatrix{
 //////////////////////
 
 template<typename scalar>
-inline
-void SolverMatrix<scalar>::add(size_t row, size_t col, scalar value){
-  // Take mutex for the given row
-  if(!omp_test_lock(&lock[row])){
-    // If we can't we increase the total mutex wait ...
-    fail++;
+inline void SolverMatrix<scalar>::add(size_t row, size_t col, scalar value){
+  // Get Thread num //
+  const int threadId = omp_get_thread_num();
 
-    // End we retry to take the lock
-    omp_set_lock(&lock[row]);
-  }
+  // Next index //
+  const size_t myNxt = this->nxt[threadId];
 
-  // Add the given pair (column, value)
-  data[row].push_back(std::pair<size_t, scalar>(col, value));
+  // Add term (convert to Fortran style) //
+  this->row[myNxt]   = row + 1;
+  this->col[myNxt]   = col + 1;
+  this->value[myNxt] = value;
 
-  // Free mutex
-  omp_unset_lock(&lock[row]);
+  // Done //
+  this->nxt[threadId]++;
 }
 
 template<typename scalar>
-inline
-bool SolverMatrix<scalar>::sortPredicate(const std::pair<size_t, scalar>& a,
-                                         const std::pair<size_t, scalar>& b){
-  return a.first < b.first;
+void SolverMatrix<scalar>::swap(size_t i, size_t j){
+  int tmpRow   = this->row[i];
+  this->row[i] = this->row[j];
+  this->row[j] = tmpRow;
+
+  int tmpCol   = this->col[i];
+  this->col[i] = this->col[j];
+  this->col[j] = tmpCol;
+
+  scalar tmpValue = this->value[i];
+  this->value[i]  = this->value[j];
+  this->value[j]  = tmpValue;
 }
 
 #endif

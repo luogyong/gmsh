@@ -7,36 +7,62 @@
 
 #include <sstream>
 #include <fstream>
+#include "Exception.h"
+
+template<typename scalar>
+const size_t SolverMatrix<scalar>::maxSizeT = 0 - 1;
 
 template<typename scalar>
 SolverMatrix<scalar>::SolverMatrix(void){
 }
 
 template<typename scalar>
-SolverMatrix<scalar>::SolverMatrix(size_t nRow, size_t nCol){
-  // Mutex wait //
-  fail = 0;
-
+SolverMatrix<scalar>::
+SolverMatrix(size_t nRow, size_t nCol, std::vector<size_t> nonZero){
   // Matrix size //
   this->nRow = nRow;
   this->nCol = nCol;
 
-  // Matrix data //
-  data = new std::list<std::pair<size_t, scalar> >[nRow];
-  lock = new omp_lock_t[nRow];
+  // Get num threads //
+  size_t nThreads;
+  #pragma omp parallel
+  {
+    #pragma omp master
+    nThreads = omp_get_num_threads();
+  }
 
-  // Init locks //
-  for(size_t i = 0; i < nRow; i++)
-    omp_init_lock(&lock[i]);
+  // Check thread numbers //
+  if(nonZero.size() != nThreads)
+    throw Exception("%s %s %s", "SolverMatrix: ", "number of non zero entry ",
+                    "doesn't match number of threads");
+
+  // Ranges //
+  nxt.resize(nThreads);
+  max.resize(nThreads);
+  min.resize(nThreads);
+
+  min[0] = 0;
+  for(size_t i = 1, j = 0; i < nThreads; i++, j++)
+    min[i] = min[j] + nonZero[j];
+
+  max[0] = nonZero[0];
+  for(size_t i = 1, j = 0; i < nThreads; i++, j++)
+    max[i] = max[j] + nonZero[i];
+
+  for(size_t i = 0; i < nThreads; i++)
+    nxt[i] = min[i];
+
+  // Matrix data //
+  row   = new int[max[nThreads - 1]];
+  col   = new int[max[nThreads - 1]];
+  value = new scalar[max[nThreads - 1]];
 }
 
 template<typename scalar>
 SolverMatrix<scalar>::~SolverMatrix(void){
-  for(size_t i = 0; i < nRow; i++)
-    omp_destroy_lock(&lock[i]);
-
-  delete[] lock;
-  delete[] data;
+  delete[] row;
+  delete[] col;
+  delete[] value;
 }
 
 template<typename scalar>
@@ -50,112 +76,17 @@ size_t SolverMatrix<scalar>::nColumns(void) const{
 }
 
 template<typename scalar>
-size_t SolverMatrix<scalar>::getNumberOfMutexWait(void) const{
-  return fail;
-}
+size_t SolverMatrix<scalar>::get(int** row, int** col, scalar** value){
+  *row   = this->row;
+  *col   = this->col;
+  *value = this->value;
 
-template<typename scalar>
-size_t SolverMatrix<scalar>::
-serialize(std::vector<int>&    rowVector,
-          std::vector<int>&    colVector,
-          std::vector<scalar>& valueVector) const{
-
-  // Reduce the data vector such that we don't have redundant entries
-  sortAndReduce();
-
-  // Number of non zero entries
-  size_t nNZ = 0;
-  for(size_t i = 0; i < nRow; i++)
-    nNZ += data[i].size();
-
-  // Offset per row
-  std::vector<size_t> offset(nRow);
-  offset[0] = 0;
-
-  for(size_t i = 1, j = 0; i < nRow; i++, j++)
-    offset[i] = offset[j] + data[j].size();
-
-  // Allocate
-  rowVector.resize(nNZ);
-  colVector.resize(nNZ);
-  valueVector.resize(nNZ);
-
-  // Launch parallel portion
-  #pragma omp parallel
-  {
-    // Temp Private Data
-    typename std::list<std::pair<size_t, scalar> >::iterator it;
-    typename std::list<std::pair<size_t, scalar> >::iterator end;
-
-    // Row Vector
-    #pragma omp for
-    for(size_t i = 0; i < nRow; i++){
-      it  = data[i].begin();
-      end = data[i].end();
-
-      for(size_t j = 0; it != end; it++, j++)
-        rowVector[offset[i] + j] = (int)(i) + 1;
-  }
-
-    // Column Vector
-    #pragma omp for
-    for(size_t i = 0; i < nRow; i++){
-      it  = data[i].begin();
-      end = data[i].end();
-
-      for(size_t j = 0; it != end; it++, j++)
-        colVector[offset[i] + j] = (int)(it->first) + 1;
-    }
-
-    // Value Vector
-    #pragma omp for
-    for(size_t i = 0; i < nRow; i++){
-      it  = data[i].begin();
-      end = data[i].end();
-
-      for(size_t j = 0; it != end; it++, j++)
-        valueVector[offset[i] + j] = it->second;
-    }
-  }
-
-  // Return number of non zero entries
-  return nNZ;
-}
-
-template<typename scalar>
-size_t SolverMatrix<scalar>::
-serializeCStyle(std::vector<int>&    rowVector,
-                std::vector<int>&    colVector,
-                std::vector<scalar>& valueVector) const{
-
-  // Do it Fortran Style
-  const size_t nNZ = serialize(rowVector, colVector, valueVector);
-
-  // And substract 1 from indices
-  for(size_t i = 0; i < nNZ; i++)
-    rowVector[i]--;
-
-  for(size_t i = 0; i < nNZ; i++)
-    colVector[i]--;
-
-  // Return
-  return nNZ;
+  return this->max[this->max.size() - 1];
 }
 
 template<typename scalar>
 std::string SolverMatrix<scalar>::toString(void) const{
   std::stringstream stream;
-  typename std::list<std::pair<size_t, scalar> >::iterator it;
-  typename std::list<std::pair<size_t, scalar> >::iterator end;
-
-  for(size_t i = 0; i < nRow; i++){
-    it  = data[i].begin();
-    end = data[i].end();
-
-    for(; it != end; it++)
-      stream << "(" << i << ", " << it->first << "): " << it->second
-             << std::endl;
-  }
 
   return stream.str();
 }
@@ -169,6 +100,63 @@ void SolverMatrix<scalar>::writeToMatlabFile(std::string fileName,
   stream.close();
 }
 
+template<typename scalar>
+void SolverMatrix<scalar>::sort(void){
+  // Sort all
+  const size_t size = this->max[this->max.size() - 1];
+  sort(0, size - 1);
+}
+
+template<typename scalar>
+void SolverMatrix<scalar>::sort(size_t start, size_t end){
+  // If there's nothing to sort, return //
+  if(start >= end)
+    return;
+
+  // Partition of row, col and value //
+  size_t pivotPosition = partition(start, end);
+
+  // Sort left (if it exists) //
+  if(pivotPosition > 0)
+    sort(start, pivotPosition - 1);
+
+  // Sort right (if it exists) //
+  if(pivotPosition < maxSizeT)
+    sort(pivotPosition + 1, end);
+}
+
+template<typename scalar>
+size_t SolverMatrix<scalar>::partition(size_t start, size_t end){
+  // Get pivot at the end of row //
+  int pivotRow = this->row[end];
+  int pivotCol = this->col[end];
+  size_t     i = start - 1;
+
+  // Look for smaller elements than the pivotRow.            //
+  // Keep smaller elements to the left,                      //
+  // and bigger elements to the right of row, col and value. //
+
+  // If equal element is found, do the same with pivotCol.   //
+  for(size_t j = start; j < end; ++j){
+    if(row[j] < pivotRow){
+      ++i;
+      swap(i, j); // Swap row[i & j], col[i & j] and value[i & j]
+    }
+
+    if(row[j] == pivotRow && col[j] < pivotCol){
+      ++i;
+      swap(i, j); // Swap row[i & j], col[i & j] and value[i & j]
+    }
+  }
+
+  // Swap pivot with the leftmost bigger element //
+  ++i;
+  swap(i, end);   // Swap row[i & j], col[i & j] and value[i & j]
+
+  return i;
+}
+
+/*
 template<typename scalar>
 void SolverMatrix<scalar>::sortAndReduce(void) const{
   // Each thread takes a set of rows
@@ -248,7 +236,7 @@ std::string SolverMatrix<scalar>::matlabCommon(std::string matrixName) const{
     end = data[i].end();
 
     for(; it != end; it++)
-      stream << i + 1 << ", ";
+      stream << i << ", ";
   }
   stream << "], ";
 
@@ -259,10 +247,11 @@ std::string SolverMatrix<scalar>::matlabCommon(std::string matrixName) const{
     end = data[i].end();
 
     for(; it != end; it++)
-      stream << it->first + 1 << ", ";
+      stream << it->first << ", ";
   }
   stream << "], ";
 
   // Return
   return stream.str();
 }
+*/

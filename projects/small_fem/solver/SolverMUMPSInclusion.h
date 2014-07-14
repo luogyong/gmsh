@@ -6,11 +6,8 @@
 ////////////////////////////////////////////////
 
 template<typename scalar>
-void SolverMUMPS<scalar>::copy(std::vector<Complex>& data,
-                               mumps_double_complex** out){
-  // Size
-  const size_t size = data.size();
-
+void SolverMUMPS<scalar>::
+copy(Complex* data, mumps_double_complex** out, size_t size){
   // Alloc mumps struct
   *out = new mumps_double_complex[size];
 
@@ -22,41 +19,8 @@ void SolverMUMPS<scalar>::copy(std::vector<Complex>& data,
 }
 
 template<typename scalar>
-void SolverMUMPS<scalar>::copy(SolverVector<Complex>& data,
-                               mumps_double_complex** out){
-  // Size
-  const size_t size = data.getSize();
-
-  // Alloc mumps struct
-  *out = new mumps_double_complex[size];
-
-  // Copy
-  for(size_t i = 0; i < size; i++){
-    (*out)[i].r = data.get(i).real();
-    (*out)[i].i = data.get(i).imag();
-  }
-}
-
-template<typename scalar>
-void SolverMUMPS<scalar>::copy(SolverVector<double>& data,
-                               std::vector<double>& out){
-  // Size
-  const size_t size = data.getSize();
-
-  // Alloc
-  out.resize(size);
-
-  // Copy
-  for(size_t i = 0; i < size; i++)
-    out[i] = data.get(i);
-}
-
-template<typename scalar>
-void SolverMUMPS<scalar>::copy(std::vector<double>& data,
-                               fullVector<double>& out){
-  // Size
-  const size_t size = data.size();
-
+void SolverMUMPS<scalar>::
+copy(double* data, fullVector<double>& out, size_t size){
   // Alloc
   out.resize(size);
 
@@ -66,9 +30,8 @@ void SolverMUMPS<scalar>::copy(std::vector<double>& data,
 }
 
 template<typename scalar>
-void SolverMUMPS<scalar>::copy(mumps_double_complex* data,
-                               fullVector<Complex>& out,
-                               size_t size){
+void SolverMUMPS<scalar>::
+copy(mumps_double_complex* data, fullVector<Complex>& out, size_t size){
   // Alloc
   out.resize(size);
 

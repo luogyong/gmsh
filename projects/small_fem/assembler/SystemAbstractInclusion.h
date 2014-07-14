@@ -90,13 +90,45 @@ void SystemAbstract<scalar>::constraint(const std::map<Dof, scalar>& constr){
 }
 
 template<typename scalar>
+size_t SystemAbstract<scalar>::
+countTerms(size_t offset,
+           size_t elementId,
+           const std::vector<Dof>& dofField,
+           const std::vector<Dof>& dofTest,
+           const FormulationBlock<scalar>& formulation){
+
+  const size_t N = dofTest.size();
+  const size_t M = dofField.size();
+
+  size_t count = offset;
+  size_t dofI;
+  size_t dofJ;
+
+  for(size_t i = 0; i < N; i++){
+    dofI = dofM.getGlobalId(dofTest[i]);
+
+    // If not a fixed Dof line
+    if(dofI != DofManager<scalar>::isFixedId()){
+      for(size_t j = 0; j < M; j++){
+        dofJ = dofM.getGlobalId(dofField[j]);
+
+        // If not a fixed Dof: count!
+        if(dofJ != DofManager<scalar>::isFixedId())
+          count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+template<typename scalar>
 void SystemAbstract<scalar>::
 assemble(SolverMatrix<scalar>& A,
          SolverVector<scalar>& b,
          size_t elementId,
          const std::vector<Dof>& dofField,
          const std::vector<Dof>& dofTest,
-         formulationPtr& term,
          const FormulationBlock<scalar>& formulation){
 
   const size_t N = dofTest.size();
@@ -115,14 +147,14 @@ assemble(SolverMatrix<scalar>& A,
 
         // If not a fixed Dof
         if(dofJ != DofManager<scalar>::isFixedId())
-          A.add(dofI, dofJ, (formulation.*term)(i, j, elementId));
+          A.add(dofI, dofJ, formulation.weak(i, j, elementId));
 
         // If fixed Dof (for column 'dofJ'):
         //    add to right hand side (with a minus sign) !
         else
           b.add(dofI,
                 minusSign * dofM.getValue(dofField[j]) *
-                           (formulation.*term)(i, j, elementId));
+                           formulation.weak(i, j, elementId));
       }
 
       b.add(dofI, formulation.rhs(i, elementId));
@@ -200,20 +232,14 @@ getProcMaxRange(const std::vector<size_t>& size,
 template<typename scalar>
 void SystemAbstract<scalar>::
 petscSparsity(PetscInt* nonZero,
-              const std::vector<int>& row,
-              const std::vector<int>& col,
-              int iMin,
-              int iMax,
-              bool isDiagonal){
-  // Size
-  const int size = row.size(); // Assumed equal to col.size()
-
+              int* row, int* col, size_t size,
+              int iMin, int iMax, bool isDiagonal){
   // Loop
-  for(int i = 0; i < size; i++){
-    int iRow = row[i];
+  for(size_t i = 0; i < size; i++){
+    int iRow = row[i] - 1;   // row is assumed in Fortran style
 
     if(iRow >= iMin && iRow < iMax){
-      int iCol = col[i];
+      int iCol = col[i] - 1; // col is assumed in Fortran style
 
       if((iCol >= iMin && iCol < iMax) == isDiagonal)
         nonZero[iRow - iMin]++;
@@ -223,24 +249,20 @@ petscSparsity(PetscInt* nonZero,
 
 template<typename scalar>
 void SystemAbstract<scalar>::
-petscSerialize(int rowMin,
-               int rowMax,
-               const std::vector<int>&    row,
-               const std::vector<int>&    col,
-               const std::vector<scalar>& value,
-               Mat& A){
-  // Size
-  const int size = row.size(); // Assumed equal to col.size()
-
+petscSerialize(int rowMin, int rowMax,
+               int* row, int* col, scalar* value, size_t size, Mat& A){
   // Loop
   int iRow;
-  int i;
-  for(i = 0; i < size; i++){
+  int iCol;
+
+  for(size_t i = 0; i < size; i++){
     // Get Row
-    iRow = row[i];
+    iRow = row[i] - 1;   // row is assumed in Fortran style
 
     // Is in row range ?
-    if(iRow >= rowMin && iRow < rowMax)
-      MatSetValues(A, 1, &iRow, 1, &col[i], &value[i], INSERT_VALUES);
+    if(iRow >= rowMin && iRow < rowMax){
+      iCol = col[i] - 1; // col is assumed in Fortran style
+      MatSetValues(A, 1, &iRow, 1, &iCol, &value[i], ADD_VALUES);
+    }
   }
 }

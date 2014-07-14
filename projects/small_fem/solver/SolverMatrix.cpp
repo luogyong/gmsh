@@ -9,6 +9,7 @@ template<>
 string SolverMatrix<double>::toMatlab(string matrixName) const{
   // Init
   stringstream stream;
+  /*
   list<pair<size_t, double> >::iterator it;
   list<pair<size_t, double> >::iterator end;
 
@@ -28,7 +29,7 @@ string SolverMatrix<double>::toMatlab(string matrixName) const{
 
   // Number of rows and columns
   stream << nRow << ", " << nCol << ");";
-
+  */
   // Return
   return stream.str();
 }
@@ -37,6 +38,7 @@ template<>
 string SolverMatrix<std::complex<double> >::toMatlab(string matrixName) const{
   // Init
   stringstream stream;
+  /*
   list<pair<size_t, std::complex<double> > >::iterator it;
   list<pair<size_t, std::complex<double> > >::iterator end;
 
@@ -58,7 +60,7 @@ string SolverMatrix<std::complex<double> >::toMatlab(string matrixName) const{
 
   // Number of rows and columns
   stream << nRow << ", " << nCol << ");";
-
+  */
   // Return
   return stream.str();
 }

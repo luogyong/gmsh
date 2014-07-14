@@ -1,8 +1,6 @@
 #ifndef _SOLVERMUMPS_H_
 #define _SOLVERMUMPS_H_
 
-#include <vector>
-
 #include "mumps_c_types.h"
 #include "dmumps_c.h"
 #include "zmumps_c.h"
@@ -30,14 +28,17 @@ class SolverMUMPS: public Solver<scalar>{
   bool hasRHS;
   bool isFactorized;
 
+  // Size //
+  int nUnknown;
+
   // Matrix //
-  std::vector<int>      row;
-  std::vector<int>      col;
-  std::vector<scalar>   value;  // Complex AND Real case
+  int*                  row;
+  int*                  col;
+  scalar*               value;  // Complex AND Real case
   mumps_double_complex* valueC; // Complex case only
 
   // RHS //
-  std::vector<double>   rhsR; // Real    case
+  double*               rhsR; // Real    case
   mumps_double_complex* rhsC; // Complex case
 
   // MUMPS //
@@ -63,11 +64,11 @@ class SolverMUMPS: public Solver<scalar>{
   void freeMatrix(void);
   void freeRHS(void);
 
-  static void copy(std::vector<Complex>&  data, mumps_double_complex** out);
-  static void copy(SolverVector<Complex>& data, mumps_double_complex** out);
-  static void copy(SolverVector<double>&  data, std::vector<double>&   out);
-  static void copy(std::vector<double>&   data, fullVector<double>&    out);
-  static void copy(mumps_double_complex*  data, fullVector<Complex>&   out,
+  static void copy(Complex*              data, mumps_double_complex** out,
+                   size_t size);
+  static void copy(double*               data, fullVector<double>&    out,
+                   size_t size);
+  static void copy(mumps_double_complex* data, fullVector<Complex>&   out,
                    size_t size);
 };
 
@@ -78,6 +79,26 @@ class SolverMUMPS: public Solver<scalar>{
 
    @fn SolverMUMPS::~SolverMUMPS
    Deletes this SolverMUMPS
+   **
+
+   @fn SolverMUMPS::setMatrix
+   @param A A SolverMatrix
+   The given matrix is now this Solver matrix
+   **
+
+   @fn SolverMUMPS::setRHS
+   @param rhs A SolverVector
+   The given vector is now this Solver right hand side
+   **
+
+   @fn SolverMUMPS::factorize
+   Computes the LU decomposition of the given matrix
+   **
+
+   @fn SolverMUMPS::solve(fullVector<scalar>& x)
+   @param x The fullVector where the solution will be stored
+   Uses the previous SolverMUMPS::factorize() and SolverMUMPS::setRHS()
+   to compute the solution of the linear system
 */
 
 

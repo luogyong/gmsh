@@ -15,6 +15,22 @@ SystemEigen::SystemEigen(void){
   eigenValue  = NULL;
   eigenVector = NULL;
 
+  // Per-thread non-zero term //
+  #pragma omp parallel
+  {
+    #pragma omp master
+    {
+      this->nNZCount.resize(omp_get_num_threads());
+      this->nNZCountB.resize(omp_get_num_threads());
+    }
+  }
+
+  for(size_t i = 0; i < this->nNZCount.size(); i++)
+    this->nNZCount[i] = 0;
+
+  for(size_t i = 0; i < this->nNZCountB.size(); i++)
+    this->nNZCountB[i] = 0;
+
   // Default //
   nEigenValues   = 10;
   maxIt          = 100;
@@ -64,37 +80,60 @@ addFormulationB(const Formulation<Complex>& formulation){
   general = true;
 }
 
-void SystemEigen::assembleCom(SolverMatrix<Complex>& tmpMat,
-                              SolverVector<Complex>& tmpRHS,
-                              const FormulationBlock<Complex>& formulation,
-                              formulationPtr term){
-  // Get All Dofs (Field & Test) per Element //
-  vector<vector<Dof> > dofField;
-  vector<vector<Dof> > dofTest;
-  formulation.field().getKeys(formulation.domain(), dofField);
-  formulation.test().getKeys(formulation.domain(), dofTest);
+void SystemEigen::
+countCom(std::list<const FormulationBlock<Complex>*>::iterator it,
+         std::list<const FormulationBlock<Complex>*>::iterator end,
+         std::vector<size_t>& nNZCount){
 
-  // Assemble Systems (tmpA and tmpB) //
-  const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
+  // Iterate on Formulations //
+  for(; it != end; it++){
+    // Get All Dofs (Field & Test) per Element
+    vector<std::vector<Dof> > dofField;
+    vector<std::vector<Dof> > dofTest;
+    (*it)->field().getKeys((*it)->domain(), dofField);
+    (*it)->test().getKeys((*it)->domain(), dofTest);
 
-  // #pragma omp parallel for
-  // WARNING: With current list style SolverMatrix, omp is not a good idea!
-  for(size_t i = 0; i < E; i++)
-    SystemAbstract<Complex>::assemble
-      (tmpMat, tmpRHS, i, dofField[i], dofTest[i], term, formulation);
+    // Count
+    const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
+
+    #pragma omp parallel for
+    for(size_t i = 0; i < E; i++)
+      nNZCount[omp_get_thread_num()] =
+        SystemAbstract<Complex>::countTerms(nNZCount[omp_get_thread_num()],
+                                            i, dofField[i], dofTest[i], **it);
+  }
 }
 
-Mat* SystemEigen::toPetscAndDelete(SolverMatrix<Complex>* tmp,
-                                   size_t size, int myProc){
-  // Serialize tmp & free it //
-  vector<int>*       row = new vector<int>;
-  vector<int>*       col = new vector<int>;
-  vector<Complex>* value = new vector<Complex>;
-  //int                nNZ = tmp->serializeCStyle(*row, *col, *value);
+void SystemEigen::
+assembleCom(std::list<const FormulationBlock<Complex>*>::iterator it,
+            std::list<const FormulationBlock<Complex>*>::iterator end,
+            SolverMatrix<Complex>& tmpMat,
+            SolverVector<Complex>& tmpRHS){
 
-   tmp->serializeCStyle(*row, *col, *value);
-  //tmp->writeToMatlabFile("Asf_mat.m", "Asf");
-  delete tmp;
+  // Iterate on Formulations //
+  for(; it != end; it++){
+    // Get All Dofs (Field & Test) per Element
+    vector<vector<Dof> > dofField;
+    vector<vector<Dof> > dofTest;
+    (*it)->field().getKeys((*it)->domain(), dofField);
+    (*it)->test().getKeys((*it)->domain(), dofTest);
+
+    // Assemble Systems
+    const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
+
+    #pragma omp parallel for
+    for(size_t i = 0; i < E; i++)
+      SystemAbstract<Complex>::assemble
+        (tmpMat, tmpRHS, i, dofField[i], dofTest[i], **it);
+  }
+}
+
+Mat* SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size, int myProc){
+  // Get tmp data //
+  int*       row;
+  int*       col;
+  Complex* value;
+  size_t tmpSize = tmp->get(&row, &col, &value);
 
   // Sparsity of PETSc matrix //
   PetscInt* nonZeroDiag    = new PetscInt[procSize[myProc]];
@@ -106,13 +145,13 @@ Mat* SystemEigen::toPetscAndDelete(SolverMatrix<Complex>* tmp,
   for(size_t i = 0; i < procSize[myProc]; i++)
     nonZeroOffDiag[i] = 0;
 
-  petscSparsity(nonZeroDiag, *row, *col,
+  petscSparsity(nonZeroDiag, row, col, tmpSize,
     procMinRange[myProc], procMaxRange[myProc], true);
 
-  petscSparsity(nonZeroOffDiag, *row, *col,
+  petscSparsity(nonZeroOffDiag, row, col, tmpSize,
     procMinRange[myProc], procMaxRange[myProc], false);
 
-  // Copy tmp (CStyle) into PETSc matrix //
+  // Copy tmp into PETSc matrix //
   Mat* M = new Mat;
 
   MatCreateAIJ(MPI_COMM_WORLD,
@@ -120,21 +159,17 @@ Mat* SystemEigen::toPetscAndDelete(SolverMatrix<Complex>* tmp,
                42, nonZeroDiag, 42, nonZeroOffDiag, M);
 
   petscSerialize(procMinRange[myProc], procMaxRange[myProc],
-                 *row, *col, *value, *M);
+                 row, col, value, tmpSize, *M);
 
   MatAssemblyBegin(*M, MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd  (*M, MAT_FINAL_ASSEMBLY);
 
-  // MatCreateSeqAIJFromTriple(MPI_COMM_SELF, size, size,
-  //                           row->data(), col->data(), value->data(),
-  //                           M, nNZ, PETSC_FALSE);
-
   // Free //
   delete[] nonZeroDiag;
   delete[] nonZeroOffDiag;
-  delete   row;
-  delete   col;
-  delete   value;
+
+  // Wait for everything to be ok //
+  MPI_Barrier(MPI_COMM_WORLD);
 
   // Retrun //
   return M;
@@ -148,12 +183,16 @@ void SystemEigen::assemble(void){
   // Enumerate Dofs in DofManager //
   dofM.generateGlobalIdSpace();
 
+  // Count FE terms //
+  countCom(formulation.begin() , formulation.end() , nNZCount);
+  countCom(formulationB.begin(), formulationB.end(), nNZCountB);
+
   // Alloc Temp Sparse Matrices (not with PETSc) //
   const size_t size = dofM.getUnfixedDofNumber();
 
   SolverVector<Complex>* tmpRHS = new SolverVector<Complex>(size);
-  SolverMatrix<Complex>* tmpA   = new SolverMatrix<Complex>(size, size);
-  SolverMatrix<Complex>* tmpB   = new SolverMatrix<Complex>(size, size);
+  SolverMatrix<Complex>* tmpA = new SolverMatrix<Complex>(size,size, nNZCount);
+  SolverMatrix<Complex>* tmpB = new SolverMatrix<Complex>(size,size, nNZCountB);
 
   // MPI Ranges //
   int nProc;
@@ -166,38 +205,22 @@ void SystemEigen::assemble(void){
   getProcMinRange(procSize, procMinRange);
   getProcMaxRange(procSize, procMaxRange);
 
-  // Get Formulation Terms //
-  formulationPtr term = &FormulationBlock<Complex>::weak;
-
-  // Iterate on Formulations A //
-  list<const FormulationBlock<Complex>*>::iterator it;
-  list<const FormulationBlock<Complex>*>::iterator end;
-
-  it  = formulation.begin();
-  end = formulation.end();
-
-  // Assemble tmpA
+  // Assemble Formulations A //
   cout << "True Assembly of A" << endl << flush;
-  for(; it != end; it++)
-    assembleCom(*tmpA, *tmpRHS, **it, term);
+  assembleCom(formulation.begin(), formulation.end(), *tmpA, *tmpRHS);
 
-  // Convert tmpA to PETSc matrix and free tmpA
   cout << "PETSc version of A" << endl << flush;
-  A = toPetscAndDelete(tmpA, size, myProc); // Allocate A and Deletes tmpA
+  A = toPetsc(tmpA, size, myProc); // Allocates A
+  delete tmpA;
 
-  // Iterate on Formulations B //
+  // Assemble Formulations B //
   if(general){
-    it  = formulationB.begin();
-    end = formulationB.end();
-
-    // Assemble tmpB
     cout << "True Assembly of B" << endl << flush;
-    for(; it != end; it++)
-      assembleCom(*tmpB, *tmpRHS, **it, term);
+    assembleCom(formulationB.begin(), formulationB.end(), *tmpB, *tmpRHS);
 
-    // Convert tmpB to PETSc matrix and free tmpB
     cout << "PETSc version of B" << endl << flush;
-    B = toPetscAndDelete(tmpB, size, myProc); // Allocate B and Deletes tmpB
+    B = toPetsc(tmpB, size, myProc); // Allocates B
+    delete tmpB;
   }
 
   else{

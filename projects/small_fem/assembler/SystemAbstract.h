@@ -26,11 +26,6 @@
 template<typename scalar>
 class SystemAbstract{
  protected:
-  typedef
-    scalar (FormulationBlock<scalar>::*formulationPtr)(size_t dofI,
-                                                       size_t dofJ,
-                                                       size_t elementId) const;
- protected:
   static const scalar minusSign;
 
  protected:
@@ -38,7 +33,8 @@ class SystemAbstract{
   bool solved;
 
   std::list<const FormulationBlock<scalar>*> formulation;
-  DofManager<scalar> dofM;
+  DofManager<scalar>  dofM;
+  std::vector<size_t> nNZCount;
 
  public:
   virtual ~SystemAbstract(void);
@@ -70,12 +66,17 @@ class SystemAbstract{
   void addFormulationCoupled(const FormulationCoupled<scalar>& formulation,
                              std::list<const FormulationBlock<scalar>*>& fList);
 
+  size_t countTerms(size_t offset,
+                    size_t elementId,
+                    const std::vector<Dof>& dofField,
+                    const std::vector<Dof>& dofTest,
+                    const FormulationBlock<scalar>& formulation);
+
   void assemble(SolverMatrix<scalar>& A,
                 SolverVector<scalar>& b,
                 size_t elementId,
                 const std::vector<Dof>& dofField,
                 const std::vector<Dof>& dofTest,
-                formulationPtr& term,
                 const FormulationBlock<scalar>& formulation);
 
   void assembleRHSOnly(SolverVector<scalar>& b,
@@ -91,18 +92,11 @@ class SystemAbstract{
                        std::vector<size_t>& max);
 
   void petscSparsity(PetscInt* nonZero,
-                     const std::vector<int>& row,
-                     const std::vector<int>& col,
-                     int iMin,
-                     int iMax,
-                     bool isDiagonal);
+                     int* row, int* col, size_t size,
+                     int iMin, int iMax, bool isDiagonal);
 
-  void petscSerialize(int rowMin,
-                      int rowMax,
-                      const std::vector<int>&     row,
-                      const std::vector<int>&     col,
-                      const std::vector<scalar>&  value,
-                      Mat& A);
+  void petscSerialize(int rowMin, int rowMax,
+                      int* row, int* col, scalar* value, size_t size, Mat& A);
 };
 
 

@@ -22,11 +22,11 @@ SolverMUMPS<Complex>::SolverMUMPS(void){
   isFactorized = false;
 
   // Clear //
-  row.clear();
-  col.clear();
-  value.clear();
+  row    = NULL;
+  col    = NULL;
+  value  = NULL;
   valueC = NULL;
-  rhsR.clear();
+  rhsR   = NULL;
   rhsC   = NULL;
 
   // MPI Self //
@@ -73,31 +73,28 @@ SolverMUMPS<Complex>::~SolverMUMPS(void){
 template<>
 void SolverMUMPS<Complex>::setMatrix(SolverMatrix<Complex>& A){
   // Size //
-  const int size = A.nRows();
+  nUnknown = A.nRows();
 
   // Is the given matrix square ? //
-  if((size_t)(size) != A.nColumns())
+  if((size_t)(nUnknown) != A.nColumns())
     throw Exception("SolverMUMPS -- The given matrix is not square: (%d, %d)",
-                    size, A.nColumns());
+                    nUnknown, A.nColumns());
 
-  // Serialize the given matrix //
-  const int nNZ = A.serialize(row, col, value);
+  // Get matrix data //
+  const int nNZ = A.get(&row, &col, &value);
 
   // Convert into MUMPS Complex data //
-  copy(value, &valueC);
-
-  // Clear value (not needed any more) //
-  value.clear();
+  copy(value, &valueC, nNZ);
 
   // Define the matrix in MUMPS //
-  idC->icntl[4]  = 0;        // Matrix in assembled format
-  idC->icntl[17] = 0;        // Matrix is centralized on the host
+  idC->icntl[4]  = 0;           // Matrix in assembled format
+  idC->icntl[17] = 0;           // Matrix is centralized on the host
 
-  idC->n   = size;           // Size of the (square) matrix of unknown
-  idC->nz  = nNZ;            // Number of non zero entries in the matrix
-  idC->irn = row.data();     // Row vector
-  idC->jcn = col.data();     // Column vector
-  idC->a   = valueC;         // Value vector
+  idC->n   = nUnknown;          // Size of the (square) matrix of unknown
+  idC->nz  = nNZ;               // Number of non zero entries in the matrix
+  idC->irn = row;               // Row vector
+  idC->jcn = col;               // Column vector
+  idC->a   = valueC;            // Value vector
 
   // State //
   hasMatrix    = true;
@@ -116,11 +113,14 @@ void SolverMUMPS<Complex>::setRHS(SolverVector<Complex>& rhs){
                     "SolverMUMPS", "The given RHS does not have the right size",
                     rhs.getSize(), idC->n);
 
+  // Get vector data //
+  Complex* rhsTmp = rhs.getData();
+
   // Copy into MUMPS Complex data //
-  copy(rhs, &rhsC);
+  copy(rhsTmp, &rhsC, nUnknown);
 
   // Define the right hand side in MUMPS //
-  idC->rhs = rhsC;        // Right hand side
+  idC->rhs = rhsC; // Right hand side
 
   // State //
   hasRHS = true;
@@ -170,7 +170,7 @@ void SolverMUMPS<Complex>::solve(fullVector<Complex>& x){
   zmumps_c(idC);
 
   // The Right hand side is now the solution: copy it into 'x' //
-  copy(rhsC, x, idC->n);
+  copy(rhsC, x, nUnknown);
 }
 
 template<>
