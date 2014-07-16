@@ -28,9 +28,9 @@ R                     = 40.6   * mm
 L_cav                 = 27.57  * mm
 deltaz                =  5.    * mm
 radius_mirror         = 25.    * mm
-dist2PML_xy           =  0.5   * mm
-dist2PML_z            =  3.7   * mm
 thick_mirror_atcenter =  1.415 * mm
+dist2PML_xy           = lambda_haroche
+dist2PML_z            = lambda_haroche
 
 ## Box
 box_x =                      radius_mirror + dist2PML_xy
@@ -45,6 +45,9 @@ pml_z = lambda_haroche
 
 ## Mesh Parameters ##
 #####################
+if(len(sys.argv) != 5):
+    raise ValueError('Bad argument: geometry_haroche air pml mir order')
+
 refinement_air = float(sys.argv[1])
 refinement_pml = float(sys.argv[2])
 refinement_mir = float(sys.argv[3])

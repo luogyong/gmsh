@@ -1,3 +1,5 @@
+#include <sys/resource.h>
+#include <unistd.h>
 #include <iostream>
 #include <cstdio>
 
@@ -37,6 +39,21 @@ fullVector<Complex> fZero(fullVector<double>& xyz){
   f(2) = Complex(0, 0);
 
   return f;
+}
+
+double getMemory(void){
+  long  rss = 0;
+  FILE*  fp = NULL;
+
+  if ((fp = fopen("/proc/self/statm", "r")) == NULL)
+    return 0;
+  if (fscanf(fp, "%*s%ld", &rss) != 1){
+    fclose(fp);
+    return 0;
+  }
+
+  fclose(fp);
+  return (double)((size_t)rss * (size_t)sysconf(_SC_PAGESIZE)) / (double)(1e9);
 }
 
 void compute(const Options& option){
@@ -95,14 +112,14 @@ void compute(const Options& option){
   All_surfaces.add(SurfYZ);
   All_surfaces.add(SurfXZ);
   All_surfaces.add(SurfXY);
-  cout << "Done!" << endl << flush;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // FunctionSpace //
   cout << "FunctionSpace... " << flush;
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   FunctionSpaceVector fs(All_domains, order);
 
-  cout << "Done!" << endl << flush;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
   cout << "Number of Dofs: " << fs.getAllDofs().size() << endl;
 
   // Formulation //
@@ -141,7 +158,7 @@ void compute(const Options& option){
                                        (PMLy,   fs, fs, Material::Y::Epsilon);
   Formulation<Complex>* massZ   = new FormulationMass<Complex>
                                        (PMLz,   fs, fs, Material::Z::Epsilon);
-  cout << "Done!" << endl << flush;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // System //
   cout << "System... " << flush;
@@ -164,7 +181,7 @@ void compute(const Options& option){
   sys.addFormulationB(*massX);
   sys.addFormulationB(*massY);
   sys.addFormulationB(*massZ);
-  cout << "Done!" << endl << flush;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Dirichlet //
   // Mirror
@@ -187,14 +204,15 @@ void compute(const Options& option){
     cout << "No symmetry given: defaulting to YZ" << endl;
     SystemHelper<Complex>::dirichlet(sys, fs, SurfYZ, fZero);
   }
-  cout << "Done!" << endl << flush;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Assemble //
   cout << "True assembling... " << endl << flush;
   sys.assemble();
-  cout << "Done" << endl << flush;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Free formulations //
+  cout << "Clearing..." << endl << flush;
   delete stifAir;
   delete stifXYZ;
   delete stifXY;
@@ -212,6 +230,7 @@ void compute(const Options& option){
   delete massX;
   delete massY;
   delete massZ;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Solve //
   cout << "Solving: " << sys.getSize() << endl << flush;
@@ -238,6 +257,7 @@ void compute(const Options& option){
 
   // Do what you have to do !
   sys.solve();
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Post-Pro //
   int myProc;

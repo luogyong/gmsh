@@ -5,6 +5,24 @@
 
 using namespace std;
 
+#include <sys/resource.h>
+#include <unistd.h>
+
+static double getMemory(void){
+  long  rss = 0;
+  FILE*  fp = NULL;
+
+  if ((fp = fopen("/proc/self/statm", "r")) == NULL)
+    return 0;
+  if (fscanf(fp, "%*s%ld", &rss) != 1){
+    fclose(fp);
+    return 0;
+  }
+
+  fclose(fp);
+  return (double)((size_t)rss * (size_t)sysconf(_SC_PAGESIZE)) / (double)(1e9);
+}
+
 SystemEigen::SystemEigen(void){
   // Is the Problem a General EigenValue Problem ? //
   general = false;
@@ -194,6 +212,8 @@ void SystemEigen::assemble(void){
   SolverMatrix<Complex>* tmpA = new SolverMatrix<Complex>(size,size, nNZCount);
   SolverMatrix<Complex>* tmpB = new SolverMatrix<Complex>(size,size, nNZCountB);
 
+  cout << "Matrices allocated (" << getMemory() << " GB)" << endl << flush;
+
   // MPI Ranges //
   int nProc;
   int myProc;
@@ -206,21 +226,25 @@ void SystemEigen::assemble(void){
   getProcMaxRange(procSize, procMaxRange);
 
   // Assemble Formulations A //
-  cout << "True Assembly of A" << endl << flush;
+  cout << "True Assembly of A... " << flush;
   assembleCom(formulation.begin(), formulation.end(), *tmpA, *tmpRHS);
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
-  cout << "PETSc version of A" << endl << flush;
+  cout << "PETSc version of A... " << flush;
   A = toPetsc(tmpA, size, myProc); // Allocates A
   delete tmpA;
+  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Assemble Formulations B //
   if(general){
-    cout << "True Assembly of B" << endl << flush;
+    cout << "True Assembly of B... " << flush;
     assembleCom(formulationB.begin(), formulationB.end(), *tmpB, *tmpRHS);
+    cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
-    cout << "PETSc version of B" << endl << flush;
+    cout << "PETSc version of B..."  << flush;
     B = toPetsc(tmpB, size, myProc); // Allocates B
     delete tmpB;
+    cout << "Done! (" << getMemory() << " GB)" << endl << flush;
   }
 
   else{
