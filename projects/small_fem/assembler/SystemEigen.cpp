@@ -287,7 +287,7 @@ void SystemEigen::solve(void){
 
   // Set Options //
   EPSSetDimensions(solver, nEigenValues, PETSC_DECIDE, PETSC_DECIDE);
-  EPSSetTolerances(solver, 1E-6, 100);
+  EPSSetTolerances(solver, tol, maxIt);
 
   // Which Eigenpair //
   if(!whichEigenpair.compare("smallest_magnitude")){
@@ -338,11 +338,17 @@ void SystemEigen::solve(void){
   // Get Solution //
   const size_t size = dofM.getUnfixedDofNumber();
 
+  VecScatter   scat;
   PetscScalar  lambda;
   PetscScalar* x;
-  Vec          xPetsc;
+  Vec          xPetscDist;
+  Vec          xPetscSeq;
 
-  MatGetVecs(*A, PETSC_NULL, &xPetsc);
+  MatGetVecs(*A, PETSC_NULL, &xPetscDist);
+  VecCreate(MPI_COMM_SELF, &xPetscSeq);
+  VecSetType(xPetscSeq, VECSEQ);
+  VecSetSizes(xPetscSeq, size, size);
+  VecScatterCreateToAll(xPetscDist, &scat, NULL);
 
   EPSGetConverged(solver, &nEigenValues);
 
@@ -350,9 +356,12 @@ void SystemEigen::solve(void){
   eigenVector = new vector<fullVector<Complex> >(nEigenValues);
 
   for(PetscInt i = 0; i < nEigenValues; i++){
-    EPSGetEigenpair(solver, i, &lambda, NULL, xPetsc, NULL);
+    EPSGetEigenpair(solver, i, &lambda, NULL, xPetscDist, NULL);
 
-    VecGetArray(xPetsc, &x);
+    VecScatterBegin(scat, xPetscDist, xPetscSeq, INSERT_VALUES,SCATTER_FORWARD);
+    VecScatterEnd(scat, xPetscDist, xPetscSeq, INSERT_VALUES,SCATTER_FORWARD);
+
+    VecGetArray(xPetscSeq, &x);
 
     (*eigenVector)[i].resize(size);
     for(size_t j = 0; j < size; j++)
@@ -361,7 +370,9 @@ void SystemEigen::solve(void){
     (*eigenValue)(i) = lambda;
   }
 
-  VecDestroy(&xPetsc);
+  VecDestroy(&xPetscDist);
+  VecDestroy(&xPetscSeq);
+  VecScatterDestroy(&scat);
   EPSDestroy(&solver);
 
   // System solved ! //
