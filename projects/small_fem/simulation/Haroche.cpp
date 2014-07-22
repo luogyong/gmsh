@@ -237,8 +237,7 @@ void compute(const Options& option){
 
   // Set number of eigenvalue (if any, else default)
   try{
-    const size_t nWave = atoi(option.getValue("-n")[1].c_str());
-    sys.setNumberOfEigenValues(nWave);
+    sys.setNumberOfEigenValues(atoi(option.getValue("-n")[1].c_str()));
   }
 
   catch(...){
@@ -246,10 +245,26 @@ void compute(const Options& option){
 
   // Set shift (if any, else default)
   try{
-    double shift = atof(option.getValue("-shift")[1].c_str());
+    const double shift = atof(option.getValue("-shift")[1].c_str());
 
     sys.setWhichEigenpairs("target_magnitude");
     sys.setTarget(Complex(shift, 0));
+  }
+
+  catch(...){
+  }
+
+  // Set tolerance (if any, else default)
+  try{
+    sys.setTolerance(atof(option.getValue("-tol")[1].c_str()));
+  }
+
+  catch(...){
+  }
+
+  // Set maximun iteration number (if any, else default)
+  try{
+    sys.setMaxIteration(atoi(option.getValue("-maxit")[1].c_str()));
   }
 
   catch(...){
@@ -299,7 +314,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-shift,-sym,-nopos");
+  SmallFem::Keywords("-msh,-o,-n,-shift,-sym,-tol,-maxit,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

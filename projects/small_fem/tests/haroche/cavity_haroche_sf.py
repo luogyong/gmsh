@@ -3,7 +3,7 @@ import sys
 import time
 import numpy
 
-## Physical / Math constant ##
+## Physical / Math constants ##
 pi       = numpy.pi
 nm       = 1.e-9
 epsilon0 = 8.854187817e-3 * nm
@@ -16,6 +16,10 @@ symmetry  = int(sys.argv[2])
 fem_order = int(sys.argv[3])
 neig      = int(sys.argv[4])
 
+## My Data ##
+tol   = 1e-6
+maxIt = 100
+
 ## Eigen Problem Shift ##
 freq_target = 51.099e9
 lambda_vp   = cel / freq_target
@@ -25,22 +29,26 @@ eig_target  = (2. * pi * cel / lambda_vp)**2
 start = time.time()
 
 print '## Haroche'
-print ' -- Mesh      : %s' %meshName
-print ' -- FEM order : %d' %fem_order
-print ' -- N. Eigen  : %d' %neig
-print ' -- Shift     : %e' %eig_target
-print ' -- symmetry  : %e' %symmetry
-print '                  '
+print ' -- Mesh          : %s' %meshName
+print ' -- FEM order     : %d' %fem_order
+print ' -- N. Eigen      : %d' %neig
+print ' -- Shift         : %e' %eig_target
+print ' -- Symmetry      : %e' %symmetry
+print ' -- Tolerance     : %e' %tol
+print ' -- Max Iteration : %d' %maxIt
+print '                      '
 
 ## Calling small_fem ##
 print '## Simulating'
 os.system('har'    + \
-          ' -msh ' + meshName         + \
+          ' -msh ' +       meshName   + \
           ' -o %d'        %fem_order  + \
           ' -n %d'        %neig       + \
-          ' -shift %3.5e' %eig_target + \
+          ' -shift %e'    %eig_target + \
           ' -sym %d'      %symmetry   + \
-          ' -solver -eps_monitor')
+          ' -tol %e'      %tol        + \
+          ' -maxit %d'    %maxIt      + \
+          ' -solver -eps_monitor -eps_view')
 
 ## Renaming Output ##
 os.rename('harocheModes.msh', \
@@ -56,30 +64,3 @@ os.rename('harocheValues.txt', \
 ## Done ##
 stop = time.time()
 print '## Done in %e' %(stop - start) + ' [s]'
-
-## Post Pro ##
-#vp_real = np.loadtxt('./EigenValuesReal.txt',usecols=[5])
-#vp_imag = np.loadtxt('./EigenValuesImag.txt',usecols=[5])
-#print 'EigenFreq (GHz)', 2e9*np.pi*vp_real.transpose()
-#print 'vp imag', vp_imag.transpose()
-
-#os.system(str_gmsh_path+'gmsh haroche_postplot.geo &')
-# os.system(str_gmsh_path+'gmsh eigenVectors_CompX_faces.pos geometry_haroche_realistic.geo &')
-
-# omega2=(vp_real+1j*vp_imag)**2
-# pl.plot(np.sqrt(-omega2.real).sort())
-# print np.sort(2*pi*cel/vp_real*1e9)
-# pl.figure()
-# pl.plot(vp_real,vp_imag,'o')
-# pl.figure()
-# pl.plot(-vp_real,-vp_imag,'o')
-# pl.show()
-
-# omega_real_sort = np.sort(-omega2.real)
-# pl.figure()
-# pl.plot(omega_real_sort,'o')
-# pl.figure()
-# pl.plot(omega2.imag,'-')
-# pl.show()
-# vp_real_adj = np.loadtxt('./EigenValuesReal_adj.txt',usecols=[5])
-# vp_imag_adj = np.loadtxt('./EigenValuesImag_adj.txt',usecols=[5])
