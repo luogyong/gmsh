@@ -62,6 +62,8 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   this->fullCtx.sommerfeld = this->sommerfeld;
   this->fullCtx.ddm        = this->ddm;
   this->fullCtx.upDdm      = this->upDdm;
+  this->fullCtx.volume     = new System<Complex>;
+  this->fullCtx.update     = NULL; // new System<Complex>;
   this->fullCtx.outValue   = &this->outValue;
   this->fullCtx.inValue    = &this->inValue;
 
@@ -87,6 +89,9 @@ SolverDDM::~SolverDDM(void){
   VecDestroy(&x);
   VecDestroy(&b);
   MatDestroy(&A);
+
+  delete this->fullCtx.volume;
+  // delete this->fullCtx.update;
 }
 
 void SolverDDM::solve(int nStep){
@@ -135,6 +140,9 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   Formulation<Complex>&       ddm        = *fullCtx->ddm;
   Formulation<Complex>&       upDdm      = *fullCtx->upDdm;
 
+  System<Complex>&            volume     = *fullCtx->volume;
+  // System<Complex>&            update     = *fullCtx->update;
+
   // Vec x is now the DDM Dof //
   DDMContext&     context = *fullCtx->DDMctx;
   map<Dof, Complex>& ddmG = context.getDDMDofs();
@@ -144,10 +152,9 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   context.setDDMDofs(ddmG);
   ddm.update();
 
-
+  // Solve Full Volume Problem & Prepare Update Problem (once) //
   if(!fullCtx->once){
-    // Volume Problem //
-    System<Complex> volume;
+    // Prepare Volume Problem
     volume.addFormulation(wave);
     volume.addFormulation(sommerfeld);
     volume.addFormulation(ddm);
@@ -162,14 +169,23 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
     volume.assemble();
     volume.solve();
 
-    // Put new System in DDM Context //
+    // Put new System in DDM Context
     context.setSystem(volume);
 
-    // Once //
+    // Prepare DDM Update Formulation
+    // update.addFormulation(upDdm);
+
+    // Once
     fullCtx->once = true;
   }
 
-  // Update G //
+  // Reassemble Volume RHS and Solve //
+  else{
+    volume.assembleAgainRHS();
+    volume.solve();
+  }
+
+  // Update G & Solve Update Problem //
   upDdm.update(); // update volume solution (at DDM border)
 
   System<Complex> update;

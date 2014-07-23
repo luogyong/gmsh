@@ -56,6 +56,7 @@ class SolverDDM{
     bool once;
     int myId;
     DDMContext* DDMctx;
+
     const GroupOfElement* dirichlet;
     const FunctionSpace* fs;
     const Formulation<Complex>* wave;
@@ -63,9 +64,11 @@ class SolverDDM{
     Formulation<Complex>* ddm;
     Formulation<Complex>* upDdm;
 
+    System<Complex>* volume;
+    System<Complex>* update;
+
     std::vector<Complex>* outValue;
     std::vector<Complex>* inValue;
-
   } FullContext;
 
   FullContext fullCtx;
