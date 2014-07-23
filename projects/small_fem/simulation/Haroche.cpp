@@ -120,7 +120,6 @@ void compute(const Options& option){
   FunctionSpaceVector fs(All_domains, order);
 
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
-  cout << "Number of Dofs: " << fs.getAllDofs().size() << endl;
 
   // Formulation //
   cout << "Formulations... " << flush;

@@ -83,13 +83,14 @@ void FEMSolution<scalar>::addCoefficients(size_t step,
     nComp = 3;
 
   // Iterate on Element //
-  const typename std::map<Dof, scalar>::const_iterator end = coef.end();
+           std::vector<Dof>                      dof;
+  typename std::map<Dof, scalar>::const_iterator end = coef.end();
   typename std::map<Dof, scalar>::const_iterator it;
 
   for(size_t i = 0; i < nElement; i++){
     // Get Element Dofs
-    const std::vector<Dof> dof  = fs.getKeys(*element[i]);
-    const size_t           size = dof.size();
+    fs.getKeys(*element[i], dof);
+    const size_t size = dof.size();
 
     // Get Coef In FS Basis
     std::vector<scalar> fsCoef(size);

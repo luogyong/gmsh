@@ -12,10 +12,12 @@ interpolateGrad(const MElement& element,
                 const fullVector<double>& xyz) const{
 
   // Get Dofs associated to element //
-  const vector<Dof>  dof = fsScalar->getKeys(element);
-  const size_t      nDof = dof.size();
+  vector<Dof> dof;
+  fsScalar->getKeys(element, dof);
 
   // Get Values of these Dofs //
+  const size_t nDof = dof.size();
+
   map<Dof, double>::const_iterator end = dofValue->end();
   map<Dof, double>::const_iterator it;
   vector<double> coef(nDof);
@@ -41,10 +43,12 @@ interpolateGrad(const MElement& element,
                 const fullVector<double>& xyz) const{
 
   // Get Dofs associated to element //
-  const vector<Dof>  dof = fsScalar->getKeys(element);
-  const size_t      nDof = dof.size();
+  vector<Dof> dof;
+  fsScalar->getKeys(element, dof);
 
   // Get Values of these Dofs //
+  const size_t nDof = dof.size();
+
   map<Dof, Complex>::const_iterator end = dofValue->end();
   map<Dof, Complex>::const_iterator it;
   vector<double> reCoef(nDof);

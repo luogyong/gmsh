@@ -35,7 +35,8 @@ void Interpolator<scalar>::interpolate(const GroupOfElement& goe,
     values.resize(nPoint, 3);
 
   // Coef iterators //
-  const typename std::map<Dof, scalar>::const_iterator end = coef.end();
+           std::vector<Dof>                      dof;
+  typename std::map<Dof, scalar>::const_iterator end = coef.end();
   typename std::map<Dof, scalar>::const_iterator it;
 
   // Iterate on 'point' //
@@ -57,8 +58,8 @@ void Interpolator<scalar>::interpolate(const GroupOfElement& goe,
 
     else{
       // Get Dofs related to this Element
-      const std::vector<Dof>& dof  = fs.getKeys(*element);
-      const size_t            size = dof.size();
+      fs.getKeys(*element, dof);
+      const size_t size = dof.size();
 
       // Get Coef In FS Basis
       std::vector<scalar> fsCoef(size);
