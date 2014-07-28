@@ -47,6 +47,7 @@ class DofManager{
   ~DofManager(void);
 
   void addToDofManager(const std::set<Dof>& dof);
+  void addToDofManager(const std::vector<std::vector<Dof> >& dof);
   void generateGlobalIdSpace(void);
 
   size_t getGlobalId(const Dof& dof)     const;
@@ -88,8 +89,16 @@ class DofManager{
    Deletes this DofManager
    **
 
-   @fn DofManager::addToDofManager
+   @fn DofManager::addToDofManager(const std::set<Dof>& dof);
    @param dof A set of Dof%s
+
+   Adds the given Dof%s in this DofManager.
+   The same Dof may be insterd multiple time,
+   but it will be given the same unique ID.
+   **
+
+   @fn DofManager::addToDofManager(const std::vector<std::vector<Dof> >& dof);
+   @param dof A vector of vector of Dof%s
 
    Adds the given Dof%s in this DofManager.
    The same Dof may be insterd multiple time,

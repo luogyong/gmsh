@@ -40,6 +40,27 @@ void DofManager<scalar>::addToDofManager(const std::set<Dof>& dof){
 }
 
 template<typename scalar>
+void DofManager<scalar>::
+addToDofManager(const std::vector<std::vector<Dof> >& dof){
+  // Check if vector has been created //
+  if(!globalIdV.empty())
+    throw
+      Exception
+      ("DofManager: global id space generated -> can't add Dof");
+
+  // Add to DofManager //
+  const size_t size = dof.size();
+        size_t nDof;
+
+  for(size_t i = 0; i < size; i++){
+    nDof = dof[i].size();
+
+    for(size_t j = 0; j < nDof; j++)
+      globalIdM.insert(std::pair<Dof, size_t>(dof[i][j], 0));
+  }
+}
+
+template<typename scalar>
 void DofManager<scalar>::generateGlobalIdSpace(void){
   std::map<Dof, size_t>::iterator end = globalIdM.end();
   std::map<Dof, size_t>::iterator it  = globalIdM.begin();

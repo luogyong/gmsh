@@ -51,10 +51,11 @@ addFormulationBlock(const FormulationBlock<scalar>& formulation,
   fList.push_back(&formulation);
 
   // Get Formulation Dofs (Field & Test) //
-  std::set<Dof> dofField;
-  std::set<Dof> dofTest;
-  formulation.field().getKeys(formulation.domain(), dofField);
-  formulation.test().getKeys(formulation.domain(), dofTest);
+  const std::vector<std::vector<Dof> >& dofField =
+    formulation.field().getKeys(formulation.domain());
+
+  const std::vector<std::vector<Dof> >& dofTest =
+    formulation.test().getKeys(formulation.domain());
 
   // Add them to DofManager //
   this->dofM.addToDofManager(dofField);
