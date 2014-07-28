@@ -54,10 +54,10 @@ void System<scalar>::assemble(void){
 
   for(; it != end; it++){
     // Get All Dofs (Field & Test) per Element
-    std::vector<std::vector<Dof> > dofField;
-    std::vector<std::vector<Dof> > dofTest;
-    (*it)->field().getKeys((*it)->domain(), dofField);
-    (*it)->test().getKeys((*it)->domain(), dofTest);
+    const std::vector<std::vector<Dof> >& dofField =
+      (*it)->field().getKeys((*it)->domain());
+    const std::vector<std::vector<Dof> >& dofTest  =
+      (*it)->test().getKeys((*it)->domain());
 
     // Count
     const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
@@ -81,10 +81,10 @@ void System<scalar>::assemble(void){
 
   for(; it != end; it++){
     // Get All Dofs (Field & Test) per Element
-    std::vector<std::vector<Dof> > dofField;
-    std::vector<std::vector<Dof> > dofTest;
-    (*it)->field().getKeys((*it)->domain(), dofField);
-    (*it)->test().getKeys((*it)->domain(), dofTest);
+    const std::vector<std::vector<Dof> >& dofField =
+      (*it)->field().getKeys((*it)->domain());
+    const std::vector<std::vector<Dof> >& dofTest  =
+      (*it)->test().getKeys((*it)->domain());
 
     // Assemble
     const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
@@ -132,8 +132,8 @@ void System<scalar>::assembleAgainRHS(void){
 
   for(; it != end; it++){
     // Get All Dofs (Test only) per Element
-    std::vector<std::vector<Dof> > dofTest;
-    (*it)->test().getKeys((*it)->domain(), dofTest);
+    const std::vector<std::vector<Dof> >& dofTest =
+      (*it)->test().getKeys((*it)->domain());
 
     // Assemble
     const size_t E = dofTest.size();

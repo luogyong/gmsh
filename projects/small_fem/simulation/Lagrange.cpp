@@ -33,10 +33,10 @@ void compute(const Options& option){
   GroupOfElement freeSpace  = msh.getFromPhysical(6);
 
   // Full Domain //
-  GroupOfElement domain(msh);
-  domain.add(volume);
-  domain.add(source);
-  domain.add(freeSpace);
+  vector<const GroupOfElement*> domain(3);
+  domain[0] = &volume;
+  domain[1] = &source;
+  domain[2] = &freeSpace;
 
   // Get Parameters //
   const double k     = atof(option.getValue("-k")[1].c_str());

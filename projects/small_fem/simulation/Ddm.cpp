@@ -110,11 +110,11 @@ void compute(const Options& option){
   }
 
   // Full Domain //
-  GroupOfElement domain(msh);
-  domain.add(volume);
-  domain.add(source);
-  domain.add(infinity);
-  domain.add(ddmBorder);
+  vector<const GroupOfElement*> domain(4);
+  domain[0] = &volume;
+  domain[1] = &source;
+  domain[2] = &infinity;
+  domain[3] = &ddmBorder;
 
   // Function Space //
   FunctionSpaceScalar                fs(domain, order);

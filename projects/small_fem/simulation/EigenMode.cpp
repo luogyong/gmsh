@@ -73,9 +73,9 @@ void compute(const Options& option){
   GroupOfElement border = msh.getFromPhysical(5);
 
   // Full Domain //
-  GroupOfElement domain(msh);
-  domain.add(volume);
-  domain.add(border);
+  vector<const GroupOfElement*> domain(2);
+  domain[0] = &volume;
+  domain[1] = &border;
 
   // Get Order //
   const size_t order = atoi(option.getValue("-o")[1].c_str());

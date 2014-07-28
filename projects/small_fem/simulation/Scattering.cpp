@@ -36,16 +36,28 @@ void compute(const Options& option){
   GroupOfElement Scat_Out = msh.getFromPhysical(1007);
 
   // Full Domain
-  GroupOfElement All_domains(msh);
-  All_domains.add(Scat_In);
-  All_domains.add(Scat_Out);
-  All_domains.add(PMLxyz);
-  All_domains.add(PMLxz);
-  All_domains.add(PMLyz);
-  All_domains.add(PMLxy);
-  All_domains.add(PMLz);
-  All_domains.add(PMLy);
-  All_domains.add(PMLx);
+  vector<const GroupOfElement*> All_domains(9);
+  All_domains[0] = &Scat_In;
+  All_domains[1] = &Scat_Out;
+  All_domains[2] = &PMLxyz;
+  All_domains[3] = &PMLxz;
+  All_domains[4] = &PMLyz;
+  All_domains[5] = &PMLxy;
+  All_domains[6] = &PMLz;
+  All_domains[7] = &PMLy;
+  All_domains[8] = &PMLx;
+
+  // Full Domain (for Visu)
+  GroupOfElement All_domains_visu(msh);
+  All_domains_visu.add(Scat_In);
+  All_domains_visu.add(Scat_Out);
+  All_domains_visu.add(PMLxyz);
+  All_domains_visu.add(PMLxz);
+  All_domains_visu.add(PMLyz);
+  All_domains_visu.add(PMLxy);
+  All_domains_visu.add(PMLz);
+  All_domains_visu.add(PMLy);
+  All_domains_visu.add(PMLx);
 
   timer.stop();
   cout << "done in " << timer.time() << "[" << timer.unit() << "]! "
@@ -142,7 +154,7 @@ void compute(const Options& option){
     cout << "Drawing... " << flush;
 
     FEMSolution<Complex> feSol;
-    sys.getSolution(feSol, fs, All_domains);
+    sys.getSolution(feSol, fs, All_domains_visu);
     feSol.write("scat");
 
     timer.stop();

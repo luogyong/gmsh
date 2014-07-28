@@ -80,32 +80,21 @@ void compute(const Options& option){
   GroupOfElement SurfXY = msh.getFromPhysical(149);
 
   // Full Domain
-  GroupOfElement All_domains(msh);
-  All_domains.add(Air);
+  vector<const GroupOfElement*> All_domains(12);
+  All_domains[0]  = &Air;
 
-  All_domains.add(PMLx);
-  All_domains.add(PMLxy);
-  All_domains.add(PMLy);
-  All_domains.add(PMLz);
-  All_domains.add(PMLxyz);
-  All_domains.add(PMLxz);
-  All_domains.add(PMLyz);
+  All_domains[1]  = &PMLx;
+  All_domains[2]  = &PMLxy;
+  All_domains[3]  = &PMLy;
+  All_domains[4]  = &PMLz;
+  All_domains[5]  = &PMLxyz;
+  All_domains[6]  = &PMLxz;
+  All_domains[7]  = &PMLyz;
 
-  All_domains.add(SurfYZ);
-  All_domains.add(SurfXZ);
-  All_domains.add(SurfXY);
-
-  // Full Volume
-  GroupOfElement All_volumes(msh);
-  All_volumes.add(Air);
-
-  All_volumes.add(PMLx);
-  All_volumes.add(PMLxy);
-  All_volumes.add(PMLy);
-  All_volumes.add(PMLz);
-  All_volumes.add(PMLxyz);
-  All_volumes.add(PMLxz);
-  All_volumes.add(PMLyz);
+  All_domains[8]  = &Mirror;
+  All_domains[9]  = &SurfYZ;
+  All_domains[10] = &SurfXZ;
+  All_domains[11] = &SurfXY;
 
   // Full Surface
   GroupOfElement All_surfaces(msh);

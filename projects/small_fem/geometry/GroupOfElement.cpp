@@ -7,12 +7,17 @@
 using namespace std;
 
 const size_t GroupOfElement::nGeoType = 9;
+      size_t GroupOfElement::nxtId    = 0;
 
 GroupOfElement::GroupOfElement(std::list<const MElement*>& element,
                                const Mesh& mesh){
   // Get Elements //
   this->mesh = &mesh;
   this->element.assign(element.begin(), element.end());
+
+  // Id //
+  this->id = this->nxtId;
+  this->nxtId++;
 
   // Init //
   init();
@@ -22,6 +27,10 @@ GroupOfElement::GroupOfElement(const Mesh& mesh){
   // Get Elements //
   this->mesh = &mesh;
   this->element.clear();
+
+  // Id //
+  this->id = this->nxtId;
+  this->nxtId++;
 
   // Init //
   init();

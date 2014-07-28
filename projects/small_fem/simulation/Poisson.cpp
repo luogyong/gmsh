@@ -38,10 +38,10 @@ void compute(const Options& option){
   GroupOfElement boundary1 = msh.getFromPhysical(5);
 
   // Full Domain //
-  GroupOfElement domain(msh);
-  domain.add(volume);
-  domain.add(boundary0);
-  domain.add(boundary1);
+  vector<const GroupOfElement*> domain(3);
+  domain[0] = &volume;
+  domain[1] = &boundary0;
+  domain[2] = &boundary1;
 
   // Get Order //
   size_t order = atoi(option.getValue("-o")[1].c_str());

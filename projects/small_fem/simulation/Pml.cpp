@@ -112,10 +112,10 @@ void compute(const Options& option){
   GroupOfElement infinity   = msh.getFromPhysical(4);
 
   // Full Domain //
-  GroupOfElement domain(msh);
-  domain.add(volume);
-  domain.add(outerSpace);
-  domain.add(source);
+  vector<const GroupOfElement*> domain(3);
+  domain[0] = &volume;
+  domain[1] = &outerSpace;
+  domain[2] = &source;
 
   // Get Parameters //
   const double k     = atoi(option.getValue("-k")[1].c_str());

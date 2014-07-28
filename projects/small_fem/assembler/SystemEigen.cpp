@@ -106,10 +106,10 @@ countCom(std::list<const FormulationBlock<Complex>*>::iterator it,
   // Iterate on Formulations //
   for(; it != end; it++){
     // Get All Dofs (Field & Test) per Element
-    vector<std::vector<Dof> > dofField;
-    vector<std::vector<Dof> > dofTest;
-    (*it)->field().getKeys((*it)->domain(), dofField);
-    (*it)->test().getKeys((*it)->domain(), dofTest);
+    const vector<vector<Dof> >& dofField =
+      (*it)->field().getKeys((*it)->domain());
+    const vector<vector<Dof> >& dofTest  =
+      (*it)->test().getKeys((*it)->domain());
 
     // Count
     const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
@@ -131,10 +131,10 @@ assembleCom(std::list<const FormulationBlock<Complex>*>::iterator it,
   // Iterate on Formulations //
   for(; it != end; it++){
     // Get All Dofs (Field & Test) per Element
-    vector<vector<Dof> > dofField;
-    vector<vector<Dof> > dofTest;
-    (*it)->field().getKeys((*it)->domain(), dofField);
-    (*it)->test().getKeys((*it)->domain(), dofTest);
+    const vector<vector<Dof> >& dofField =
+      (*it)->field().getKeys((*it)->domain());
+    const vector<vector<Dof> >& dofTest  =
+      (*it)->test().getKeys((*it)->domain());
 
     // Assemble Systems
     const size_t E = dofField.size();   // Should be equal to dofTest.size().?.
@@ -241,7 +241,7 @@ void SystemEigen::assemble(void){
     assembleCom(formulationB.begin(), formulationB.end(), *tmpB, *tmpRHS);
     cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
-    cout << "PETSc version of B..."  << flush;
+    cout << "PETSc version of B... " << flush;
     B = toPetsc(tmpB, size, myProc); // Allocates B
     delete tmpB;
     cout << "Done! (" << getMemory() << " GB)" << endl << flush;

@@ -15,7 +15,8 @@
 
    This class is collection of discrete elements (MElement%s).
 
-   The elements are sorted by geomtrical types and by orientations
+   The elements are sorted by geomtrical types and by orientations.
+   Moreover, every GroupOfElement is given a unique identifier.
 */
 
 class Mesh;
@@ -23,9 +24,11 @@ class Mesh;
 class GroupOfElement{
  private:
   static const size_t nGeoType;
+  static       size_t nxtId;
 
  private:
   const Mesh* mesh;
+  size_t      id;
 
   std::vector<const MElement*>      element;
   std::vector<std::vector<size_t> > orientationStat;
@@ -39,6 +42,7 @@ class GroupOfElement{
   void add(const GroupOfElement& other);
 
   bool            isEmpty(void)   const;
+  size_t          getId(void)     const;
   size_t          getNumber(void) const;
   const MElement& get(size_t i)   const;
 
@@ -89,6 +93,10 @@ class GroupOfElement{
    @fn GroupOfElement::isEmpty
    @return Returns true if this GroupOfElement has no elements
    and false otherwise
+   **
+
+   @fn GroupOfElement::getId
+   @return Returns the unique indentifier of this GroupOfElement
    **
 
    @fn GroupOfElement::getNumber
@@ -172,6 +180,10 @@ inline bool GroupOfElement::sortPredicate(const MElement* a, const MElement* b){
 
 inline bool GroupOfElement::isEmpty(void) const{
   return getNumber() == 0;
+}
+
+inline size_t GroupOfElement::getId(void) const{
+  return id;
 }
 
 inline size_t GroupOfElement::getNumber(void) const{
