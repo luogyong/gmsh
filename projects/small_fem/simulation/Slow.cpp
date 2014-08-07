@@ -67,20 +67,18 @@ void compute(const Options& option){
 
   cout << "Slow Vectorial "
        << "Steady Wave (Order: " << order
-       << " --- Wavenumber: "    << k
-       << "): " << sys.getSize() << endl;
+       << " --- Wavenumber: "    << k << ")" << endl;
 
   // Assemble and solve //
   sys.assemble();
   assemble.stop();
-  cout << "Assembled: " << assemble.time() << assemble.unit()
-       << endl << flush;
+  cout << "Assembled: " << sys.getSize() << " "
+       << "(" << assemble.time() << assemble.unit() << ")" << endl << flush;
 
   solve.start();
   sys.solve();
   solve.stop();
-  cout << "Solved: " << solve.time() << solve.unit()
-       << endl << flush;
+  cout << "Solved (" << solve.time() << solve.unit() << ")" << endl << flush;
 
   // Write Sol //
   try{
@@ -95,8 +93,7 @@ void compute(const Options& option){
   // Timer -- Finalize -- Return //
   timer.stop();
 
-  cout << "Elapsed Time: " << timer.time()
-       << " s"             << endl;
+  cout << "Elapsed Time: " << timer.time() << timer.unit() << endl;
 }
 
 int main(int argc, char** argv){

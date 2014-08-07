@@ -12,6 +12,9 @@ System<scalar>::System(void){
   b = NULL;
   x = NULL;
 
+  // Dof Manager //
+  this->dofM = new DofManager<scalar>;
+
   // Per-thread non-zero term //
   #pragma omp parallel
   {
@@ -29,6 +32,8 @@ System<scalar>::System(void){
 
 template<typename scalar>
 System<scalar>::~System(void){
+  delete this->dofM;
+
   if(A)
     delete A;
 
@@ -42,7 +47,7 @@ System<scalar>::~System(void){
 template<typename scalar>
 void System<scalar>::assemble(void){
   // Enumerate Dofs in DofManager //
-  this->dofM.generateGlobalIdSpace();
+  this->dofM->generateGlobalIdSpace();
 
   // Formulations Iterators //
   typename std::list<const FormulationBlock<scalar>*>::iterator it;
@@ -70,7 +75,7 @@ void System<scalar>::assemble(void){
   }
 
   // Alloc //
-  const size_t size = this->dofM.getUnfixedDofNumber();
+  const size_t size = this->dofM->getLocalSize();
 
   A = new SolverMatrix<scalar>(size, size, this->nNZCount);
   b = new SolverVector<scalar>(size);
@@ -173,10 +178,10 @@ void System<scalar>::getSolution(std::map<Dof, scalar>& sol, size_t nSol) const{
 
   // Loop on Dofs and set Values
   for(; it != end; it++){
-    size_t gId = this->dofM.getGlobalId(it->first);
+    size_t gId = this->dofM->getGlobalId(it->first);
 
     if(gId == DofManager<scalar>::isFixedId())
-      it->second = this->dofM.getValue(it->first);
+      it->second = this->dofM->getValue(it->first);
 
     else
       it->second = (*x)(gId);

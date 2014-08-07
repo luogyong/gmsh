@@ -119,11 +119,10 @@ void compute(const Options& option){
     SystemHelper<Complex>::dirichlet(sys, *fs, border, fVect);
 
   // Assemble and Solve //
-  cout << "Eigenvalues problem: " << sys.getSize() << endl
-       << "Assembling..."         << endl          << flush;
-  sys.assemble();
+  cout << "Eigenvalues problem" << endl << flush;
 
-  cout << "Solving..." << endl << flush;
+  sys.assemble();
+  cout << "Assembled: " << sys.getSize() << endl << flush;
 
   // Set number of eigenvalue (if any, else default)
   try{
@@ -136,6 +135,7 @@ void compute(const Options& option){
 
   // Solve
   sys.solve();
+  cout << "Solved" << endl << flush;
 
   // Display //
   int myProc;

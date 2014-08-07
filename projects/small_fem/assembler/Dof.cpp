@@ -11,7 +11,7 @@ Dof::Dof(const Dof& other){
   this->type    = other.type;
 }
 
-Dof::Dof(size_t entity, size_t type){
+Dof::Dof(int entity, int type){
   this->entity  = entity;
   this->type    = type;
 }

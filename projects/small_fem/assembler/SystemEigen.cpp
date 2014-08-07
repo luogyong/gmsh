@@ -27,6 +27,9 @@ SystemEigen::SystemEigen(void){
   // Is the Problem a General EigenValue Problem ? //
   general = false;
 
+  // Dof Manager //
+  dofM = new DofManager<Complex>;
+
   // Init //
   A           = NULL;
   B           = NULL;
@@ -62,6 +65,8 @@ SystemEigen::SystemEigen(void){
 }
 
 SystemEigen::~SystemEigen(void){
+  delete dofM;
+
   if(eigenVector)
     delete eigenVector;
 
@@ -199,14 +204,14 @@ void SystemEigen::assemble(void){
   MPIOStream cout(0, std::cout);
 
   // Enumerate Dofs in DofManager //
-  dofM.generateGlobalIdSpace();
+  dofM->generateGlobalIdSpace();
 
   // Count FE terms //
   countCom(formulation.begin() , formulation.end() , nNZCount);
   countCom(formulationB.begin(), formulationB.end(), nNZCountB);
 
   // Alloc Temp Sparse Matrices (not with PETSc) //
-  const size_t size = dofM.getUnfixedDofNumber();
+  const size_t size = dofM->getLocalSize();
 
   SolverVector<Complex>* tmpRHS = new SolverVector<Complex>(size);
   SolverMatrix<Complex>* tmpA = new SolverMatrix<Complex>(size,size, nNZCount);
@@ -336,7 +341,7 @@ void SystemEigen::solve(void){
   EPSSolve(solver);
 
   // Get Solution //
-  const size_t size = dofM.getUnfixedDofNumber();
+  const size_t size = dofM->getLocalSize();
 
   VecScatter   scat;
   PetscScalar  lambda;
@@ -392,7 +397,7 @@ void SystemEigen::getEigenValues(fullVector<Complex>& eig) const{
 
 void SystemEigen::
 setNumberOfEigenValues(size_t nEigenValues){
-  const size_t nDof = dofM.getUnfixedDofNumber();
+  const size_t nDof = dofM->getLocalSize();
 
   if(nEigenValues > nDof)
     throw
@@ -437,7 +442,7 @@ void SystemEigen::getSolution(std::map<Dof, Complex>& sol,
 
   // Loop on Dofs and set Values
   for(; it != end; it++)
-    it->second = (*eigenVector)[nSol](dofM.getGlobalId(it->first));
+    it->second = (*eigenVector)[nSol](dofM->getGlobalId(it->first));
 }
 
 void SystemEigen::getSolution(FEMSolution<Complex>& feSol,

@@ -16,21 +16,21 @@
 
 class Dof{
  private:
-  size_t entity;
-  size_t type;
+  int entity;
+  int type;
 
  public:
    Dof(void);
    Dof(const Dof& other);
-   Dof(size_t entity, size_t type);
+   Dof(int entity, int type);
   ~Dof(void);
 
-  size_t getEntity(void) const;
-  size_t getType(void)   const;
+  int getEntity(void) const;
+  int getType(void)   const;
 
-  void setEntity(size_t entity);
-  void setType(size_t type);
-  void setDof(size_t entity, size_t type);
+  void setEntity(int entity);
+  void setType(int type);
+  void setDof(int entity, int type);
 
   bool operator<(const Dof& other) const;
   bool operator>(const Dof& other) const;
@@ -53,7 +53,7 @@ class Dof{
    Instanciates a copy of the given Dof
    **
 
-   @fn Dof::Dof(size_t, size_t)
+   @fn Dof::Dof(int, int)
    @param entity A natural number
    @param type A natural number
 
@@ -121,23 +121,23 @@ class Dof{
 // Inline Functions //
 //////////////////////
 
-inline size_t Dof::getEntity(void) const{
+inline int Dof::getEntity(void) const{
   return entity;
 }
 
-inline size_t Dof::getType(void) const{
+inline int Dof::getType(void) const{
   return type;
 }
 
-inline void Dof::setEntity(size_t entity){
+inline void Dof::setEntity(int entity){
   this->entity = entity;
 }
 
-inline void Dof::setType(size_t type){
+inline void Dof::setType(int type){
   this->type = type;
 }
 
-inline void Dof::setDof(size_t entity, size_t type){
+inline void Dof::setDof(int entity, int type){
   this->entity = entity;
   this->type   = type;
 }

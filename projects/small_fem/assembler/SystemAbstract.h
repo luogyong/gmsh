@@ -33,7 +33,7 @@ class SystemAbstract{
   bool solved;
 
   std::list<const FormulationBlock<scalar>*> formulation;
-  DofManager<scalar>  dofM;
+  DofManager<scalar>* dofM;
   std::vector<size_t> nNZCount;
 
  public:
@@ -119,6 +119,9 @@ class SystemAbstract{
 
    @fn SystemAbstract::getSize
    @return Returns the number of unknowns in this linear system
+
+   This method must be called once the linear system is assembled,
+   otherwise an Exception is thrown
    **
 
    @fn SystemAbstract::addFormulation(const Formulation<scalar>& formulation)

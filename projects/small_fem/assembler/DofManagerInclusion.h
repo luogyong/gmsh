@@ -5,6 +5,7 @@
 // Damn you gcc: we want 'export' !          //
 ///////////////////////////////////////////////
 
+#include <mpi.h>
 #include <sstream>
 #include "Exception.h"
 
@@ -15,11 +16,35 @@ template<typename scalar>
 const size_t DofManager<scalar>::isUndef = 0 - 2; // Second Largest size_t
 
 template<typename scalar>
+DofManager<scalar>::DofManager(bool isLocal){
+  local = isLocal;
+}
+
+template<typename scalar>
 DofManager<scalar>::DofManager(void){
+  local = true;
 }
 
 template<typename scalar>
 DofManager<scalar>::~DofManager(void){
+}
+
+template<typename scalar>
+size_t DofManager<scalar>::getLocalSize(void) const{
+  if(!globalIdM.empty())
+    throw Exception("DofManager::getLocalSize() cannot be used before "
+                    "DofManager::generateGlobalIdSpace() is called");
+  else
+    return nTotUnfixedLocalDof;
+}
+
+template<typename scalar>
+size_t DofManager<scalar>::getGlobalSize(void) const{
+  if(!globalIdM.empty())
+    throw Exception("DofManager::getGlobalSize() cannot be used before "
+                    "DofManager::generateGlobalIdSpace() is called");
+  else
+    return nTotUnfixedGlobalDof;
 }
 
 template<typename scalar>
@@ -62,25 +87,65 @@ addToDofManager(const std::vector<std::vector<Dof> >& dof){
 
 template<typename scalar>
 void DofManager<scalar>::generateGlobalIdSpace(void){
-  std::map<Dof, size_t>::iterator end = globalIdM.end();
-  std::map<Dof, size_t>::iterator it  = globalIdM.begin();
+  int nProc;
+  MPI_Comm_size(MPI_COMM_WORLD, &nProc);
 
-  size_t id = 0;
+  if(local || nProc == 1) // Even if global DofManager,
+    localSpace();         // use local version if only ONE MPI process
 
-  for(; it != end; it++){
-    // Check if unknown
-    if(it->second != isFixed){
-      it->second = id;
-      id++;
-    }
-  }
+  else
+    globalSpace();
 
-  serialize();
+  vectorize();
   globalIdM.clear();
 }
 
 template<typename scalar>
-void DofManager<scalar>::serialize(void){
+void DofManager<scalar>::localSpace(void){
+  // Populate map with global Id
+  count(globalIdM);
+
+  // Total Number of local (and global) unfixed Dof
+  nTotUnfixedLocalDof  = globalIdM.size() - fixedDof.size();
+  nTotUnfixedGlobalDof = globalIdM.size() - fixedDof.size();
+}
+
+template<typename scalar>
+void DofManager<scalar>::globalSpace(void){
+  // Get Global Maps (Global IDs and Fixed Dofs) //
+  std::map<Dof, size_t> allGlobalIdM;
+  std::map<Dof, scalar> allFixedDof;
+
+  getGlobalMap<size_t>(globalIdM, allGlobalIdM);
+  getGlobalMap<scalar>(fixedDof , allFixedDof);
+
+  // Tag Fixed Dofs into allGlobalIdM //
+  retag(allGlobalIdM, allFixedDof);
+
+  // Populate global map with global Id //
+  count(allGlobalIdM);
+
+  // Populate local map with global Id from global map //
+  // Iterate on LOCAL Dofs
+  std::map<Dof, size_t>::iterator it  = globalIdM.begin();
+  std::map<Dof, size_t>::iterator end = globalIdM.end();
+  std::map<Dof, size_t>::iterator find;
+
+  for(; it != end; it++){
+    // Find current Dof counterpart in GLOBAL map
+    find = allGlobalIdM.find(it->first);
+
+    // Set current Dof value in LOCAL map
+    it->second = find->second;
+  }
+
+  // Total Number of local (and global) unfixed Dof
+  nTotUnfixedLocalDof  =    globalIdM.size() -    fixedDof.size();
+  nTotUnfixedGlobalDof = allGlobalIdM.size() - allFixedDof.size();
+}
+
+template<typename scalar>
+void DofManager<scalar>::vectorize(void){
   // Get Data //
   std::map<Dof, size_t>::iterator end = globalIdM.end();
   std::map<Dof, size_t>::iterator it  = globalIdM.begin();
@@ -88,9 +153,8 @@ void DofManager<scalar>::serialize(void){
   // Take the last element *IN* map
   end--;
 
-  first   = it->first.getEntity();
-  last    = end->first.getEntity();
-  nTotDof = globalIdM.size();
+  first = it->first.getEntity();
+  last  = end->first.getEntity();
 
   // Reset 'end': take the first element *OUTSIDE* map
   end++;
@@ -237,29 +301,6 @@ scalar DofManager<scalar>::getValue(const Dof& dof) const{
 }
 
 template<typename scalar>
-size_t DofManager<scalar>::getTotalDofNumber(void) const{
-  if(!globalIdM.empty())
-    return globalIdM.size();
-
-  else
-    return nTotDof;
-}
-
-template<typename scalar>
-size_t DofManager<scalar>::getUnfixedDofNumber(void) const{
-  if(!globalIdM.empty())
-    return globalIdM.size() - fixedDof.size();
-
-  else
-    return nTotDof - fixedDof.size();
-}
-
-template<typename scalar>
-size_t DofManager<scalar>::getFixedDofNumber(void) const{
-  return fixedDof.size();
-}
-
-template<typename scalar>
 std::string DofManager<scalar>::toString(void) const{
   if(!globalIdM.empty())
     return toStringFromMap();
@@ -320,4 +361,166 @@ std::string DofManager<scalar>::toStringFromVec(void) const{
   }
 
   return s.str();
+}
+
+template<typename scalar>
+template<typename T>
+void DofManager<scalar>::getGlobalMap(std::map<Dof, T>& local,
+                                      std::map<Dof, T>& global){
+  // Serialize //
+  int* entity;
+  int* type;
+  int  size = serialize<T>(local, &entity, &type);
+
+  // Gather sizes from other Nodes //
+  int  sizeSum;
+  int* sizeAll = gatherSize(size, &sizeSum);
+
+  // Strides //
+  int* stride = cpteStride(sizeAll);
+
+  // Exchange //
+  int* allEntity = exchange(entity, size, sizeSum, sizeAll, stride);
+  int* allType   = exchange(type,   size, sizeSum, sizeAll, stride);
+
+  // Create Map //
+  unserialize<T>(global, allEntity, allType, sizeSum);
+
+  // Clear //
+  delete[] entity;
+  delete[] type;
+  delete[] sizeAll;
+  delete[] stride;
+  delete[] allEntity;
+  delete[] allType;
+}
+
+template<typename scalar>
+template<typename T>
+int DofManager<scalar>::
+serialize(const std::map<Dof, T>& in, int** entity, int** type){
+  // Get Size //
+  int size = in.size();
+
+  // Allocate //
+  *entity = new int[size];
+  *type   = new int[size];
+
+  // Serialize //
+  typename std::map<Dof, T>::const_iterator it;
+  typename std::map<Dof, T>::const_iterator end;
+
+  // Entity
+  it  = in.begin();
+  end = in.end();
+  for(int i = 0; it != end; it++, i++)
+    (*entity)[i] = it->first.getEntity();
+
+  // Type
+  it  = in.begin();
+  end = in.end();
+  for(int i = 0; it != end; it++, i++)
+    (*type)[i] = it->first.getType();
+
+  // Done //
+  return size;
+}
+
+template<typename scalar>
+template<typename T>
+void DofManager<scalar>::
+unserialize(std::map<Dof, T>& map, int* entity, int* type, int size){
+  // Clear //
+  map.clear();
+
+  // Build //
+  for(int i = 0; i < size; i++)
+    map.insert(std::pair<Dof, T>(Dof(entity[i], type[i]), 0));
+}
+
+template<typename scalar>
+void DofManager<scalar>::count(std::map<Dof, size_t>& dof){
+  // Get Iterators //
+  std::map<Dof, size_t>::iterator end = dof.end();
+  std::map<Dof, size_t>::iterator it  = dof.begin();
+
+  // Start Counter //
+  size_t id = 0;
+
+  // Iterate on Dofs //
+  for(; it != end; it++){
+    // Check if unknown
+    if(it->second != isFixed){
+      // If not: count it !
+      it->second = id;
+      id++;
+    }
+  }
+}
+
+template<typename scalar>
+void DofManager<scalar>::
+retag(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& fix){
+  // Iterate on Dofs //
+  std::map<Dof, size_t>::iterator it  = dof.begin();
+  std::map<Dof, size_t>::iterator end = dof.end();
+
+  for(; it != end; it++)
+    // Look for current Dof into Fixed map
+    if(fix.count(it->first) == 1)
+      // If Dof is fond, tag it as fixed
+      it->second = isFixed;
+}
+
+template<typename scalar>
+int* DofManager<scalar>::gatherSize(int mySize, int* sum){
+  // Number of MPI Process //
+  int nProc;
+  MPI_Comm_size(MPI_COMM_WORLD, &nProc);
+
+  // Alloc //
+  int* size = new int[nProc];
+
+  // Gather //
+  MPI_Allgather(&mySize, 1, MPI_INT, size, 1, MPI_INT, MPI_COMM_WORLD);
+
+  // Sum //
+  *sum = 0;
+  for(int i = 0; i < nProc; i++)
+    *sum += size[i];
+
+  // Done //
+  return size;
+}
+
+template<typename scalar>
+int* DofManager<scalar>::cpteStride(int* size){
+  // Number of MPI Process //
+  int nProc;
+  MPI_Comm_size(MPI_COMM_WORLD, &nProc);
+
+  // Alloc //
+  int* stride = new int[nProc];
+
+  // Populate //
+  stride[0] = 0;
+  for(int i = 1; i < nProc; i++)
+    stride[i] = stride[i - 1] + size[i - 1];
+
+  // Done //
+  return stride;
+}
+
+template<typename scalar>
+int* DofManager<scalar>::
+exchange(int* myData, int mySize, int sizeSum, int* size, int* stride){
+  // Alloc //
+  int* allData = new int[sizeSum];
+
+  // All Gather //
+  MPI_Allgatherv( myData, mySize,         MPI_INT,
+                 allData,   size, stride, MPI_INT,
+                 MPI_COMM_WORLD);
+  // Done //
+  return allData;
 }

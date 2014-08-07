@@ -23,7 +23,12 @@ bool SystemAbstract<scalar>::isSolved(void) const{
 
 template<typename scalar>
 size_t SystemAbstract<scalar>::getSize(void) const{
-  return dofM.getUnfixedDofNumber();
+  if(isAssembled())
+    return dofM->getGlobalSize();
+
+  else
+    throw
+      Exception("SystemAbstract::getSize() cannot be called before assembly");
 }
 
 template<typename scalar>
@@ -58,8 +63,8 @@ addFormulationBlock(const FormulationBlock<scalar>& formulation,
     formulation.test().getKeys(formulation.domain());
 
   // Add them to DofManager //
-  this->dofM.addToDofManager(dofField);
-  this->dofM.addToDofManager(dofTest);
+  this->dofM->addToDofManager(dofField);
+  this->dofM->addToDofManager(dofTest);
 }
 
 template<typename scalar>
@@ -87,7 +92,7 @@ void SystemAbstract<scalar>::constraint(const std::map<Dof, scalar>& constr){
   typename std::map<Dof, scalar>::const_iterator end = constr.end();
 
   for(; it != end; it++)
-    dofM.fixValue(it->first, it->second);
+    dofM->fixValue(it->first, it->second);
 }
 
 template<typename scalar>
@@ -106,12 +111,12 @@ countTerms(size_t offset,
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM.getGlobalId(dofTest[i]);
+    dofI = dofM->getGlobalId(dofTest[i]);
 
     // If not a fixed Dof line
     if(dofI != DofManager<scalar>::isFixedId()){
       for(size_t j = 0; j < M; j++){
-        dofJ = dofM.getGlobalId(dofField[j]);
+        dofJ = dofM->getGlobalId(dofField[j]);
 
         // If not a fixed Dof: count!
         if(dofJ != DofManager<scalar>::isFixedId())
@@ -139,12 +144,12 @@ assemble(SolverMatrix<scalar>& A,
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM.getGlobalId(dofTest[i]);
+    dofI = dofM->getGlobalId(dofTest[i]);
 
     // If not a fixed Dof line: assemble
     if(dofI != DofManager<scalar>::isFixedId()){
       for(size_t j = 0; j < M; j++){
-        dofJ = dofM.getGlobalId(dofField[j]);
+        dofJ = dofM->getGlobalId(dofField[j]);
 
         // If not a fixed Dof
         if(dofJ != DofManager<scalar>::isFixedId())
@@ -154,7 +159,7 @@ assemble(SolverMatrix<scalar>& A,
         //    add to right hand side (with a minus sign) !
         else
           b.add(dofI,
-                minusSign * dofM.getValue(dofField[j]) *
+                minusSign * dofM->getValue(dofField[j]) *
                            formulation.weak(i, j, elementId));
       }
 
@@ -174,7 +179,7 @@ assembleRHSOnly(SolverVector<scalar>& b,
   size_t dofI;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM.getGlobalId(dofTest[i]);
+    dofI = dofM->getGlobalId(dofTest[i]);
 
     // If not a fixed Dof line: assemble
     if(dofI != DofManager<scalar>::isFixedId())

@@ -21,6 +21,12 @@
    The global ID of a fixed Dof is not unique and is equal to
    DofManager::isFixedId().
 
+   A DofManager can be distributed across multiple computing node,
+   or it can be local to each computing node.
+   It the first case, every Dof will have a unique number, no matter the node.
+   In the second case, Dof may have different unique number,
+   depending on the node.
+
    Finaly, the global IDs given to the unfixed Dof%s ranges from 0 to
    (total number of Dof - number of fixed Dof - 1).
 */
@@ -31,20 +37,29 @@ class DofManager{
   static const size_t isFixed;
   static const size_t isUndef;
 
+  bool local;
+
   std::vector<std::vector<size_t> > globalIdV;
   std::map<Dof, size_t>             globalIdM;
   std::map<Dof, scalar>             fixedDof;
 
+  size_t nTotUnfixedLocalDof;
+  size_t nTotUnfixedGlobalDof;
+
   size_t first;
   size_t last;
-  size_t nTotDof;
 
  public:
   static const size_t isFixedId(void);
 
  public:
+   DofManager(bool isLocal);
    DofManager(void);
   ~DofManager(void);
+
+  bool   isLocal(void)       const;
+  size_t getLocalSize(void)  const;
+  size_t getGlobalSize(void) const;
 
   void addToDofManager(const std::set<Dof>& dof);
   void addToDofManager(const std::vector<std::vector<Dof> >& dof);
@@ -56,18 +71,35 @@ class DofManager{
   bool   fixValue(const Dof& dof, scalar value);
   scalar getValue(const Dof& dof) const;
 
-  size_t getTotalDofNumber(void) const;
-  size_t getUnfixedDofNumber(void) const;
-  size_t getFixedDofNumber(void) const;
-
   std::string toString(void) const;
 
  private:
-  void serialize(void);
+  void localSpace (void);
+  void globalSpace(void);
+  void vectorize(void);
+
   std::pair<bool, size_t> findSafe(const Dof& dof) const;
 
   std::string toStringFromMap(void) const;
   std::string toStringFromVec(void) const;
+
+ private:
+  template<typename T>
+  static void getGlobalMap(std::map<Dof, T>& local, std::map<Dof, T>& global);
+
+  template<typename T>
+  static int serialize(const std::map<Dof, T>& in, int** entity, int** type);
+
+  template<typename T>
+  static void unserialize(std::map<Dof, T>& map,
+                          int* entity, int* type, int size);
+
+  static void count(std::map<Dof, size_t>& dof);
+  static void retag(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& fix);
+  static int* gatherSize(int mySize, int* sum);
+  static int* cpteStride(int* size);
+  static int* exchange(int* myData,
+                       int  mySize, int sizeSum, int* size, int* stride);
 };
 
 
@@ -79,14 +111,40 @@ class DofManager{
    @return Returns the special ID of a fixed Dof
    **
 
-   @fn DofManager::DofManager
 
-   Instantiates a new DofManager
+   @fn DofManager::DofManager(bool)
+   @param isLocal A boolean value
+
+   Instantiates a new DofManager.
+   If isLocal is true, a local DofManager will be created.
+   If isLocal is false, a distributed DofManager will be created.
+   **
+
+   @fn DofManager::DofManager(void)
+
+   Same as DofManager::DofManager(true)
    **
 
    @fn DofManager::~DofManager
 
    Deletes this DofManager
+   **
+
+   @fn DofManager::isLocal(void)
+   @return Returns true if this DofManager is local,
+   and false if it is distributed.
+   **
+
+   @fn DofManager::getLocalSize
+   @return Returns the number of local Unfixed Dof%s in this DofManager
+   **
+
+   @fn DofManager::getGlobalSize
+   @return Returns the number of Unfixed Dof%s in this DofManager
+   across all nodes
+
+   If DofManager::isLocal() is true, then DofManager::getGlobalSize()
+   is equal to DofManager::getLocalSize()
    **
 
    @fn DofManager::addToDofManager(const std::set<Dof>& dof);
@@ -157,18 +215,6 @@ class DofManager{
    @return Returns the value of the given Dof, if it has been fixed
 
    This method throws an Exception if the Dof has not been fixed
-   **
-
-   @fn DofManager::getTotalDofNumber
-   @return Returns the number of Dof%s in this DofManager (fixed and unfixed)
-   **
-
-   @fn DofManager::getUnfixedDofNumber
-   @return Returns the number of Unfixed Dof%s in this DofManager
-   **
-
-   @fn DofManager::getFixedDofNumber
-   @return Returns the number of fixed Dof%s in this DofManager
    **
 
    @fn  DofManager::toString
