@@ -174,8 +174,7 @@ void compute(const Options& option){
   nonHomogenous.addFormulation(*ddm);
 
   // Constraint
-  if(myId == 0)
-    SystemHelper<Complex>::dirichlet(nonHomogenous, fs, source, fSource);
+  SystemHelper<Complex>::dirichlet(nonHomogenous, fs, source, fSource);
 
   // Assemble & Solve
   nonHomogenous.assemble();

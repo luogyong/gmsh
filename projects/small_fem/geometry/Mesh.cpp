@@ -203,6 +203,20 @@ GroupOfElement Mesh::getFromPhysical(int physicalId) const{
   return GroupOfElement(lst, *this);
 }
 
+GroupOfElement Mesh::getFromPhysical(int physicalId, int partitionId) const{
+  std::pair<std::multimap<int, const MElement*>::iterator,
+            std::multimap<int, const MElement*>::iterator> p =
+    physical->equal_range(physicalId);
+
+  std::list<const MElement*> lst;
+
+  for(; p.first != p.second; p.first++)
+    if(p.first->second->getPartition() == partitionId)
+      lst.push_back(p.first->second);
+
+  return GroupOfElement(lst, *this);
+}
+
 string Mesh::toString(void) const{
   // Iterators //
   const map<const MElement*, size_t, ElementComparator>::iterator

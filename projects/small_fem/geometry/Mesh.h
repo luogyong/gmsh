@@ -62,6 +62,7 @@ class Mesh{
   size_t getEdgeNumber(void) const;
   size_t getFaceNumber(void) const;
 
+  GroupOfElement getFromPhysical(int physicalId, int partitionId) const;
   GroupOfElement getFromPhysical(int physicalId) const;
 
   std::string toString(void) const;
@@ -125,7 +126,17 @@ class Mesh{
    @return Returns the number of MFace%s in this Mesh
    **
 
-   @fn Mesh::getFromPhysical
+   @fn Mesh::getFromPhysical(int, int)
+   @param physicalId A physical ID
+   (see <a href="http://www.geuz.org/gmsh">gmsh</a> documentation)
+   @param partitionId A partition ID
+   (see <a href="http://www.geuz.org/gmsh">gmsh</a> documentation)
+
+   @return Instantiate a new GroupOfElement,
+   containing the MElements of the given physical and partition IDs
+   **
+
+   @fn Mesh::getFromPhysical(int)
    @param physicalId A physical ID
    (see <a href="http://www.geuz.org/gmsh">gmsh</a> documentation)
 
