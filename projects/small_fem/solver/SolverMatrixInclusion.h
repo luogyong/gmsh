@@ -77,6 +77,15 @@ size_t SolverMatrix<scalar>::nColumns(void) const{
 
 template<typename scalar>
 size_t SolverMatrix<scalar>::get(int** row, int** col, scalar** value){
+  return get(row, col, value, false);
+}
+
+template<typename scalar>
+size_t SolverMatrix<scalar>::
+get(int** row, int** col, scalar** value, bool sorted){
+  if(sorted)
+    sort();
+
   *row   = this->row;
   *col   = this->col;
   *value = this->value;

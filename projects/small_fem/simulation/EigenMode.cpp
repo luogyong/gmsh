@@ -64,13 +64,18 @@ Complex fScal(fullVector<double>& xyz){
 }
 
 void compute(const Options& option){
-  // MPI Stream //
+  // MPI //
   MPIOStream cout(0, std::cout);
+  int        myProc;
+
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
 
   // Get Domain //
   Mesh msh(option.getValue("-msh")[1]);
-  GroupOfElement volume = msh.getFromPhysical(7);
-  GroupOfElement border = msh.getFromPhysical(5);
+  //GroupOfElement volume = msh.getFromPhysical(7);
+  //GroupOfElement border = msh.getFromPhysical(5);
+  GroupOfElement volume = msh.getFromPhysical(7, myProc + 1);
+  GroupOfElement border = msh.getFromPhysical(5, myProc + 1);
 
   // Full Domain //
   vector<const GroupOfElement*> domain(2);
@@ -138,9 +143,6 @@ void compute(const Options& option){
   cout << "Solved" << endl << flush;
 
   // Display //
-  int myProc;
-  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
-
   if(myProc == 0){
     fullVector<Complex> eigenValue;
     const size_t nEigenValue = sys.getNComputedSolution();
@@ -155,15 +157,18 @@ void compute(const Options& option){
       cout << "#" << i + 1  << "\t"
            << eigenValue(i) << endl;
 
-    // Write Sol //
-    try{
-      option.getValue("-nopos");
-    }
-    catch(...){
-      FEMSolution<Complex> feSol;
-      sys.getSolution(feSol, *fs, volume);
-      feSol.write("eigen_mode");
-    }
+  }
+  // Write Sol //
+  try{
+    option.getValue("-nopos");
+  }
+  catch(...){
+    FEMSolution<Complex> feSol;
+    stringstream         name;
+    sys.getSolution(feSol, *fs, volume);
+
+    name << "eigen_mode_proc" << myProc;
+    feSol.write(name.str());
   }
 
   // Clean //

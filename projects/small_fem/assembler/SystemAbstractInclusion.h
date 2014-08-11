@@ -170,10 +170,42 @@ assemble(SolverMatrix<scalar>& A,
 
 template<typename scalar>
 void SystemAbstract<scalar>::
+assembleLHSOnly(SolverMatrix<scalar>& A,
+                size_t elementId,
+                const std::vector<Dof>& dofField,
+                const std::vector<Dof>& dofTest,
+                const FormulationBlock<scalar>& formulation){
+
+  const size_t N = dofTest.size();
+  const size_t M = dofField.size();
+
+  size_t dofI;
+  size_t dofJ;
+
+  for(size_t i = 0; i < N; i++){
+    dofI = dofM->getGlobalId(dofTest[i]);
+
+    // If not a fixed Dof line: assemble
+    if(dofI != DofManager<scalar>::isFixedId()){
+      for(size_t j = 0; j < M; j++){
+        dofJ = dofM->getGlobalId(dofField[j]);
+
+        // If not a fixed Dof
+        if(dofJ != DofManager<scalar>::isFixedId())
+          A.add(dofI, dofJ, formulation.weak(i, j, elementId));
+      }
+    }
+  }
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
 assembleRHSOnly(SolverVector<scalar>& b,
                 size_t elementId,
                 const std::vector<Dof>& dofTest,
                 const FormulationBlock<scalar>& formulation){
+  throw
+    Exception("assembleRHSOnly(): chek me -> only non fixed RHS assembled !!!");
 
   const size_t N = dofTest.size();
   size_t dofI;
@@ -184,7 +216,6 @@ assembleRHSOnly(SolverVector<scalar>& b,
     // If not a fixed Dof line: assemble
     if(dofI != DofManager<scalar>::isFixedId())
       b.add(dofI, formulation.rhs(i, elementId));
-
   }
 }
 
@@ -210,11 +241,33 @@ getProcSize(size_t nRow, size_t nProc, std::vector<size_t>& size){
 
 template<typename scalar>
 void SystemAbstract<scalar>::
-getProcMinRange(const std::vector<size_t>& size,
-                std::vector<size_t>& min){
+getOwnership(const std::vector<size_t>& size, std::vector<size_t>& own){
+  // Get full size //
+  size_t nProc    = size.size();
+  size_t fullSize = 0;
 
+  for(size_t i = 0; i < nProc; i++)
+    fullSize += size[i];
+
+  // Alloc //
+  own.resize(fullSize);
+
+  // Populate //
+  size_t offset = 0;
+  size_t owner  = 0;
+  for(size_t i = 0; i < nProc; i++){
+    for(size_t j = 0; j < size[i]; j++)
+      own[j + offset] = owner;
+
+    offset += size[i];
+    owner++;
+  }
+}
+
+template<typename scalar>
+void SystemAbstract<scalar>::
+getProcMinRange(const std::vector<size_t>& size, std::vector<size_t>& min){
   const size_t nProc = size.size();
-
   min.resize(nProc);
   min[0] = 0;
 
@@ -224,9 +277,7 @@ getProcMinRange(const std::vector<size_t>& size,
 
 template<typename scalar>
 void SystemAbstract<scalar>::
-getProcMaxRange(const std::vector<size_t>& size,
-                std::vector<size_t>& max){
-
+getProcMaxRange(const std::vector<size_t>& size, std::vector<size_t>& max){
   const size_t nProc = size.size();
   max.resize(nProc);
   max[0] = size[0];
@@ -237,38 +288,54 @@ getProcMaxRange(const std::vector<size_t>& size,
 
 template<typename scalar>
 void SystemAbstract<scalar>::
-petscSparsity(PetscInt* nonZero,
+petscSparsity(int* nonZero,
               int* row, int* col, size_t size,
-              int iMin, int iMax, bool isDiagonal){
+              std::vector<size_t>& minRange, std::vector<size_t>& maxRange,
+              std::vector<size_t>& owner,
+              bool isDiagonal){
+  // Init
+  size_t iLastRow = row[0] - 1; // row is assumed in Fortran style
+  size_t iLastCol = col[0] - 1; // row is assumed in Fortran style
+  size_t      own = owner[iLastRow];
+
+  if(iLastRow >= minRange[own] && iLastRow < maxRange[own])
+    if((iLastCol >= minRange[own] && iLastCol < maxRange[own]) == isDiagonal)
+      nonZero[iLastRow]++;
+
   // Loop
-  for(size_t i = 0; i < size; i++){
-    int iRow = row[i] - 1;   // row is assumed in Fortran style
+  size_t iRow;
+  size_t iCol;
 
-    if(iRow >= iMin && iRow < iMax){
-      int iCol = col[i] - 1; // col is assumed in Fortran style
+  for(size_t i = 1; i < size; i++){
+    iRow = row[i] - 1;  // row is assumed in Fortran style
+    iCol = col[i] - 1;  // col is assumed in Fortran style
+    own  = owner[iRow];
 
-      if((iCol >= iMin && iCol < iMax) == isDiagonal)
-        nonZero[iRow - iMin]++;
+    if(iRow != iLastRow || iCol != iLastCol){
+      // A new entry is found (row[] and col[] are asumed sorted)
+      iLastRow = iRow;
+      iLastCol = iCol;
+
+      if(iRow >= minRange[own] && iRow < maxRange[own])
+        if((iCol >= minRange[own] && iCol < maxRange[own]) == isDiagonal)
+          nonZero[iRow]++;
     }
   }
 }
 
 template<typename scalar>
 void SystemAbstract<scalar>::
-petscSerialize(int rowMin, int rowMax,
-               int* row, int* col, scalar* value, size_t size, Mat& A){
+petscSerialize(int* row, int* col, scalar* value, size_t size, Mat& A){
   // Loop
   int iRow;
   int iCol;
 
   for(size_t i = 0; i < size; i++){
-    // Get Row
-    iRow = row[i] - 1;   // row is assumed in Fortran style
+    // Get Row & Col
+    iRow = row[i] - 1; // row is assumed in Fortran style
+    iCol = col[i] - 1; // col is assumed in Fortran style
 
-    // Is in row range ?
-    if(iRow >= rowMin && iRow < rowMax){
-      iCol = col[i] - 1; // col is assumed in Fortran style
-      MatSetValues(A, 1, &iRow, 1, &iCol, &value[i], ADD_VALUES);
-    }
+    // Add
+    MatSetValues(A, 1, &iRow, 1, &iCol, &value[i], ADD_VALUES);
   }
 }

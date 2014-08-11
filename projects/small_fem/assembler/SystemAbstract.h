@@ -79,24 +79,33 @@ class SystemAbstract{
                 const std::vector<Dof>& dofTest,
                 const FormulationBlock<scalar>& formulation);
 
+  void assembleLHSOnly(SolverMatrix<scalar>& A,
+                       size_t elementId,
+                       const std::vector<Dof>& dofField,
+                       const std::vector<Dof>& dofTest,
+                       const FormulationBlock<scalar>& formulation);
+
   void assembleRHSOnly(SolverVector<scalar>& b,
                        size_t elementId,
                        const std::vector<Dof>& dofTest,
                        const FormulationBlock<scalar>& formulation);
 
   void getProcSize(size_t nRow, size_t nProc, std::vector<size_t>& size);
+  void getOwnership(const std::vector<size_t>& size, std::vector<size_t>& own);
   void getProcMinRange(const std::vector<size_t>& size,
                        std::vector<size_t>& min);
 
   void getProcMaxRange(const std::vector<size_t>& size,
                        std::vector<size_t>& max);
 
-  void petscSparsity(PetscInt* nonZero,
+  void petscSparsity(int* nonZero,
                      int* row, int* col, size_t size,
-                     int iMin, int iMax, bool isDiagonal);
+                     std::vector<size_t>& minRange,
+                     std::vector<size_t>& maxRange,
+                     std::vector<size_t>& owner,
+                     bool isDiagonal);
 
-  void petscSerialize(int rowMin, int rowMax,
-                      int* row, int* col, scalar* value, size_t size, Mat& A);
+  void petscSerialize(int* row, int* col, scalar* value, size_t size, Mat& A);
 };
 
 

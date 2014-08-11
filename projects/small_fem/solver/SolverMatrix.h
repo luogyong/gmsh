@@ -49,6 +49,7 @@ class SolverMatrix{
 
   void   add(size_t row, size_t col, scalar   value);
   size_t get(int**  row, int**  col, scalar** value);
+  size_t get(int**  row, int**  col, scalar** value, bool sorted);
 
   std::string toString(void) const;
   std::string toMatlab(std::string matrixName) const;
@@ -101,10 +102,21 @@ class SolverMatrix{
    Indices are given in a C style manner (that is starting at 0)
    **
 
-   @fn SolverMatrix::get
+   @fn SolverMatrix::get(int**  row, int**  col, scalar** value)
    @param row A pointer to an int*
    @param col A pointer to an int*
    @param value A pointer to a scalar*
+
+   @return Returns the size of this SolverMatrix non zero entries
+
+   Same as SolverMatrix::get(row, col, value, false).
+   **
+
+   @fn SolverMatrix::get(int**  row, int**  col, scalar** value, bool sorted)
+   @param row A pointer to an int*
+   @param col A pointer to an int*
+   @param value A pointer to a scalar*
+   @param sorted A boolean value
 
    @return Returns the size of this SolverMatrix non zero entries
 
@@ -115,6 +127,10 @@ class SolverMatrix{
    The three memory arrays are such that:
    A[(*row)[k] - 1, (*col)[k] - 1] = *(value)[k],
    where A is this SolverMatrix.
+
+   If sorted is true, the returned vectors will be sorted
+   (first by row, and then by columns).
+   If sorted is false, the returned vectors will be unsorted.
    **
 
    @fn SolverMatrix::toString

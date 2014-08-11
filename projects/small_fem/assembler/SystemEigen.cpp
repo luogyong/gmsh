@@ -7,6 +7,7 @@ using namespace std;
 
 #include <sys/resource.h>
 #include <unistd.h>
+#include "MPIOStream.h"
 
 static double getMemory(void){
   long  rss = 0;
@@ -27,8 +28,8 @@ SystemEigen::SystemEigen(void){
   // Is the Problem a General EigenValue Problem ? //
   general = false;
 
-  // Dof Manager //
-  dofM = new DofManager<Complex>;
+  // Dof Manager (distributed) //
+  dofM = new DofManager<Complex>(false);
 
   // Init //
   A           = NULL;
@@ -130,8 +131,7 @@ countCom(std::list<const FormulationBlock<Complex>*>::iterator it,
 void SystemEigen::
 assembleCom(std::list<const FormulationBlock<Complex>*>::iterator it,
             std::list<const FormulationBlock<Complex>*>::iterator end,
-            SolverMatrix<Complex>& tmpMat,
-            SolverVector<Complex>& tmpRHS){
+            SolverMatrix<Complex>& tmpMat){
 
   // Iterate on Formulations //
   for(; it != end; it++){
@@ -146,47 +146,97 @@ assembleCom(std::list<const FormulationBlock<Complex>*>::iterator it,
 
     #pragma omp parallel for
     for(size_t i = 0; i < E; i++)
-      SystemAbstract<Complex>::assemble
-        (tmpMat, tmpRHS, i, dofField[i], dofTest[i], **it);
+      SystemAbstract<Complex>::
+        assembleLHSOnly(tmpMat, i, dofField[i], dofTest[i], **it);
   }
 }
 
-Mat* SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size, int myProc){
+Mat* SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size){
+  // MPI range //
+  int nProc;
+  int myProc;
+  int myProcSize;
+
+  MPI_Comm_size(MPI_COMM_WORLD, &nProc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+
+  myProcSize = procSize[myProc];
+
   // Get tmp data //
   int*       row;
   int*       col;
   Complex* value;
-  size_t tmpSize = tmp->get(&row, &col, &value);
+  size_t tmpSize = tmp->get(&row, &col, &value, true);
 
-  // Sparsity of PETSc matrix //
-  PetscInt* nonZeroDiag    = new PetscInt[procSize[myProc]];
-  PetscInt* nonZeroOffDiag = new PetscInt[procSize[myProc]];
+  // Get matrix ownership //
+  vector<size_t> owner;
+  getOwnership(procSize, owner);
 
-  for(size_t i = 0; i < procSize[myProc]; i++)
-    nonZeroDiag[i] = 0;
+  // Full sparsity of PETSc matrix //
+  int* nonZeroDiagFull    = new int[size];
+  int* nonZeroOffDiagFull = new int[size];
 
-  for(size_t i = 0; i < procSize[myProc]; i++)
-    nonZeroOffDiag[i] = 0;
+  for(size_t i = 0; i < size; i++)
+    nonZeroDiagFull[i] = 0;
 
-  petscSparsity(nonZeroDiag, row, col, tmpSize,
-    procMinRange[myProc], procMaxRange[myProc], true);
+  for(size_t i = 0; i < size; i++)
+    nonZeroOffDiagFull[i] = 0;
 
-  petscSparsity(nonZeroOffDiag, row, col, tmpSize,
-    procMinRange[myProc], procMaxRange[myProc], false);
+  petscSparsity(nonZeroDiagFull, row, col, tmpSize,
+                procMinRange, procMaxRange, owner, true);
+
+  petscSparsity(nonZeroOffDiagFull, row, col, tmpSize,
+                procMinRange, procMaxRange, owner, false);
+
+  // Local sparcity of PETSc matrix //
+  int* nonZeroDiag    = new int[myProcSize];
+  int* nonZeroOffDiag = new int[myProcSize];
+
+  for(int i = 0; i < nProc; i++)
+    MPI_Reduce(&nonZeroDiagFull[procMinRange[i]]   , nonZeroDiag   ,procSize[i],
+               MPI_INT, MPI_SUM, i, MPI_COMM_WORLD);
+
+  for(int i = 0; i < nProc; i++)
+    MPI_Reduce(&nonZeroOffDiagFull[procMinRange[i]], nonZeroOffDiag,procSize[i],
+               MPI_INT, MPI_SUM, i, MPI_COMM_WORLD);
+
+  // Clear //
+  delete[] nonZeroDiagFull;
+  delete[] nonZeroOffDiagFull;
+
+  // Maximum row size (on and off diagonal) //
+  int offSize = size - myProcSize;          // Off diag maximum size
+
+  for(int i = 0; i < myProcSize; i++)
+    if(nonZeroDiag[i] > myProcSize)         // Diag is limited to proc size
+      nonZeroDiag[i] = myProcSize;
+
+  for(int i = 0; i < myProcSize; i++)
+    if(nonZeroOffDiag[i] > offSize)         // Off diag is limited to offSize
+      nonZeroDiag[i] = offSize;
 
   // Copy tmp into PETSc matrix //
   Mat* M = new Mat;
 
   MatCreateAIJ(MPI_COMM_WORLD,
-               procSize[myProc], procSize[myProc], size, size,
+               myProcSize, myProcSize, size, size,
                42, nonZeroDiag, 42, nonZeroOffDiag, M);
 
-  petscSerialize(procMinRange[myProc], procMaxRange[myProc],
-                 row, col, value, tmpSize, *M);
+  petscSerialize(row, col, value, tmpSize, *M);
 
   MatAssemblyBegin(*M, MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd  (*M, MAT_FINAL_ASSEMBLY);
+  /*
+  PetscViewer viewer;
 
+  PetscViewerASCIIOpen(PETSC_COMM_WORLD, "B2.m", &viewer);
+  PetscObjectSetName((PetscObject)(*M), "B2");
+  PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+
+  MatView(*M, viewer);
+
+  PetscViewerDestroy(&viewer);
+  */
   // Free //
   delete[] nonZeroDiag;
   delete[] nonZeroOffDiag;
@@ -198,7 +248,6 @@ Mat* SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size, int myProc){
   return M;
 }
 
-#include "MPIOStream.h"
 void SystemEigen::assemble(void){
   // MPI Stream //
   MPIOStream cout(0, std::cout);
@@ -211,43 +260,43 @@ void SystemEigen::assemble(void){
   countCom(formulationB.begin(), formulationB.end(), nNZCountB);
 
   // Alloc Temp Sparse Matrices (not with PETSc) //
-  const size_t size = dofM->getLocalSize();
+  const size_t sizeLocal  = dofM->getLocalSize();
+  const size_t sizeGlobal = dofM->getGlobalSize();
 
-  SolverVector<Complex>* tmpRHS = new SolverVector<Complex>(size);
-  SolverMatrix<Complex>* tmpA = new SolverMatrix<Complex>(size,size, nNZCount);
-  SolverMatrix<Complex>* tmpB = new SolverMatrix<Complex>(size,size, nNZCountB);
+  SolverMatrix<Complex>* tmpA;
+  SolverMatrix<Complex>* tmpB;
+
+  tmpA = new SolverMatrix<Complex>(sizeLocal ,sizeLocal, nNZCount);
+  tmpB = new SolverMatrix<Complex>(sizeLocal ,sizeLocal, nNZCountB);
 
   cout << "Matrices allocated (" << getMemory() << " GB)" << endl << flush;
 
-  // MPI Ranges //
+  // MPI size //
   int nProc;
-  int myProc;
-
   MPI_Comm_size(MPI_COMM_WORLD, &nProc);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
 
-  getProcSize(size, nProc, procSize);
+  getProcSize(sizeGlobal, nProc, procSize);
   getProcMinRange(procSize, procMinRange);
   getProcMaxRange(procSize, procMaxRange);
 
   // Assemble Formulations A //
   cout << "True Assembly of A... " << flush;
-  assembleCom(formulation.begin(), formulation.end(), *tmpA, *tmpRHS);
+  assembleCom(formulation.begin(), formulation.end(), *tmpA);
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   cout << "PETSc version of A... " << flush;
-  A = toPetsc(tmpA, size, myProc); // Allocates A
+  A = toPetsc(tmpA, sizeGlobal); // Allocates A
   delete tmpA;
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Assemble Formulations B //
   if(general){
     cout << "True Assembly of B... " << flush;
-    assembleCom(formulationB.begin(), formulationB.end(), *tmpB, *tmpRHS);
+    assembleCom(formulationB.begin(), formulationB.end(), *tmpB);
     cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
     cout << "PETSc version of B... " << flush;
-    B = toPetsc(tmpB, size, myProc); // Allocates B
+    B = toPetsc(tmpB, sizeGlobal); // Allocates B
     delete tmpB;
     cout << "Done! (" << getMemory() << " GB)" << endl << flush;
   }
@@ -255,9 +304,6 @@ void SystemEigen::assemble(void){
   else{
     delete tmpB;
   }
-
-  // Free
-  delete tmpRHS;
 
   // The SystemEigen is assembled //
   assembled = true;
@@ -340,8 +386,11 @@ void SystemEigen::solve(void){
   // Solve //
   EPSSolve(solver);
 
+  // Wait for everything to be ok //
+  MPI_Barrier(MPI_COMM_WORLD);
+
   // Get Solution //
-  const size_t size = dofM->getLocalSize();
+  const size_t size = dofM->getGlobalSize();
 
   VecScatter   scat;
   PetscScalar  lambda;
@@ -397,7 +446,7 @@ void SystemEigen::getEigenValues(fullVector<Complex>& eig) const{
 
 void SystemEigen::
 setNumberOfEigenValues(size_t nEigenValues){
-  const size_t nDof = dofM->getLocalSize();
+  const size_t nDof = dofM->getGlobalSize();
 
   if(nEigenValues > nDof)
     throw

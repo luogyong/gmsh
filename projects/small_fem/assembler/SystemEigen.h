@@ -45,7 +45,7 @@ class SystemEigen: public SystemAbstract<Complex>{
   PetscScalar target;
   std::string whichEigenpair;
 
-  fullVector<Complex>* eigenValue;
+  fullVector<Complex>*               eigenValue;
   std::vector<fullVector<Complex> >* eigenVector;
 
  public:
@@ -82,10 +82,9 @@ class SystemEigen: public SystemAbstract<Complex>{
 
   void assembleCom(std::list<const FormulationBlock<Complex>*>::iterator it,
                    std::list<const FormulationBlock<Complex>*>::iterator end,
-                   SolverMatrix<Complex>& tmpMat,
-                   SolverVector<Complex>& tmpRHS);
+                   SolverMatrix<Complex>& tmpMat);
 
-  Mat* toPetsc(SolverMatrix<Complex>* tmp, size_t size, int myProc);
+  Mat* toPetsc(SolverMatrix<Complex>* tmp, size_t size);
 };
 
 
