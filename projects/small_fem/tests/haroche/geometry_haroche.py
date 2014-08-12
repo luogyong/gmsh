@@ -45,13 +45,15 @@ pml_z = lambda_haroche
 
 ## Mesh Parameters ##
 #####################
-if(len(sys.argv) != 5):
-    raise ValueError('Bad argument: geometry_haroche air pml mir order')
+if(len(sys.argv) != 6):
+    raise ValueError('Bad argument: '
+                     'geometry_haroche air pml mir order partition')
 
 refinement_air = float(sys.argv[1])
 refinement_pml = float(sys.argv[2])
 refinement_mir = float(sys.argv[3])
-order          = float(sys.argv[4])
+order          =   int(sys.argv[4])
+partition      =   int(sys.argv[5])
 
 paramaille_air  = lambda_haroche / refinement_air
 paramaille_pml  = lambda_haroche / refinement_pml
@@ -66,7 +68,7 @@ paramaille_mir  = lambda_haroche / refinement_mir
 GmshSetOption('Mesh', 'Algorithm',    1.0)
 GmshSetOption('Mesh', 'Algorithm3D',  1.0)
 GmshSetOption('General', 'Verbosity', 4.0)
-GmshSetOption('Mesh', 'ElementOrder', order)
+GmshSetOption('Mesh', 'ElementOrder', float(order))
 
 
 ## Geomtrical Model ##
@@ -164,6 +166,11 @@ meshName = 'haroche'                         + \
            '_mir_%d'         %refinement_mir + '.msh'
 
 myModel4.mesh(3)
+
+partitionOpt = meshPartitionOptions()
+partitionOpt.setNumOfPartitions(partition)
+PartitionMesh(myModel4, partitionOpt)
+
 myModel4.save(meshName)
 myModel4.save(brepName)
 
@@ -171,13 +178,8 @@ myModel4.save(brepName)
 ## Display ##
 #############
 print('Data used: ')
-print('  ** Air   : ' + str(refinement_air))
-print('  ** PML   : ' + str(refinement_pml))
-print('  ** Mirror: ' + str(refinement_mir))
-print('  ** Order : ' + str(order))
-
-# myModel4.setAsCurrent();
-# myModel4.setVisibility(1);
-# FlGui.instance()
-# FlGui.run()
-# FlGui.close()
+print('  ** Air      : ' + str(refinement_air))
+print('  ** PML      : ' + str(refinement_pml))
+print('  ** Mirror   : ' + str(refinement_mir))
+print('  ** Order    : ' + str(order))
+print('  ** Partition: ' + str(partition))

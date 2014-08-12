@@ -8,6 +8,7 @@
 #include "GroupOfJacobian.h"
 #include "TermGradGrad.h"
 #include "TermCurlCurl.h"
+#include "TermDummy.h"
 #include "Quadrature.h"
 
 template<typename scalar>
@@ -18,6 +19,12 @@ FormulationStiffness<scalar>::FormulationStiffness(const GroupOfElement& domain,
   ddomain = &domain;
   ffield  = &field;
   ttest   = &test;
+
+  // Is domain empty ? //
+  if(domain.isEmpty()){
+    localTerms = new TermDummy<scalar>;
+    return;
+  }
 
   // Check domain stats: uniform mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();
@@ -75,6 +82,12 @@ FormulationStiffness(const GroupOfElement& domain,
   ddomain = &domain;
   ffield  = &field;
   ttest   = &test;
+
+  // Is domain empty ? //
+  if(domain.isEmpty()){
+    localTerms = new TermDummy<scalar>;
+    return;
+  }
 
   // Check domain stats: uniform mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();

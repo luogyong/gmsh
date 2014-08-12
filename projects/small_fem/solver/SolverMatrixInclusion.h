@@ -111,13 +111,27 @@ void SolverMatrix<scalar>::writeToMatlabFile(std::string fileName,
 
 template<typename scalar>
 void SolverMatrix<scalar>::sort(void){
-  // Sort all
+  // Array size //
   const size_t size = this->max[this->max.size() - 1];
-  sort(0, size - 1);
+
+  // Quick sort //
+  //quickSort(0, size - 1);
+
+  // Heap sort //
+  // Build heap
+  for(size_t i = size / 2; i != 0; i--)
+    heapify(size, i);
+  heapify(size, 0);
+
+  // Sort
+  for(size_t i = size - 1; i != 0; i--){
+    swap(i, 0);
+    heapify(i, 0);
+  }
 }
 
 template<typename scalar>
-void SolverMatrix<scalar>::sort(size_t start, size_t end){
+void SolverMatrix<scalar>::quickSort(size_t start, size_t end){
   // If there's nothing to sort, return //
   if(start >= end)
     return;
@@ -127,11 +141,11 @@ void SolverMatrix<scalar>::sort(size_t start, size_t end){
 
   // Sort left (if it exists) //
   if(pivotPosition > 0)
-    sort(start, pivotPosition - 1);
+    quickSort(start, pivotPosition - 1);
 
   // Sort right (if it exists) //
   if(pivotPosition < maxSizeT)
-    sort(pivotPosition + 1, end);
+    quickSort(pivotPosition + 1, end);
 }
 
 template<typename scalar>
@@ -163,6 +177,39 @@ size_t SolverMatrix<scalar>::partition(size_t start, size_t end){
   swap(i, end);   // Swap row[i & j], col[i & j] and value[i & j]
 
   return i;
+}
+
+template<typename scalar>
+void SolverMatrix<scalar>::heapify(size_t size, size_t node){
+  const size_t left  = (2 * node) + 1; // Left son
+  const size_t right = left + 1;       // Right son
+
+  size_t maxNode = node; // We think that the given node is the biggest
+
+  // If left son exists,
+  // and if maxNode is smaller than left son
+  if(left < size && row[maxNode] < row[left])
+    maxNode = left; // Now, left node is the maxNode
+
+  // If left son is equal to maxNode: look to columns
+  if(left < size && row[maxNode] == row[left] && col[maxNode] < col[left])
+    maxNode = left; // Now, left node is the maxNode
+
+  // If right son exists,
+  // and if maxNode is smaller than right son
+  if(right < size && row[maxNode] < row[right])
+    maxNode = right; // now, right node is the maxNode
+
+  // If right son is equal to maxNode: look to columns
+  if(right < size && row[maxNode] == row[right] && col[maxNode] < col[right])
+    maxNode = right; // Now, right node is the maxNode
+
+  // If maxNode is not the given node
+  //    --> swap and heapify from new position
+  if(maxNode != node){
+    swap(node, maxNode);
+    heapify(size, maxNode);
+  }
 }
 
 /*

@@ -34,6 +34,10 @@ class System: public SystemAbstract<scalar>{
                              const FunctionSpace& fs,
                              const GroupOfElement& domain)            const;
 
+  virtual void   getSolution(FEMSolution<scalar>& feSol,
+                             const FunctionSpace& fs,
+                             const std::vector<const GroupOfElement*>& domain)
+                                                                      const;
   virtual void assemble(void);
   virtual void solve(void);
 

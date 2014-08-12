@@ -56,6 +56,10 @@ class SystemAbstract{
                              const FunctionSpace& fs,
                              const GroupOfElement& domain)            const = 0;
 
+  virtual void   getSolution(FEMSolution<scalar>& feSol,
+                             const FunctionSpace& fs,
+                             const std::vector<const GroupOfElement*>& domain)
+                                                                      const = 0;
   virtual void writeMatrix(std::string fileName,
                            std::string matrixName) const = 0;
 

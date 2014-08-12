@@ -217,6 +217,19 @@ void System<scalar>::getSolution(FEMSolution<scalar>& feSol,
 }
 
 template<typename scalar>
+void System<scalar>::
+getSolution(FEMSolution<scalar>& feSol,
+            const FunctionSpace& fs,
+            const std::vector<const GroupOfElement*>& domain) const{
+  // Get size
+  const size_t size = domain.size();
+
+  // Get solution for each domain
+  for(size_t i = 0; i < size; i++)
+    getSolution(feSol, fs, *domain[i]);
+}
+
+template<typename scalar>
 void System<scalar>::writeMatrix(std::string fileName,
                                  std::string matrixName) const{
   A->writeToMatlabFile(fileName, matrixName);

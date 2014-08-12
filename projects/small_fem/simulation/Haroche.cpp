@@ -59,25 +59,27 @@ double getMemory(void){
 void compute(const Options& option){
   // MPI std::cout //
   MPIOStream cout(0, std::cout);
+  int        myProc;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
 
   // Get Domains //
   cout << "Reading domain... " << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
-  GroupOfElement Air    = msh.getFromPhysical(138);
+  GroupOfElement Air    = msh.getFromPhysical(138, myProc + 1);
 
-  GroupOfElement PMLx   = msh.getFromPhysical(139);
-  GroupOfElement PMLxy  = msh.getFromPhysical(140);
-  GroupOfElement PMLy   = msh.getFromPhysical(141);
-  GroupOfElement PMLz   = msh.getFromPhysical(142);
-  GroupOfElement PMLxyz = msh.getFromPhysical(143);
-  GroupOfElement PMLxz  = msh.getFromPhysical(144);
-  GroupOfElement PMLyz  = msh.getFromPhysical(145);
+  GroupOfElement PMLx   = msh.getFromPhysical(139, myProc + 1);
+  GroupOfElement PMLxy  = msh.getFromPhysical(140, myProc + 1);
+  GroupOfElement PMLy   = msh.getFromPhysical(141, myProc + 1);
+  GroupOfElement PMLz   = msh.getFromPhysical(142, myProc + 1);
+  GroupOfElement PMLxyz = msh.getFromPhysical(143, myProc + 1);
+  GroupOfElement PMLxz  = msh.getFromPhysical(144, myProc + 1);
+  GroupOfElement PMLyz  = msh.getFromPhysical(145, myProc + 1);
 
-  GroupOfElement Mirror = msh.getFromPhysical(148);
-  GroupOfElement SurfYZ = msh.getFromPhysical(147);
-  GroupOfElement SurfXZ = msh.getFromPhysical(146);
-  GroupOfElement SurfXY = msh.getFromPhysical(149);
+  GroupOfElement Mirror = msh.getFromPhysical(148, myProc + 1);
+  GroupOfElement SurfYZ = msh.getFromPhysical(147, myProc + 1);
+  GroupOfElement SurfXZ = msh.getFromPhysical(146, myProc + 1);
+  GroupOfElement SurfXY = msh.getFromPhysical(149, myProc + 1);
 
   // Full Domain
   vector<const GroupOfElement*> All_domains(12);
@@ -97,10 +99,10 @@ void compute(const Options& option){
   All_domains[11] = &SurfXY;
 
   // Full Surface
-  GroupOfElement All_surfaces(msh);
-  All_surfaces.add(SurfYZ);
-  All_surfaces.add(SurfXZ);
-  All_surfaces.add(SurfXY);
+  vector<const GroupOfElement*> All_surfaces(3);
+  All_surfaces[0] = &SurfYZ;
+  All_surfaces[1] = &SurfXZ;
+  All_surfaces[2] = &SurfXY;
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // FunctionSpace //
@@ -263,9 +265,6 @@ void compute(const Options& option){
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Post-Pro //
-  int myProc;
-  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
-
   if(myProc == 0){
     // Display
     cout << "Post Pro" << endl << flush;
@@ -286,17 +285,20 @@ void compute(const Options& option){
 
     // Dump on disk
     dump("harocheValues.txt", eigenValue);
+  }
 
-    // Draw
-    try{
-      option.getValue("-nopos");
-    }
+  // Draw
+  try{
+    option.getValue("-nopos");
+  }
 
-    catch(...){
-      FEMSolution<Complex> feSol;
-      sys.getSolution(feSol, fs, All_surfaces);
-      feSol.write("harocheModes");
-    }
+  catch(...){
+    FEMSolution<Complex> feSol;
+    stringstream         name;
+    sys.getSolution(feSol, fs, All_surfaces);
+
+    name << "harocheModes" << "_proc" << myProc;
+    feSol.write(name.str());
   }
 }
 

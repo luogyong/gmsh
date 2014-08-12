@@ -8,6 +8,7 @@
 #include "GroupOfJacobian.h"
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
+#include "TermDummy.h"
 #include "Quadrature.h"
 
 template<typename scalar>
@@ -18,6 +19,12 @@ FormulationMass<scalar>::FormulationMass(const GroupOfElement& domain,
   ddomain = &domain;
   ffield  = &field;
   ttest   = &test;
+
+  // Is domain empty ? //
+  if(domain.isEmpty()){
+    localTerms = new TermDummy<scalar>;
+    return;
+  }
 
   // Check domain stats: uniform mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();
@@ -76,6 +83,12 @@ FormulationMass(const GroupOfElement& domain,
   ffield  = &field;
   ttest   = &test;
 
+  // Is domain empty ? //
+  if(domain.isEmpty()){
+    localTerms = new TermDummy<scalar>;
+    return;
+  }
+
   // Check domain stats: uniform mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();
   size_t                    eType = uniform.second;
@@ -119,6 +132,12 @@ FormulationMass(const GroupOfElement& domain,
   ddomain = &domain;
   ffield  = &field;
   ttest   = &test;
+
+  // Is domain empty ? //
+  if(domain.isEmpty()){
+    localTerms = new TermDummy<scalar>;
+    return;
+  }
 
   // Check domain stats: uniform mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();

@@ -59,8 +59,9 @@ class SolverMatrix{
   SolverMatrix(void);
 
   void   sort(void);
-  void   sort(size_t start, size_t end);
+  void   quickSort(size_t start, size_t end);
   size_t partition(size_t start, size_t end);
+  void   heapify(size_t size, size_t node);
   void   swap(size_t i, size_t j);
 
   // void        sortAndReduce(void) const;

@@ -524,6 +524,18 @@ void SystemEigen::getSolution(FEMSolution<Complex>& feSol,
   }
 }
 
+void SystemEigen::
+getSolution(FEMSolution<Complex>& feSol,
+            const FunctionSpace& fs,
+            const std::vector<const GroupOfElement*>& domain) const{
+  // Get size
+  const size_t size = domain.size();
+
+  // Get solution for each domain
+  for(size_t i = 0; i < size; i++)
+    getSolution(feSol, fs, *domain[i]);
+}
+
 void SystemEigen::writeMatrix(string fileName,
                               string matrixName) const{
   throw Exception("SystemEigen::writeMatrix -- not implemented");

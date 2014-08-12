@@ -61,6 +61,10 @@ class SystemEigen: public SystemAbstract<Complex>{
                              const FunctionSpace& fs,
                              const GroupOfElement& domain)              const;
 
+  virtual void   getSolution(FEMSolution<Complex>& feSol,
+                             const FunctionSpace& fs,
+                             const std::vector<const GroupOfElement*>& domain)
+                                                                        const;
   bool isGeneral(void) const;
   void getEigenValues(fullVector<Complex>& eig) const;
 
