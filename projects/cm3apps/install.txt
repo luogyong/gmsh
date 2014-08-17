@@ -403,26 +403,61 @@ and add the following line at the beginning of the file
 It seems that is a problem with the version of gcc (from internet)          
 <folder where you compile>/src/dgshell_wrap.cxx maybe you have to replace #include<Python.h> by #include</usr/include/python2.6/Python.h>
 
-      11) edit your .bashrc file to add folders which contain gmsh executable and library and dgshell library
-          here APPS is the name of the project(s) you compile (dgshell, dG3D or msch) add the path of each project
-              export PYTHONPATH=$PYTHONPATH:$PATH:<path of APPS library (APPS.py, APPS.so)>
-              export PYTHONPATH=$PYTHONPATH:$PATH:<path of cm3apps library (gmshpy.py normally in the NonLinearSolver/gmsh folder of your compilation folder) >
+      11) launch the tests: the test suite uses ctest so once the compilation is finished you can launch the test with
+            ctest -j <number of processor>
+the other useful option for ctest are
+            --output-on-failure   display the test results in case it fails
+            -I <number of the test to start (included>,<number of the test to finish (included)> to launch one or a continuous subset of test in case only a few are failing
+            -V   verbose all the test output      
+
+      12) If one or more tests fail try to fix the issues or ask for help
+
+      13) edit your .bashrc file to add folders which contain gmsh exectable
               export PATH=$PATH:<path of gmsh executable>  
 
-          Note that if you choose CMAKE_BUILD_TYPE = debug (or Debug) the name of .py file is dgshellpyDebug.py and otherwise it is dgshellpy.py which allow to switch easily from one version
-          to another. You have just to change the import in the beginning of your example.py file
+      14) In order to limit the things to put in the .bashrc a shell script in configure by CMake for you. This shell script export the pythonpath depending on the configuration of your machine and if you use python2 or python3. Therfore you may not directly launch your python file with python but use this script instead. The script is <compilation folder>/bin/cm3py (you may do an alias in your .bashrc) and you launch your python file with
+         <compilation folder>/bin/cm3py <python file>.py
+This script has several option allowing you to start the debugger (to debug using CodeBlocks see point C) below). To debug usin ddd use
+         <compilation folder>/bin/cm3py --ddd
+then ddd will start and you can do 
+         r <python file>.py
+to begin to debug. For parallel debugging use
+         <compilation folder>/bin/cm3py --mpiddd <number of processor>
+To launch another debbugger (or even ddd) use
+         <compilation folder>/bin/cm3py --debug <debugger executable>     
 
-      12) Go to gmsh/projects/dgshell/battery folder and type 
-           - If you are using python2 bindings (default except for Ubuntu 13.04 and higher)
-              python battery.py --launch=
-           - If you are using python3 bindings (Ubuntu 13.04 and higher)
-              python3 battery3.py --launch= 
-          to perform test
-
-      13) after test see report.csv. If large error appear or there are some missing results please ask
-
-      14) Enjoy it ! 
+      15) Enjoy it ! 
 
     
+C) Debugging (explain with dgshell but works the same for other projects. Just change dgshell by dG3D or msch   
 
-        
+    ° Using the codeblocks interface:
+       - select the target dgshell (in place of all)
+       - select project/properties then under build targets select dgshell   
+       - change the Execution working directory to the directory of the application you want to debug with an ABSOLUTE path
+       - click OK
+       - select project/set programs' arguments
+       - give the name of your python script as argument and give python as host application
+       - click OK
+       - select Settings/Debugger 
+       - under GDB/CDB debugger Default change Executable path: /usr/bin/gdb by
+<compilation folder>/bin/cm3py  
+
+    ° Using ddd:
+      - go to the folder of your application
+      - type either
+        <compilation folder>/bin/cm3py --ddd 
+        or 
+        <compilation folder>/bin/cm3py --mpiddd <x>
+      the second command allows a parallel debugging where <x> should be replaced by the number of processor you want
+
+D) add a test to the suite
+    Test can be easily added. Several example are available in dgshell/benchmark.
+    ° create a CMakeLists.txt for your benchmarks (and add it to your project using add_subdirectory). Standard test can use the macro add_cm3pythontest(<script>.py "cmake list with the files/folder to delete once the test is finish").
+
+    ° things is to check some value in your pythonfile. the TestCheck object can be useful for that:
+  check = TestCheck() # create an instance of the class
+  check.equal(reference, current, tol) # compare reference to current considering them equal as long as the relative error is less than tol. You can use other way to generate an error in order to have the test fail. Note that (at least on my machine) sys.exit(1) cannot be used as it return 0. You must use os._exit(1) instead.
+   ° redo make to reload the CMakeLists 
+
+   ° launch ctest to verify your test appear into the suite. The name of the test is auto generated and is <Project_Name>/<test folder name>/<python script name>

@@ -16,15 +16,8 @@ else()
   set(INDEBUG FALSE)
 endif(CMAKE_BUILD_TYPE MATCHES "debug")
 
-if(INDEBUG)
-  set(CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -D_DEBUG")
-  set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -D_DEBUG")
-  set(LIBDGSHELLNAME "dgshellpyDebug")
-else()
-#  set(CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} -g -pg")
-#  set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -g -pg")
-  set(LIBDGSHELLNAME "dgshellpy")
-endif(INDEBUG)
+# find gdb to be able to launch debugger
+find_program(GDB_EXECUTABLE gdb)
 
 project(cm3apps)
 # includes or not the other projects (default no project)
@@ -37,20 +30,58 @@ add_subdirectory(../NonLinearSolver "${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver
 include_directories(. ../../Common ../../Numeric ../../Geo ../../Mesh
    ../../Solver ../../Post ../../Plugin ../../Graphics ../NonLinearSolver/internalPoints ../NonLinearSolver/nlsolver ../NonLinearSolver ../NonLinearSolver/Interface ../NonLinearSolver/contact ../NonLinearSolver/materialLaw ../NonLinearSolver/Domain ../NonLinearSolver/BoundaryConditions ../NonLinearSolver/nlTerms ../NonLinearSolver/field ../NonLinearSolver/space ${GMSH_EXTERNAL_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver/gmsh/Common src ../../contrib/gmm ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver ../NonLinearSolver/periodicBC $ENV{NLSMPIINC} )
 
+# define some variables for the executable
+#set(CM3_SLEPC_LIB ${ENV_SLEPC_DIR}/${ENV_PETSC_ARCH}/lib)
+#set(CM3_PETSC_LIB ${ENV_PETSC_DIR}/${ENV_PETSC_ARCH}/lib)
+set(CM3_PYTHON_PACKAGE ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver/gmsh/wrappers)
+
 file(GLOB HDR RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/src *.h)
 
 if(HAVE_MPI)
   cmake_force_cxx_compiler(${MPI_COMPILER} "MPI C++ Compiler")
 endif(HAVE_MPI)
 
+# Testing
+# configure testing support
+include(CTest)
+if (BUILD_TESTING)
+  enable_testing()
+  # limit test to 60 sec
+  #set(CTEST_TEST_TIMEOUT 10)
+  # move the launching script in the binary dir
+  configure_file(runtestandclean.py "${PROJECT_BINARY_DIR}/runtestandclean.py" COPYONLY)
+endif(BUILD_TESTING)
+
+# macro to execute a test
+macro(add_cm3python_test PYFILE ARGN)
+  # put absolute path on the files to delete
+  foreach(f ${ARGN})
+    set(DELF ${DELF} ${CMAKE_CURRENT_SOURCE_DIR}/${f})
+  endforeach(f ${ARGN})
+  
+  # add the current folder name to the test name
+  get_filename_component(MYDIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  string(REPLACE " " "_" MYDIR ${MYDIR})
+  # launch
+  add_test(NAME "${PROJECT_NAME}/${MYDIR}/${PYFILE}" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/runtestandclean.py ${CMAKE_BINARY_DIR}/bin/cm3py ${PYFILE} ${DELF})
+endmacro(add_cm3python_test)
+
+# add the different projects
 if(ENABLE_DGSHELL)
+  set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/dgshell)
   add_subdirectory(../dgshell "${CMAKE_CURRENT_BINARY_DIR}/dgshell")
 endif(ENABLE_DGSHELL)
 
 if(ENABLE_DG3D)
+	set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/dG3D)
   add_subdirectory(../dG3D "${CMAKE_CURRENT_BINARY_DIR}/dG3D")
 endif(ENABLE_DG3D)
 
 if(ENABLE_MSCH)
+  set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/msch)
   add_subdirectory(../msch "${CMAKE_CURRENT_BINARY_DIR}/msch")
 endif(ENABLE_MSCH)
+
+# configure the executable
+configure_file(cm3py.in "${PROJECT_BINARY_DIR}/bin/cm3py" @ONLY)
+

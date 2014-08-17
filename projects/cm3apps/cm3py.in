@@ -1,0 +1,33 @@
+#!/bin/sh
+
+export PYTHONPATH="@CM3_PYTHON_PACKAGE@:$PYTHONPATH"
+#export LD_LIBRARY_PATH="@CM3_SLEPC_LIB@:@CM3_PETSC_LIB@:$LD_LIBRARY_PATH"
+
+if [ "$1" = "--debug" ]; then
+  if [ "@CMAKE_BUILD_TYPE@" = "Debug" ] || [ "@CMAKE_BUILD_TYPE@" = "debug" ]; then
+    $2 @PYTHON_EXECUTABLE@
+  else
+    echo "This version is not compiled in debug mode"
+  fi
+elif [ "$1" = "--ddd" ]; then
+  if [ "@CMAKE_BUILD_TYPE@" = "Debug" ] || [ "@CMAKE_BUILD_TYPE@" = "debug" ]; then
+    ddd @PYTHON_EXECUTABLE@
+  else
+    echo "This version is not compiled in debug mode"
+  fi
+elif [ "$1" = "--mpiddd" ]; then
+  if [ "@CMAKE_BUILD_TYPE@" = "Debug" ] || [ "@CMAKE_BUILD_TYPE@" = "debug" ]; then
+    mpiexec -n $2 -d ddd @PYTHON_EXECUTABLE@
+  else
+    echo "This version if not compiled in debug mode"
+  fi
+elif [ "$1" = "-nx" ]; then # codeblocks first argument when launching debuggeur 
+  if [ "@CMAKE_BUILD_TYPE@" = "Debug" ] || [ "@CMAKE_BUILD_TYPE@" = "debug" ]; then
+  @GDB_EXECUTABLE@ -nx -fullname - quiet -args @PYTHON_EXECUTABLE@
+  else
+    echo "This version if not compiled in debug mode"
+  fi
+else
+    @PYTHON_EXECUTABLE@ $* 
+    exit $?
+fi
