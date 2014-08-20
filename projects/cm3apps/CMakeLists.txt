@@ -30,11 +30,6 @@ add_subdirectory(../NonLinearSolver "${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver
 include_directories(. ../../Common ../../Numeric ../../Geo ../../Mesh
    ../../Solver ../../Post ../../Plugin ../../Graphics ../NonLinearSolver/internalPoints ../NonLinearSolver/nlsolver ../NonLinearSolver ../NonLinearSolver/Interface ../NonLinearSolver/contact ../NonLinearSolver/materialLaw ../NonLinearSolver/Domain ../NonLinearSolver/BoundaryConditions ../NonLinearSolver/nlTerms ../NonLinearSolver/field ../NonLinearSolver/space ${GMSH_EXTERNAL_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver/gmsh/Common src ../../contrib/gmm ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver ../NonLinearSolver/periodicBC $ENV{NLSMPIINC} )
 
-# custom ctestConfig
-set(CUSTOM_DROP_SITE "cm3012.ltas.ulg.ac.be" CACHE STRING "overided" FORCE)
-set(CUSTOM_DROP_LOCATION "/CDash/submit.php?project=cm3_nightly" CACHE STRING "overrided" FORCE)
-set(CUSTOM_DROP_PROJECT "cm3_nightly" CACHE STRING "overided" FORCE)
-
 
 # define some variables for the executable
 #set(CM3_SLEPC_LIB ${ENV_SLEPC_DIR}/${ENV_PETSC_ARCH}/lib)
