@@ -136,16 +136,19 @@ void System<scalar>::assembleAgainRHS(void){
   end = this->formulation.end();
 
   for(; it != end; it++){
-    // Get All Dofs (Test only) per Element
+    // Get All Dofs (Field & Test) per Element
+    const std::vector<std::vector<Dof> >& dofField =
+      (*it)->field().getKeys((*it)->domain());
     const std::vector<std::vector<Dof> >& dofTest =
       (*it)->test().getKeys((*it)->domain());
 
     // Assemble
-    const size_t E = dofTest.size();
+    const size_t E = dofField.size(); // Should be equal to dofTest.size().?.
 
     #pragma omp parallel for
     for(size_t i = 0; i < E; i++)
-      SystemAbstract<scalar>::assembleRHSOnly(*b, i, dofTest[i], **it);
+      SystemAbstract<scalar>::
+        assembleRHSOnly(*b, i, dofField[i], dofTest[i], **it);
   }
 }
 

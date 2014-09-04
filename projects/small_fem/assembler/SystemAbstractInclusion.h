@@ -160,7 +160,7 @@ assemble(SolverMatrix<scalar>& A,
         else
           b.add(dofI,
                 minusSign * dofM->getValue(dofField[j]) *
-                           formulation.weak(i, j, elementId));
+                            formulation.weak(i, j, elementId));
       }
 
       b.add(dofI, formulation.rhs(i, elementId));
@@ -202,20 +202,33 @@ template<typename scalar>
 void SystemAbstract<scalar>::
 assembleRHSOnly(SolverVector<scalar>& b,
                 size_t elementId,
+                const std::vector<Dof>& dofField,
                 const std::vector<Dof>& dofTest,
                 const FormulationBlock<scalar>& formulation){
-  throw
-    Exception("assembleRHSOnly(): chek me -> only non fixed RHS assembled !!!");
 
   const size_t N = dofTest.size();
+  const size_t M = dofField.size();
+
   size_t dofI;
+  size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
     dofI = dofM->getGlobalId(dofTest[i]);
 
-    // If not a fixed Dof line: assemble
-    if(dofI != DofManager<scalar>::isFixedId())
+    // If not a fixed Dof line: assemble rhs
+    if(dofI != DofManager<scalar>::isFixedId()){
+      for(size_t j = 0; j < M; j++){
+        dofJ = dofM->getGlobalId(dofField[j]);
+
+        // If a fixed Dof column: assemble rhs
+        if(dofJ == DofManager<scalar>::isFixedId())
+          b.add(dofI,
+                minusSign * dofM->getValue(dofField[j]) *
+                            formulation.weak(i, j, elementId));
+      }
+
       b.add(dofI, formulation.rhs(i, elementId));
+    }
   }
 }
 

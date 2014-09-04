@@ -91,6 +91,7 @@ class SystemAbstract{
 
   void assembleRHSOnly(SolverVector<scalar>& b,
                        size_t elementId,
+                       const std::vector<Dof>& dofField,
                        const std::vector<Dof>& dofTest,
                        const FormulationBlock<scalar>& formulation);
 
