@@ -83,6 +83,11 @@ if(ENABLE_MSCH)
   add_subdirectory(../msch "${CMAKE_CURRENT_BINARY_DIR}/msch")
 endif(ENABLE_MSCH)
 
+# cpp benchmarks (valgrind debug)
+if (BUILD_TESTING)
+  add_subdirectory(cppbenchmarks)
+endif (BUILD_TESTING)
+
 # configure the executable
 configure_file(cm3py.in "${PROJECT_BINARY_DIR}/bin/cm3py" @ONLY)
 
