@@ -1,51 +1,60 @@
-r  = 0.33;
-R1 = 0.66;
-R2 = 0.99;
-lc = 0.1;
+DefineConstant[ N_DOM = {2,   Name "Geometry/Number of domain"} ];
+DefineConstant[ r     = {1/3, Name "Geometry/Small radius"}     ];
+DefineConstant[ R     = {3/3, Name "Geometry/Big radius"}       ];
+DefineConstant[ lc    = {0.1, Name "Geometry/Mesh density"}     ];
 
+For i In {1:N_DOM}
+  R~{i} = r + i * (R - r) / (N_DOM);
+EndFor
+
+// Points //
 Point(0) = {0, 0, 0, lc};
 
-Point(11) = {+r,  0, 0, lc};
-Point(12) = { 0, +r, 0, lc};
-Point(13) = {-r,  0, 0, lc};
-Point(14) = { 0, -r, 0, lc};
+Point(1001) = {+r,  0, 0, lc};
+Point(1002) = { 0, +r, 0, lc};
+Point(1003) = {-r,  0, 0, lc};
+Point(1004) = { 0, -r, 0, lc};
 
-Point(21) = {+R1,  0, 0, lc};
-Point(22) = { 0, +R1, 0, lc};
-Point(23) = {-R1,  0, 0, lc};
-Point(24) = { 0, -R1, 0, lc};
+For i In {1:N_DOM}
+  Point((i + 1) * 1000 + 1) = {+R~{i},  0, 0, lc};
+  Point((i + 1) * 1000 + 2) = { 0, +R~{i}, 0, lc};
+  Point((i + 1) * 1000 + 3) = {-R~{i},  0, 0, lc};
+  Point((i + 1) * 1000 + 4) = { 0, -R~{i}, 0, lc};
+EndFor
 
-Point(31) = {+R2,  0, 0, lc};
-Point(32) = { 0, +R2, 0, lc};
-Point(33) = {-R2,  0, 0, lc};
-Point(34) = { 0, -R2, 0, lc};
+// Circles //
+For i In {0:N_DOM}
+  Circle((i + 1) * 1000 + 1) = {(i + 1) * 1000 + 1,  0, (i + 1) * 1000 + 2};
+  Circle((i + 1) * 1000 + 2) = {(i + 1) * 1000 + 2,  0, (i + 1) * 1000 + 3};
+  Circle((i + 1) * 1000 + 3) = {(i + 1) * 1000 + 3,  0, (i + 1) * 1000 + 4};
+  Circle((i + 1) * 1000 + 4) = {(i + 1) * 1000 + 4,  0, (i + 1) * 1000 + 1};
+EndFor
 
-Circle(11) = {11, 0, 12};
-Circle(12) = {12, 0, 13};
-Circle(13) = {13, 0, 14};
-Circle(14) = {14, 0, 11};
+// Line Loops & Surfaces //
+For i In {0:N_DOM}
+  Line Loop((i + 1) * 1000) = {(i + 1) * 1000 + 1, (i + 1) * 1000 + 2,
+                               (i + 1) * 1000 + 3, (i + 1) * 1000 + 4};
+EndFor
 
-Circle(21) = {21, 0, 22};
-Circle(22) = {22, 0, 23};
-Circle(23) = {23, 0, 24};
-Circle(24) = {24, 0, 21};
+For i In {0:N_DOM - 1}
+  Plane Surface((i + 1) * 1000) = {(i + 2) * 1000, (i + 1) * 1000};
+EndFor
 
-Circle(31) = {31, 0, 32};
-Circle(32) = {32, 0, 33};
-Circle(33) = {33, 0, 34};
-Circle(34) = {34, 0, 31};
+// Physicals //
+Physical Line(1001) = {1001, 1002, 1003, 1004};             // Src
 
-Line Loop(41) = {11, 12, 13, 14};
-Line Loop(42) = {21, 22, 23, 24};
-Line Loop(43) = {31, 32, 33, 34};
+For i In {1:N_DOM - 1}
+  Physical Line(1000 + i + 1) = {(i + 1) * 1000 + 1,
+                                 (i + 1) * 1000 + 2,
+                                 (i + 1) * 1000 + 3,
+                                 (i + 1) * 1000 + 4};       // DDM
+EndFor
 
-Plane Surface(51) = {42, 41};
-Plane Surface(52) = {43, 42};
+Physical Line(1000 + N_DOM + 1) = {(N_DOM + 1) * 1000 + 1,
+                                   (N_DOM + 1) * 1000 + 2,
+                                   (N_DOM + 1) * 1000 + 3,
+                                   (N_DOM + 1) * 1000 + 4}; // Inf
 
-// --- //
-Physical Line(4) = {11, 12, 13, 14}; // Source
-Physical Line(5) = {21, 22, 23, 24}; // DDM border
-Physical Line(6) = {31, 32, 33, 34}; // Infinity
-
-Physical Surface(7) = {51}; // Domain 1
-Physical Surface(8) = {52}; // Domain 2
+For i In {1:N_DOM}
+  Physical Surface(3000 + i) = {i * 1000};                  // Dom
+EndFor

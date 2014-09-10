@@ -31,10 +31,10 @@ Complex fSource(fullVector<double>& xyz){
 
 void compute(const Options& option){
   // MPI //
-  int numProcs;
-  int myId;
-  MPI_Comm_size(MPI_COMM_WORLD,&numProcs);
-  MPI_Comm_rank(MPI_COMM_WORLD,&myId);
+  int nProcs;
+  int myProc;
+  MPI_Comm_size(MPI_COMM_WORLD,&nProcs);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
@@ -95,7 +95,7 @@ void compute(const Options& option){
   GroupOfElement infinity(msh);
   GroupOfElement ddmBorder(msh);
 
-  if(myId == 0){
+  if(myProc == 0){
     volume.add(msh.getFromPhysical(7));
     source.add(msh.getFromPhysical(5));
     infinity.add(msh.getFromPhysical(61));
@@ -217,7 +217,7 @@ void compute(const Options& option){
 
   // Draw Solution //
   stringstream stream;
-  stream << "ddm" << myId;
+  stream << "ddm" << myProc;
 
   FEMSolution<Complex> feSol;
   full.getSolution(feSol, fs, volume);

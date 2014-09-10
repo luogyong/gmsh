@@ -18,8 +18,8 @@
 class SolverDDM{
  private:
   // MPI //
-  int numProcs;
-  int myId;
+  int nProcs;
+  int myProc;
 
   // DDM //
   const Formulation<Complex>* wave;
@@ -28,22 +28,37 @@ class SolverDDM{
   Formulation<Complex>* ddm;
   Formulation<Complex>* upDdm;
 
+  // Volume System //
+  System<Complex>* volume;
+  bool             once;
+
   // Dirichlet Domain & FunctionSpace //
   const GroupOfElement* dirichlet;
   const FunctionSpace*  fs;
 
   // DDM Dof values //
   std::map<Dof, Complex>* ddmG;
+  std::vector<int>        neighbour;
+  int                     neighbourOne;
+  int                     neighbourTwo;
 
   // MPI out //
-  std::vector<int>     outEntity;
-  std::vector<int>     outType;
-  std::vector<Complex> outValue;
+  std::vector<int>     outEntityOne;
+  std::vector<int>     outTypeOne;
+  std::vector<Complex> outValueOne;
+
+  std::vector<int>     outEntityTwo;
+  std::vector<int>     outTypeTwo;
+  std::vector<Complex> outValueTwo;
 
   // MPI in //
-  std::vector<int>     inEntity;
-  std::vector<int>     inType;
-  std::vector<Complex> inValue;
+  std::vector<int>     inEntityOne;
+  std::vector<int>     inTypeOne;
+  std::vector<Complex> inValueOne;
+
+  std::vector<int>     inEntityTwo;
+  std::vector<int>     inTypeTwo;
+  std::vector<Complex> inValueTwo;
 
   // PETSc //
   Mat A;
@@ -51,27 +66,6 @@ class SolverDDM{
   Vec b;
 
   std::map<Dof, Complex>* rhs;
-
-  typedef struct{
-    bool once;
-    int myId;
-    DDMContext* DDMctx;
-
-    const GroupOfElement* dirichlet;
-    const FunctionSpace* fs;
-    const Formulation<Complex>* wave;
-    const Formulation<Complex>* sommerfeld;
-    Formulation<Complex>* ddm;
-    Formulation<Complex>* upDdm;
-
-    System<Complex>* volume;
-    System<Complex>* update;
-
-    std::vector<Complex>* outValue;
-    std::vector<Complex>* inValue;
-  } FullContext;
-
-  FullContext fullCtx;
 
  public:
   SolverDDM(const Formulation<Complex>& wave,
@@ -89,22 +83,27 @@ class SolverDDM{
   void getSolution(std::map<Dof, Complex>& ddm);
 
  private:
-  static PetscErrorCode matMult(Mat A, Vec x, Vec y);
+  void buildNeighbourhood(const std::map<Dof, Complex>& local);
+  std::pair<size_t, size_t> splitSize(void);
 
+  void serialize(std::map<Dof, Complex>& data, int neighbour,
+                        std::vector<int>& entity, std::vector<int>& type,
+                        std::vector<Complex>& value);
+  void unserialize(std::map<Dof, Complex>& data,
+                          std::vector<int>& entity, std::vector<int>& type,
+                          std::vector<Complex>& value);
+  template<typename T>
+    void exchange(int target, std::vector<T>& out, std::vector<T>& in);
+
+  void exchange(std::map<Dof, Complex>& data);
+
+ private:
   static void setVecFromDof(Vec& v, std::map<Dof, Complex>& dof);
   static void setDofFromVec(Vec& v, std::map<Dof, Complex>& dof);
 
   static Complex fZero(fullVector<double>& xyz);
 
-  static void serialize(const std::map<Dof, Complex>& data,
-                        std::vector<Complex>& value);
-
-  static void unserialize(std::map<Dof, Complex>& data,
-                          const std::vector<Complex>& value);
-
-  static void exchange(int myId,
-                       std::vector<Complex>& outValue,
-                       std::vector<Complex>& inValue);
+  static PetscErrorCode matMult(Mat A, Vec x, Vec y);
 };
 
 #endif

@@ -37,10 +37,10 @@ Complex fSource(fullVector<double>& xyz){
 
 void compute(const Options& option){
   // MPI //
-  int numProcs;
-  int myId;
-  MPI_Comm_size(MPI_COMM_WORLD,&numProcs);
-  MPI_Comm_rank(MPI_COMM_WORLD,&myId);
+  int nProcs;
+  int myProc;
+  MPI_Comm_size(MPI_COMM_WORLD,&nProcs);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
@@ -101,21 +101,26 @@ void compute(const Options& option){
   GroupOfElement infinity(msh);
   GroupOfElement ddmBorder(msh);
 
-  if(myId == 0){
-    source.add(msh.getFromPhysical(4));
-    ddmBorder.add(msh.getFromPhysical(5));
-    // No infinity //
+  // Source
+  if(myProc == 0)
+    source.add(msh.getFromPhysical(1001));
 
-    volume.add(msh.getFromPhysical(7));
-  }
+  // Infinity
+  if(myProc == nProcs - 1)
+    infinity.add(msh.getFromPhysical(1000 + nProcs + 1));
 
-  else{
-    //No source//
-    ddmBorder.add(msh.getFromPhysical(5));
-    infinity.add(msh.getFromPhysical(6));
+  // Volume
+  volume.add(msh.getFromPhysical(3000 + myProc + 1));
 
-    volume.add(msh.getFromPhysical(8));
-  }
+  // DDM border
+  int lBorderId = 1000 + myProc + 1;
+  int rBorderId = 1000 + myProc + 2;
+
+  if(lBorderId != 1001)              // If not source
+    ddmBorder.add(msh.getFromPhysical(lBorderId));
+
+  if(rBorderId != 1000 + nProcs + 1) // If not infinity
+    ddmBorder.add(msh.getFromPhysical(rBorderId));
 
   // Full Domain //
   vector<const GroupOfElement*> domain(4);
@@ -137,7 +142,7 @@ void compute(const Options& option){
   // Sommerfeld
   Formulation<Complex>* sommerfeld;
 
-  if(myId == 1)
+  if(myProc == nProcs - 1)
     sommerfeld = new FormulationSommerfeld(infinity, fs, k);
   else
     sommerfeld = new FormulationDummy<Complex>;
@@ -228,11 +233,9 @@ void compute(const Options& option){
   full.assemble();
   full.solve();
 
-  full.getSolution(ddmG, 0);
-
   // Draw Solution //
   stringstream stream;
-  stream << "circle" << myId;
+  stream << "circle" << myProc;
 
   FEMSolution<Complex> feSol;
   full.getSolution(feSol, fs, volume);

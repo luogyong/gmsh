@@ -76,30 +76,15 @@ class DofManager{
  private:
   void localSpace (void);
   void globalSpace(void);
+
+  void count(std::map<Dof, size_t>& dof);
+  void retag(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& fix);
   void vectorize(void);
 
   std::pair<bool, size_t> findSafe(const Dof& dof) const;
 
   std::string toStringFromMap(void) const;
   std::string toStringFromVec(void) const;
-
- private:
-  template<typename T>
-  static void getGlobalMap(std::map<Dof, T>& local, std::map<Dof, T>& global);
-
-  template<typename T>
-  static int serialize(const std::map<Dof, T>& in, int** entity, int** type);
-
-  template<typename T>
-  static void unserialize(std::map<Dof, T>& map,
-                          int* entity, int* type, int size);
-
-  static void count(std::map<Dof, size_t>& dof);
-  static void retag(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& fix);
-  static int* gatherSize(int mySize, int* sum);
-  static int* cpteStride(int* size);
-  static int* exchange(int* myData,
-                       int  mySize, int sizeSum, int* size, int* stride);
 };
 
 
