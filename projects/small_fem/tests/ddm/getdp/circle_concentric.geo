@@ -39,7 +39,9 @@ For i In {0:N_DOM}
 EndFor
 
 If(StrCmp(OnelabAction, "check")) // only mesh if not in onelab check mode
+  Mesh.ElementOrder = ELEMENT_ORDER;
   Mesh 2;
+
   CreateDir Str(DIR);
   For idom In {0:N_DOM-1}
     Physical Surface(100 + idom) = ss[idom];

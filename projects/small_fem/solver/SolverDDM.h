@@ -24,12 +24,13 @@ class SolverDDM{
   // DDM //
   const Formulation<Complex>* wave;
   const Formulation<Complex>* sommerfeld;
-  DDMContext* context;
-  Formulation<Complex>* ddm;
-  Formulation<Complex>* upDdm;
+  Formulation<Complex>*       ddm;
+  Formulation<Complex>*       upDdm;
+  DDMContext*                 context;
 
-  // Volume System //
+  // Volume & Update System //
   System<Complex>* volume;
+  System<Complex>* update;
   bool             once;
 
   // Dirichlet Domain & FunctionSpace //

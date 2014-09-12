@@ -30,10 +30,10 @@ static double k; // Need to be more sexy !
 static double theta = 0;
 
 Complex fSource(fullVector<double>& xyz){
-  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  //return Complex(cos(k * p), sin(k * p));
-  return Complex(1, 0);
+  return Complex(cos(k * p), sin(k * p));
+  //return Complex(1, 0);
 }
 
 void compute(const Options& option){

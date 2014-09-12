@@ -24,12 +24,13 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   // DDM //
   this->wave       = &wave;
   this->sommerfeld = &sommerfeld;
-  this->context    = &context;
   this->ddm        = &ddm;
   this->upDdm      = &update;
+  this->context    = &context;
 
   // Volume System //
   this->volume     = new System<Complex>;
+  this->update     = new System<Complex>;
   this->once       = false;
 
   // Dirichlet Domain & FunctionSpace //
@@ -89,6 +90,7 @@ SolverDDM::~SolverDDM(void){
   MatDestroy(&A);
 
   delete volume;
+  delete update;
 }
 
 void SolverDDM::solve(int nStep){
@@ -348,7 +350,10 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   const Formulation<Complex>& sommerfeld = *solver->sommerfeld;
   Formulation<Complex>&       ddm        = *solver->ddm;
   Formulation<Complex>&       upDdm      = *solver->upDdm;
+
+  // Systems //
   System<Complex>&            volume     = *solver->volume;
+  System<Complex>&            update     = *solver->update;
 
   // Vec x is now the DDM Dof //
   DDMContext&     context = *solver->context;
@@ -359,7 +364,7 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   context.setDDMDofs(ddmG);
   ddm.update();
 
-  // Solve Full Volume Problem & Prepare Update Problem (once) //
+  // Solve Full Volume & Update Problems Once //
   if(!solver->once){
     // Prepare Volume Problem
     volume.addFormulation(wave);
@@ -379,27 +384,31 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
     // Put new System in DDM Context
     context.setSystem(volume);
 
+    // Update G in Update formulation
+    upDdm.update();
+
+    // Update system: add formulation, assemble & solve
+    update.addFormulation(upDdm);
+    update.assemble();
+    update.solve();
+
     // Once
     solver->once = true;
   }
 
-  // Reassemble Volume RHS and Solve //
+  // Reassemble Volume & Update RHS and Solve //
   else{
-    volume.assembleAgainRHS();
-    volume.solveAgain();
+    volume.assembleAgainRHS();  // Volume problem
+    volume.solveAgain();        // --------------
+
+    upDdm.update();             // Recompute upDdm terms
+
+    update.assembleAgainRHS();  // Update problem
+    update.solveAgain();        // --------------
   }
 
-  // Update G & Solve Update Problem //
-  upDdm.update(); // update volume solution (at DDM border)
-
-  System<Complex> update;
-  update.addFormulation(upDdm);
-
-  update.assemble();
-  update.solve();
-  update.getSolution(ddmG, 0);
-
   // Exchange ddmG //
+  update.getSolution(ddmG, 0);
   solver->exchange(ddmG);
   context.setDDMDofs(ddmG);
 
