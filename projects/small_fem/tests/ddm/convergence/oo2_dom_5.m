@@ -99,8 +99,10 @@ it = [1:size(smallfem, 1)];
 
 getdp(end:size(smallfem, 1)) = getdp(end);
 
-semilogy(it, [getdp, smallfem], '-o');
+semilogy(it, [getdp, smallfem], '-o', 'linewidth', 3);
 legend({'GetDP', 'SmallFEM'});
 title('OO2: 5 domains');
 xlabel('Iteration');
 ylabel('Residual');
+
+print('oo2_dom_5.png');

@@ -131,8 +131,10 @@ it = [1:size(smallfem, 1)];
 
 getdp(end:size(smallfem, 1)) = getdp(end);
 
-semilogy(it, [getdp, smallfem], '-o');
+semilogy(it, [getdp, smallfem], '-o', 'linewidth', 3);
 legend({'GetDP', 'SmallFEM'});
 title('EMDA: 4 domains');
 xlabel('Iteration');
 ylabel('Residual');
+
+print('emda_dom_4.png');
