@@ -42,7 +42,6 @@ If(StrCmp(OnelabAction, "check")) // only mesh if not in onelab check mode
   Mesh 2;
   CreateDir Str(DIR);
   For idom In {0:N_DOM-1}
-    Delete Physicals;
     Physical Surface(100 + idom) = ss[idom];
     If(idom == 0)
       Physical Line(1000) = -{l1[0], l2[0], l3[0], l4[0]}; // GammaScat (interior)
@@ -65,6 +64,8 @@ If(StrCmp(OnelabAction, "check")) // only mesh if not in onelab check mode
     Printf("Meshing circle_concentric subdomain %g...", idom);
     Save StrCat(MSH_NAME, Sprintf("%g.msh", idom));
   EndFor
+
+  Save StrCat(MSH_NAME, "all.msh");
 EndIf
 
 BoundingBox {-R_EXT, R_EXT, -R_EXT, R_EXT, 0, 0};

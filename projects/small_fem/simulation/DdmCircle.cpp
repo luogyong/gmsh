@@ -30,9 +30,10 @@ static double k; // Need to be more sexy !
 static double theta = 0;
 
 Complex fSource(fullVector<double>& xyz){
-  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  return Complex(-cos(k * p), -sin(k * p));
+  //return Complex(cos(k * p), sin(k * p));
+  return Complex(1, 0);
 }
 
 void compute(const Options& option){
@@ -103,24 +104,21 @@ void compute(const Options& option){
 
   // Source
   if(myProc == 0)
-    source.add(msh.getFromPhysical(1001));
+    source.add(msh.getFromPhysical(1000));
 
   // Infinity
   if(myProc == nProcs - 1)
-    infinity.add(msh.getFromPhysical(1000 + nProcs + 1));
+    infinity.add(msh.getFromPhysical(2000 + nProcs - 1));
 
   // Volume
-  volume.add(msh.getFromPhysical(3000 + myProc + 1));
+  volume.add(msh.getFromPhysical(100 + myProc));
 
   // DDM border
-  int lBorderId = 1000 + myProc + 1;
-  int rBorderId = 1000 + myProc + 2;
+  if(myProc > 0)
+    ddmBorder.add(msh.getFromPhysical(4000 + myProc - 1));
 
-  if(lBorderId != 1001)              // If not source
-    ddmBorder.add(msh.getFromPhysical(lBorderId));
-
-  if(rBorderId != 1000 + nProcs + 1) // If not infinity
-    ddmBorder.add(msh.getFromPhysical(rBorderId));
+  if(myProc < nProcs - 1)
+    ddmBorder.add(msh.getFromPhysical(4000 + myProc));
 
   // Full Domain //
   vector<const GroupOfElement*> domain(4);
@@ -184,8 +182,6 @@ void compute(const Options& option){
 
   else
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
-
-  ddm->update();
 
   // Solve Non homogenous problem //
   System<Complex> nonHomogenous;

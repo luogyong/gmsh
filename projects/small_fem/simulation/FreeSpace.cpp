@@ -14,8 +14,15 @@
 
 using namespace std;
 
+static double theta = 0;
+static double k;
+
 complex<double> fSourceScal(fullVector<double>& xyz){
-  return complex<double>(1, 0);
+  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+
+  return complex<double>(cos(k * p), sin(k * p));
+
+  //return complex<double>(1, 0);
   //return complex<double>(fabs(xyz(1)), 0);
   //return complex<double>(exp(-((xyz(1) * 4.2) * (xyz(1) * 4.2) +
   //                             (xyz(2) * 4.2) * (xyz(2) * 4.2))), 0);
@@ -28,6 +35,12 @@ void compute(const Options& option){
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
+  /*
+  GroupOfElement volume     = msh.getFromPhysical(100);
+  GroupOfElement source     = msh.getFromPhysical(1000);
+  GroupOfElement freeSpace  = msh.getFromPhysical(2000);
+  */
+
   GroupOfElement volume     = msh.getFromPhysical(7);
   GroupOfElement source     = msh.getFromPhysical(5);
   GroupOfElement freeSpace  = msh.getFromPhysical(6);
@@ -39,7 +52,7 @@ void compute(const Options& option){
   domain[2] = &freeSpace;
 
   // Get Parameters //
-  const double k     = atof(option.getValue("-k")[1].c_str());
+  k                  = atof(option.getValue("-k")[1].c_str());
   const size_t order = atoi(option.getValue("-o")[1].c_str());
 
   // Formulation //
@@ -56,16 +69,15 @@ void compute(const Options& option){
 
   SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
 
-  cout << "Free Space (Order: "  << order
-       << " --- Wavenumber: "    << k
-       << "): " << sys.getSize() << endl;
+  cout << "Free Space (Order: " << order
+       << " --- Wavenumber: "    << k << ")" << endl;
 
   // Assemble //
   sys.assemble();
   assemble.stop();
 
-  cout << "Assembled: " << assemble.time() << assemble.unit()
-       << endl << flush;
+  cout << "Assembled: " << sys.getSize() << " "
+       << "(" << assemble.time() << assemble.unit() << ")" << endl << flush;
 
   // Solve //
   solve.start();

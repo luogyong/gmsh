@@ -7,7 +7,7 @@ DefineConstant[ // allows to set these from outside
   NP_OSRC = 4,
   // parameters for the DDM iterative solver
   SOLVER = "gmres", // bcgs, gmsh_pcleft, ...
-  TOL = 1e-4,
+  TOL = 1e-9,
   MAXIT = 1000,
   RESTART = MAXIT
 ];
@@ -20,30 +20,32 @@ Function {
   // incidence angle
   theta_inc = THETA_INC;
   XYZdotTheta[] = X[] * Cos[theta_inc] + Y[] * Sin[theta_inc];
-  uinc[] = Complex[Cos[k*XYZdotTheta[]], Sin[k*XYZdotTheta[]]];
+  //uinc[] = Complex[Cos[k*XYZdotTheta[]], Sin[k*XYZdotTheta[]]];
+  uinc[] = Complex[1, 0];
+
   grad_uinc[] =  I[] * k * Vector[1,0,0] * uinc[];
   dn_uinc[] = Normal[] * grad_uinc[];
 
   // parameter for ABC
-  kInf[] = k;
-  alphaBT[] = 1/(2*R_EXT) - I[]/(8*k*R_EXT^2*(1+I[]/(k*R_EXT)));
-  betaBT[] = - 1/(2*I[]*k*(1+I[]/(k*R_EXT)));
+  kInf[]    = k;
+  alphaBT[] = 0;//1/(2*R_EXT) - I[]/(8*k*R_EXT^2*(1+I[]/(k*R_EXT)));
+  betaBT[]  = 0;//- 1/(2*I[]*k*(1+I[]/(k*R_EXT)));
 
   // parameter for 0th order TC
-  kDtN[] = k + (2*Pi /-I[]);
+  kDtN[] = k;// + (2*Pi /-I[]);
 
   // parameters for 2nd order TC
   // OO2 Gander 2002, pp. 46-47
   xsimin = 0;
   xsimax = Pi / LC;
-  deltak[] = Pi / Norm[XYZ[]];
+  deltak[] = Pi / .06;//Norm[XYZ[]];
   alphastar[] = I[] * ((k^2 - xsimin^2) * (k^2 - (k-deltak[])^2))^(1/4);
   betastar[] = ((xsimax^2 - k^2) * ((k+deltak[])^2 - k^2))^(1/4);
   a[] = - (alphastar[] * betastar[] - k^2) / (alphastar[] + betastar[]);
   b[] = - 1 / (alphastar[] + betastar[]);
 
   // parameters for Pade-type TC
-  keps[] = Complex[ k, 0.4 * k^(1/3) * Norm[XYZ[]]^(-2/3) ];
+  keps[] = k;//Complex[ k, 0.4 * k^(1/3) * Norm[XYZ[]]^(-2/3) ];
   theta_branch = Pi/4;
 }
 
