@@ -20,6 +20,13 @@ endif(CMAKE_BUILD_TYPE MATCHES "debug")
 find_program(GDB_EXECUTABLE gdb)
 
 project(cm3apps)
+
+# for nightly build disable all the warnings
+option(DISABLE_WARNINGS "disable the warnings" OFF)
+if(DISABLE_WARNINGS)
+  message("Warning disabled")
+  add_definitions("-w")
+endif(DISABLE_WARNINGS)
 # includes or not the other projects (default no project)
 option(ENABLE_DGSHELL "dgshell" OFF)
 option(ENABLE_DG3D "dG3D" OFF)
@@ -70,22 +77,27 @@ endmacro(add_cm3python_test)
 # add the different projects
 if(ENABLE_DGSHELL)
   set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/dgshell)
+  include_directories(../dgshell/src)
   add_subdirectory(../dgshell "${CMAKE_CURRENT_BINARY_DIR}/dgshell")
 endif(ENABLE_DGSHELL)
 
-if(ENABLE_DG3D)
+if(ENABLE_DG3D AND NOT ENABLE_MSCH)# otherwise compiled through msch 
 	set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/dG3D)
+  include_directories(../dG3D/src)
   add_subdirectory(../dG3D "${CMAKE_CURRENT_BINARY_DIR}/dG3D")
-endif(ENABLE_DG3D)
+endif(ENABLE_DG3D AND NOT ENABLE_MSCH)
 
 if(ENABLE_MSCH)
-  set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/msch)
+  include_directories(../dG3D/src ../msch/src)
+  set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/msch:${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/dG3D)
   add_subdirectory(../msch "${CMAKE_CURRENT_BINARY_DIR}/msch")
 endif(ENABLE_MSCH)
 
 # cpp benchmarks (valgrind debug)
 if (BUILD_TESTING)
-  add_subdirectory(cppbenchmarks)
+  if(ENABLE_DG3D OR ENABLE_MSCH)
+    add_subdirectory(cppbenchmarks)
+  endif(ENABLE_DG3D OR ENABLE_MSCH)
 endif (BUILD_TESTING)
 
 # configure the executable
