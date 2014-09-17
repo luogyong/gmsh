@@ -3,6 +3,21 @@
 export PYTHONPATH="@CM3_PYTHON_PACKAGE@:$PYTHONPATH"
 #export LD_LIBRARY_PATH="@CM3_SLEPC_LIB@:@CM3_PETSC_LIB@:$LD_LIBRARY_PATH"
 
+if [ "$1" = "--help" ]  || [ "$#" == 0 ]; then
+  echo "This is the help message of cm3py the launcher of cm3apps (dgshell, dG3D and msch applications."
+  echo "To launch a sequential computation just type:"
+  echo "   cm3py <pyscript.py>"
+  echo "To launch a parallel computation on <nproc> processors just type:"
+  echo "   mpiexec -n <nproc> cm3py <pyscript.py>"
+  echo "  "
+  echo "The options are:"
+  echo "--help                       display this message"
+  echo "--debug <debug executable>   start the debugger Example cm3py --debug ddd"
+  echo "--ddd                        shortcut for --debug ddd"
+  echo "mpiddd <nproc>               start the ddd in parallel on <nproc> processors. Example cm3py --mpiddd 4" 
+  exit
+fi
+
 if [ "$1" = "--debug" ]; then
   if [ "@CMAKE_BUILD_TYPE@" = "Debug" ] || [ "@CMAKE_BUILD_TYPE@" = "debug" ]; then
     $2 @PYTHON_EXECUTABLE@
