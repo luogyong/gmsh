@@ -1,0 +1,25 @@
+0) Install the package required by cdash (see cdash documentation) this includes mysql, php5, apache2,...
+
+1) Extract the zip in the /srv/www/htdocs
+unzip blabla
+
+2) copy the config.local.php in CDash/cdash
+
+
+3) Allow apache to have an index.php as home page
+ edit /etc/apache2/httpd.conf and search for DirectoryIndex on the list of possible index file (as index.html) add index.php
+DirectoryIndex index.html index.html.var index.php
+
+3) start required service
+a2enmod php5
+service mysql start
+service apache2 start
+
+4) Set auto start of the service at boot
+chkconfig mysql on
+chkconfig apache2 on
+
+5) add the crontab for automatic execution 
+crontab -e -u gauthier
+and copy paste the nighly.cron file
+
