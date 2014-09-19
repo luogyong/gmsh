@@ -490,8 +490,15 @@ void SystemEigen::getSolution(std::map<Dof, Complex>& sol,
   map<Dof, Complex>::iterator end = sol.end();
 
   // Loop on Dofs and set Values
-  for(; it != end; it++)
-    it->second = (*eigenVector)[nSol](dofM->getGlobalId(it->first));
+  for(; it != end; it++){
+    size_t gId = dofM->getGlobalId(it->first);
+
+    if(gId == DofManager<Complex>::isFixedId())
+      it->second = dofM->getValue(it->first);
+
+    else
+      it->second = (*eigenVector)[nSol](gId);
+  }
 }
 
 void SystemEigen::getSolution(FEMSolution<Complex>& feSol,

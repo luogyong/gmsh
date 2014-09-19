@@ -83,7 +83,7 @@ getDofOwners(const std::map<Dof, T>& local, std::multimap<Dof, int>& owners){
   delete[] stride;
   delete[] allEntity;
   delete[] allType;
-  //delete[] allOwners;
+  delete[] allOwners;
 }
 
 template<typename T>
