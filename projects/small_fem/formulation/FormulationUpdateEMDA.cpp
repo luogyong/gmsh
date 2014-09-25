@@ -65,7 +65,7 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
 
 Complex FormulationUpdateEMDA::rhs(size_t equationI, size_t elementId) const{
   return
-    Complex(-1      , 0     ) * lGin->getTerm(0, equationI, elementId) +
+    Complex(-1      ,  0    ) * lGin->getTerm(0, equationI, elementId) +
     Complex(+2 * chi, -2 * k) *   lU->getTerm(0, equationI, elementId);
 }
 

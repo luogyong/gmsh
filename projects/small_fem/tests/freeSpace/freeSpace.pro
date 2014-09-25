@@ -1,7 +1,14 @@
 Group{
+  /*
   GammaS = Region[5]; // Source
   GammaN = Region[6]; // Neumann
   Omega  = Region[7]; // Omega
+  */
+
+  GammaS = Region[1000]; // Source
+  GammaN = Region[4000]; // Neumann
+  Omega  = Region[100];  // Omega
+
 }
 
 Function{
@@ -10,10 +17,12 @@ Function{
 
   theta_inc = 0;
   XYZdotTheta[] = X[] * Cos[theta_inc] + Y[] * Sin[theta_inc];
-  F[] = Complex[Cos[k*XYZdotTheta[]], Sin[k*XYZdotTheta[]]];
+  //F[] = Complex[Cos[k*XYZdotTheta[]], Sin[k*XYZdotTheta[]]];
 
   //F[] = Exp[-((Y[] * 4.2) * (Y[] * 4.2) + (Z[] * 4.2) * (Z[] * 4.2))];
   //F[] = Fabs[Y[]];
+
+  F[] = 1;
 }
 
 Constraint{

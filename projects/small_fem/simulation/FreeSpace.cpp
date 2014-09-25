@@ -18,14 +18,24 @@ static double theta = 0;
 static double k;
 
 complex<double> fSourceScal(fullVector<double>& xyz){
-  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  return complex<double>(cos(k * p), sin(k * p));
+  //return complex<double>(cos(k * p), sin(k * p));
 
-  //return complex<double>(1, 0);
+  return complex<double>(1, 0);
   //return complex<double>(fabs(xyz(1)), 0);
   //return complex<double>(exp(-((xyz(1) * 4.2) * (xyz(1) * 4.2) +
   //                             (xyz(2) * 4.2) * (xyz(2) * 4.2))), 0);
+}
+
+fullVector<complex<double> > fSourceVec(fullVector<double>& xyz){
+
+  fullVector<complex<double> > f(3);
+  f(0) = 0;
+  f(1) = 1;
+  f(2) = 0;
+
+  return f;
 }
 
 void compute(const Options& option){
@@ -40,10 +50,15 @@ void compute(const Options& option){
   GroupOfElement source     = msh.getFromPhysical(1000);
   GroupOfElement freeSpace  = msh.getFromPhysical(2000);
   */
-
+  /*
   GroupOfElement volume     = msh.getFromPhysical(7);
   GroupOfElement source     = msh.getFromPhysical(5);
   GroupOfElement freeSpace  = msh.getFromPhysical(6);
+  */
+
+  GroupOfElement volume     = msh.getFromPhysical(100);
+  GroupOfElement source     = msh.getFromPhysical(1000);
+  GroupOfElement freeSpace  = msh.getFromPhysical(4000);
 
   // Full Domain //
   vector<const GroupOfElement*> domain(3);

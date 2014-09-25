@@ -2,6 +2,9 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
+#include "TermFieldField.h"
+#include "TermGradGrad.h"
+
 #include "FormulationSommerfeld.h"
 
 using namespace std;
@@ -37,6 +40,39 @@ FormulationSommerfeld::FormulationSommerfeld(const GroupOfElement& domain,
   GroupOfJacobian jac(domain, gC, "jacobian");
 
   localTerms = new TermFieldField<double>(jac, basis, gaussFF);
+}
+
+FormulationSommerfeld::FormulationSommerfeld(const GroupOfElement& domain,
+                                             const FunctionSpaceVector& fs,
+                                             double k){
+  // Save Domain //
+  goe = &domain;
+
+  // Check GroupOfElement Stats: Uniform Mesh //
+  pair<bool, size_t> uniform = domain.isUniform();
+  size_t               eType = uniform.second;
+
+  if(!uniform.first)
+    throw Exception("FormulationSommerfeld needs a uniform mesh");
+
+  // Wavenumber //
+  this->k = k;
+
+  // Save FunctionSpace & Get Basis //
+  const Basis& basis = fs.getBasis(eType);
+  const size_t order = basis.getOrder();
+  fspace             = &fs;
+
+  // Gaussian Quadrature //
+  Quadrature gauss(eType, order, 2);
+  const fullMatrix<double>& gC = gauss.getPoints();
+
+  // Local Terms //
+  basis.preEvaluateFunctions(gC);
+
+  GroupOfJacobian jac(domain, gC, "invert");
+
+  localTerms = new TermGradGrad<double>(jac, basis, gauss);
 }
 
 FormulationSommerfeld::~FormulationSommerfeld(void){

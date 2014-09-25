@@ -44,6 +44,8 @@ If(StrCmp(OnelabAction, "check")) // only mesh if not in onelab check mode
 
   CreateDir Str(DIR);
   For idom In {0:N_DOM-1}
+    Delete Physicals;
+
     Physical Surface(100 + idom) = ss[idom];
     If(idom == 0)
       Physical Line(1000) = -{l1[0], l2[0], l3[0], l4[0]}; // GammaScat (interior)
@@ -67,7 +69,28 @@ If(StrCmp(OnelabAction, "check")) // only mesh if not in onelab check mode
     Save StrCat(MSH_NAME, Sprintf("%g.msh", idom));
   EndFor
 
+  // For SmallFEM : mesh all //
+
+  Delete Physicals;
+  For idom In {0:N_DOM-1}
+    Physical Surface(100 + idom) = ss[idom];
+    If(idom == 0)
+      Physical Line(1000) = -{l1[0], l2[0], l3[0], l4[0]}; // GammaScat (interior)
+    EndIf
+    If(idom == N_DOM-1)
+      Physical Line(2000 + N_DOM-1) = {l1[N_DOM], l2[N_DOM],
+                                       l3[N_DOM], l4[N_DOM]}; // GammaInf (exterior)
+    EndIf
+
+    If(idom < N_DOM-1)
+      Physical Line(4000 + idom) = {l1[idom+1], l2[idom+1], l3[idom+1], l4[idom+1]};
+    EndIf
+  EndFor
+
   Save StrCat(MSH_NAME, "all.msh");
+
+  // For SmallFEM: done //
+
 EndIf
 
 BoundingBox {-R_EXT, R_EXT, -R_EXT, R_EXT, 0, 0};
