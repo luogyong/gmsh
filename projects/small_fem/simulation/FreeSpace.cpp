@@ -14,6 +14,9 @@
 
 using namespace std;
 
+static const int scal = 0;
+static const int vect = 1;
+
 static double theta = 0;
 static double k;
 
@@ -50,16 +53,16 @@ void compute(const Options& option){
   GroupOfElement source     = msh.getFromPhysical(1000);
   GroupOfElement freeSpace  = msh.getFromPhysical(2000);
   */
-  /*
+
   GroupOfElement volume     = msh.getFromPhysical(7);
   GroupOfElement source     = msh.getFromPhysical(5);
   GroupOfElement freeSpace  = msh.getFromPhysical(6);
-  */
 
+  /*
   GroupOfElement volume     = msh.getFromPhysical(100);
   GroupOfElement source     = msh.getFromPhysical(1000);
   GroupOfElement freeSpace  = msh.getFromPhysical(4000);
-
+  */
   // Full Domain //
   vector<const GroupOfElement*> domain(3);
   domain[0] = &volume;
@@ -70,19 +73,46 @@ void compute(const Options& option){
   k                  = atof(option.getValue("-k")[1].c_str());
   const size_t order = atoi(option.getValue("-o")[1].c_str());
 
-  // Formulation //
-  assemble.start();
-  FunctionSpaceScalar fs(domain, order);
+  // Get Type //
+  int type;
 
-  FormulationSteadyWave<complex<double> > wave(volume, fs, k);
-  FormulationSommerfeld                   sommerfeld(freeSpace, fs, k);
+  if(option.getValue("-type")[1].compare("scalar") == 0){
+    type = scal;
+    cout << "Scalar ";
+  }
+
+  else if(option.getValue("-type")[1].compare("vector") == 0){
+    type = vect;
+    cout << "Vectorial ";
+  }
+
+  else
+    throw Exception("Bad -type: %s", option.getValue("-type")[1].c_str());
+
+
+  // Function Space //
+  assemble.start();
+  FunctionSpace* fs = NULL;
+
+  if(type == scal)
+    fs = new FunctionSpaceScalar(domain, order);
+  else
+    fs = new FunctionSpaceVector(domain, order);
+
+  // Formulation //
+  FormulationSteadyWave<complex<double> > wave(volume, *fs, k);
+  FormulationSommerfeld                   sommerfeld(freeSpace, *fs, k);
 
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
   sys.addFormulation(sommerfeld);
 
-  SystemHelper<complex<double> >::dirichlet(sys, fs, source, fSourceScal);
+  // Dirichlet //
+  if(type == scal)
+    SystemHelper<complex<double> >::dirichlet(sys, *fs, source, fSourceScal);
+  else
+    SystemHelper<complex<double> >::dirichlet(sys, *fs, source, fSourceVec);
 
   cout << "Free Space (Order: " << order
        << " --- Wavenumber: "    << k << ")" << endl;
@@ -108,9 +138,12 @@ void compute(const Options& option){
   }
   catch(...){
     FEMSolution<complex<double> > feSol;
-    sys.getSolution(feSol, fs, volume);
+    sys.getSolution(feSol, *fs, volume);
     feSol.write("free");
   }
+
+  // Clean //
+  delete fs;
 
   // Timer -- Finalize -- Return //
   timer.stop();
@@ -121,7 +154,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-nopos");
+  SmallFem::Keywords("-msh,-o,-k,-nopos,-type");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

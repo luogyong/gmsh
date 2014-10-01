@@ -2,9 +2,8 @@
 #define _FORMULATIONSOMMERFELD_H_
 
 #include "SmallFem.h"
-#include "FunctionSpaceScalar.h"
-#include "FunctionSpaceVector.h"
 #include "Term.h"
+#include "FunctionSpace.h"
 #include "FormulationBlock.h"
 
 /**
@@ -28,11 +27,7 @@ class FormulationSommerfeld: public FormulationBlock<Complex>{
 
  public:
   FormulationSommerfeld(const GroupOfElement& domain,
-                        const FunctionSpaceScalar& fs,
-                        double k);
-
-  FormulationSommerfeld(const GroupOfElement& domain,
-                        const FunctionSpaceVector& fs,
+                        const FunctionSpace& fs,
                         double k);
 
   virtual ~FormulationSommerfeld(void);
