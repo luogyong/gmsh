@@ -22,7 +22,7 @@ class DDMContextOSRC: public DDMContext{
 
  public:
   DDMContextOSRC(const GroupOfElement& domain,
-                 const FunctionSpaceScalar& fSpace,
+                 const FunctionSpace& fSpace,
                  const std::vector<const FunctionSpaceScalar*>& phi,
                  double k, Complex keps, int NPade);
 

@@ -25,8 +25,21 @@
 
 using namespace std;
 
-Complex fSource(fullVector<double>& xyz){
+static const int scal = 0;
+static const int vect = 1;
+
+Complex fSourceScal(fullVector<double>& xyz){
   return Complex(1, 0);
+}
+
+fullVector<Complex> fSourceVect(fullVector<double>& xyz){
+  fullVector<Complex> tmp(3);
+
+  tmp(0) = Complex(0, 0);
+  tmp(1) = Complex(1, 0);
+  tmp(2) = Complex(0, 0);
+
+  return tmp;
 }
 
 void compute(const Options& option){
@@ -35,6 +48,17 @@ void compute(const Options& option){
   int myProc;
   MPI_Comm_size(MPI_COMM_WORLD,&nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
+
+  // Get Type //
+  int type;
+  if(option.getValue("-type")[1].compare("scalar") == 0)
+    type = scal;
+
+  else if(option.getValue("-type")[1].compare("vector") == 0)
+    type = vect;
+
+  else
+    throw Exception("Bad -type: %s", option.getValue("-type")[1].c_str());
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
@@ -117,21 +141,27 @@ void compute(const Options& option){
   domain[3] = &ddmBorder;
 
   // Function Space //
-  FunctionSpaceScalar                fs(domain, order);
+  FunctionSpace* fs =  NULL;
+
+  if(type == scal)
+    fs = new FunctionSpaceScalar(domain, order);
+  else
+    fs = new FunctionSpaceVector(domain, order);
+
   vector<const FunctionSpaceScalar*> phi(NPade); // OSRC
 
   for(int j = 0; j < NPade; j++)
     phi[j] = new FunctionSpaceScalar(ddmBorder, order);
 
   // Steady Wave Formulation //
-  FormulationSteadyWave<Complex> wave(volume, fs, k);
-  FormulationSommerfeld          sommerfeld(infinity, fs, k);
+  FormulationSteadyWave<Complex> wave(volume, *fs, k);
+  FormulationSommerfeld          sommerfeld(infinity, *fs, k);
 
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
   map<Dof, Complex> rhsG;
-  FormulationHelper::initDofMap(fs, ddmBorder, ddmG);
-  FormulationHelper::initDofMap(fs, ddmBorder, rhsG);
+  FormulationHelper::initDofMap(*fs, ddmBorder, ddmG);
+  FormulationHelper::initDofMap(*fs, ddmBorder, rhsG);
 
   // Ddm Formulation //
   DDMContext*         context = NULL;
@@ -139,7 +169,7 @@ void compute(const Options& option){
   Formulation<Complex>* upDdm = NULL;
 
   if(ddmType == emdaType){
-    context = new DDMContextEMDA(ddmBorder, fs, k, chi);
+    context = new DDMContextEMDA(ddmBorder, *fs, k, chi);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
@@ -147,7 +177,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == oo2Type){
-    context = new DDMContextOO2(ddmBorder, fs, ooA, ooB);
+    context = new DDMContextOO2(ddmBorder, *fs, ooA, ooB);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
@@ -155,7 +185,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == osrcType){
-    context = new DDMContextOSRC(ddmBorder, fs, phi, k, keps, NPade);
+    context = new DDMContextOSRC(ddmBorder, *fs, phi, k, keps, NPade);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationOSRC(static_cast<DDMContextOSRC&>(*context));
@@ -174,7 +204,10 @@ void compute(const Options& option){
   nonHomogenous.addFormulation(*ddm);
 
   // Constraint
-  SystemHelper<Complex>::dirichlet(nonHomogenous, fs, source, fSource);
+  if(fs->isScalar())
+    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, source, fSourceScal);
+  else
+    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, source, fSourceVect);
 
   // Assemble & Solve
   nonHomogenous.assemble();
@@ -208,7 +241,10 @@ void compute(const Options& option){
   full.addFormulation(*ddm);
 
   // Constraint
-  SystemHelper<Complex>::dirichlet(full, fs, source, fSource);
+  if(fs->isScalar())
+    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceScal);
+  else
+    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceVect);
 
   full.assemble();
   full.solve();
@@ -220,13 +256,14 @@ void compute(const Options& option){
   stream << "ddm" << myProc;
 
   FEMSolution<Complex> feSol;
-  full.getSolution(feSol, fs, volume);
+  full.getSolution(feSol, *fs, volume);
   feSol.write(stream.str());
 
   // Clean //
   delete ddm;
   delete upDdm;
   delete context;
+  delete fs;
 
   for(int j = 0; j < NPade; j++)
     delete phi[j];
@@ -234,7 +271,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-max,-ddm,-chi,-lc,-ck,-pade");
+  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

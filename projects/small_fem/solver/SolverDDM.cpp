@@ -336,8 +336,18 @@ void SolverDDM::setDofFromVec(Vec& v, map<Dof, Complex>& dof){
   VecRestoreArray(v, &ptr);
 }
 
-Complex SolverDDM::fZero(fullVector<double>& xyz){
+Complex SolverDDM::fZeroScal(fullVector<double>& xyz){
   return Complex(0, 0);
+}
+
+fullVector<Complex> SolverDDM::fZeroVect(fullVector<double>& xyz){
+  fullVector<Complex> tmp(3);
+
+  tmp(0) = Complex(0, 0);
+  tmp(1) = Complex(0, 0);
+  tmp(2) = Complex(0, 0);
+
+  return tmp;
 }
 
 PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
@@ -375,7 +385,10 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
     const GroupOfElement& dirichlet = *solver->dirichlet;
     const FunctionSpace&  fs        = *solver->fs;
 
-    SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZero);
+    if(fs.isScalar())
+      SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZeroScal);
+    else
+      SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZeroVect);
 
     // Assemble & Solve
     volume.assemble();

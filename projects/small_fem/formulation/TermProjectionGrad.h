@@ -4,6 +4,7 @@
 #include <map>
 
 #include "FunctionSpaceScalar.h"
+#include "FunctionSpaceVector.h"
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 #include "Basis.h"
@@ -17,6 +18,7 @@
    The function to project may be defined by:
    @li A vectorial function
    @li A map of (Dof, value) and a gradient of a FunctionSpaceScalar
+   @li A map of (Dof, value) and a FunctionSpaceVector
  */
 
 template<typename scalar>
@@ -32,7 +34,9 @@ class TermProjectionGrad: public Term<scalar>{
   fullVector<scalar> (*f)(fullVector<double>& xyz);
 
   // Data for interpolation //
+  Eval                        evaluator;
   const FunctionSpaceScalar*   fsScalar;
+  const FunctionSpaceVector*   fsVector;
   const std::map<Dof, scalar>* dofValue;
 
  public:
@@ -70,6 +74,9 @@ class TermProjectionGrad: public Term<scalar>{
 
   fullVector<scalar> interpolateGrad(const MElement& element,
                                      const fullVector<double>& xyz) const;
+
+  fullVector<scalar> interpolate(const MElement& element,
+                                 const fullVector<double>& xyz) const;
 };
 
 /**

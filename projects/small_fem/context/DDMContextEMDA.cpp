@@ -3,7 +3,7 @@
 using namespace std;
 
 DDMContextEMDA::DDMContextEMDA(const GroupOfElement& domain,
-                               const FunctionSpaceScalar& fSpace,
+                               const FunctionSpace& fSpace,
                                double k, double chi){
   // Data for EMDA //
   this->domain = &domain;

@@ -3,8 +3,12 @@
 using namespace std;
 
 DDMContextOO2::DDMContextOO2(const GroupOfElement& domain,
-                             const FunctionSpaceScalar& fSpace,
+                             const FunctionSpace& fSpace,
                              Complex a, Complex b){
+  // Check if scalar //
+  if(!fSpace.isScalar())
+    throw Exception("DDMContextOO2: need a scalar function space");
+
   // Data for OO2 //
   this->domain = &domain;
   this->fSpace = &fSpace;

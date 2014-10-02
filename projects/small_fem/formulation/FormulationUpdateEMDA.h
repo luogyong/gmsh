@@ -5,11 +5,10 @@
 
 #include "SmallFem.h"
 #include "FunctionSpaceScalar.h"
-#include "TermProjectionField.h"
-#include "TermFieldField.h"
 #include "FormulationBlock.h"
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
+#include "Term.h"
 
 #include "DDMContextEMDA.h"
 
@@ -47,9 +46,9 @@ class FormulationUpdateEMDA: public FormulationBlock<Complex>{
   const GroupOfElement* ddomain;
 
   // Local Terms //
-  TermFieldField<double>*       lGout;
-  TermProjectionField<Complex>* lGin;
-  TermProjectionField<Complex>* lU;
+  Term<double>*  lGout;
+  Term<Complex>* lGin;
+  Term<Complex>* lU;
 
  public:
   FormulationUpdateEMDA(DDMContextEMDA& context);

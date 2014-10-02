@@ -7,7 +7,6 @@
 
 #include "Dof.h"
 #include "FunctionSpace.h"
-#include "FunctionSpaceScalar.h"
 #include "GroupOfElement.h"
 #include "System.h"
 #include "SmallFem.h"
@@ -34,9 +33,9 @@
 
 class DDMContext{
  protected:
-  const System<Complex>*     system;
-  const GroupOfElement*      domain;
-  const FunctionSpaceScalar* fSpace;
+  const System<Complex>* system;
+  const GroupOfElement*  domain;
+  const FunctionSpace*   fSpace;
 
   std::map<Dof, Complex>* ddm;
 

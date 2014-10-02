@@ -16,8 +16,8 @@ TermProjectionGrad(const GroupOfJacobian& goj,
                    fullVector<scalar> (*f)(fullVector<double>& xyz)){
 
   // Save F and Evaluator //
-  Eval evaluator = &TermProjectionGrad<scalar>::fContainer;
-  this->f        = f;
+  this->evaluator = &TermProjectionGrad<scalar>::fContainer;
+  this->f         = f;
 
   // Init //
   init(goj, basis, quadrature, evaluator);
@@ -31,16 +31,21 @@ TermProjectionGrad(const GroupOfJacobian& goj,
                    const FunctionSpace& fs,
                    const std::map<Dof, scalar>& dof){
 
-  // Check if FunctionSpace is scalar //
-  if(!fs.isScalar())
-    throw Exception("%s: %s",
-                    "TermProjectionGrad<scalar> needs a scalar FunctionSpace",
-                    "vectorial case not implemented yet");
+  // Save FunctionSpace and Evaluator //
+  if(fs.isScalar()){
+    this->evaluator = &TermProjectionGrad<scalar>::interpolateGrad;
+    this->fsScalar  = static_cast<const FunctionSpaceScalar*>(&fs);
+    this->fsVector  = NULL;
+  }
 
-  // Save FunctionSpace, Dof values and Evaluator //
-  Eval evaluator = &TermProjectionGrad<scalar>::interpolateGrad;
-  this->fsScalar = static_cast<const FunctionSpaceScalar*>(&fs);
-  this->dofValue = &dof;
+  else{
+    this->evaluator = &TermProjectionGrad<scalar>::interpolate;
+    this->fsScalar  = NULL;
+    this->fsVector  = static_cast<const FunctionSpaceVector*>(&fs);
+  }
+
+  // Save Dof values //
+  this->dofValue  = &dof;
 
   // Init //
   init(goj, basis, quadrature, evaluator);

@@ -102,7 +102,8 @@ class SolverDDM{
   static void setVecFromDof(Vec& v, std::map<Dof, Complex>& dof);
   static void setDofFromVec(Vec& v, std::map<Dof, Complex>& dof);
 
-  static Complex fZero(fullVector<double>& xyz);
+  static Complex             fZeroScal(fullVector<double>& xyz);
+  static fullVector<Complex> fZeroVect(fullVector<double>& xyz);
 
   static PetscErrorCode matMult(Mat A, Vec x, Vec y);
 };

@@ -1,4 +1,10 @@
 #include "Exception.h"
+
+#include "TermProjectionField.h"
+#include "TermProjectionGrad.h"
+#include "TermFieldField.h"
+#include "TermGradGrad.h"
+
 #include "FormulationHelper.h"
 #include "FormulationUpdateEMDA.h"
 
@@ -33,14 +39,19 @@ FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContextEMDA& context){
   const fullMatrix<double>& gC = gauss->getPoints();
   basis->preEvaluateFunctions(gC);
 
-  // Jacobian //
-  jac = new GroupOfJacobian(*ddomain, gC, "jacobian");
-
   // Init Volume Solution //
   FormulationHelper::initDofMap(*fspace, *ddomain, sol);
 
   // Local Terms //
-  lGout = new TermFieldField<double>(*jac, *basis, *gauss);
+  if(fspace->isScalar()){
+    jac   = new GroupOfJacobian(*ddomain, gC, "jacobian");
+    lGout = new TermFieldField<double>(*jac, *basis, *gauss);
+  }
+
+  else{
+    jac   = new GroupOfJacobian(*ddomain, gC, "invert");
+    lGout = new TermGradGrad<double>(*jac, *basis, *gauss);
+  }
 
   // NB: lGin & lU will be computed at update, when volume System is available
   lGin = NULL;
@@ -101,6 +112,13 @@ void FormulationUpdateEMDA::update(void){
   basis->preEvaluateFunctions(gC);
 
   // New RHS
-  lGin  = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
-  lU    = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, sol);
+  if(fspace->isScalar()){
+    lGin = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+    lU   = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, sol);
+  }
+
+  else{
+    lGin = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+    lU   = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, sol);
+  }
 }

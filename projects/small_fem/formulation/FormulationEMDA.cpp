@@ -1,5 +1,10 @@
 #include "FormulationEMDA.h"
 
+#include "TermProjectionField.h"
+#include "TermProjectionGrad.h"
+#include "TermFieldField.h"
+#include "TermGradGrad.h"
+
 using namespace std;
 
 FormulationEMDA::FormulationEMDA(DDMContextEMDA& context){
@@ -31,16 +36,23 @@ FormulationEMDA::FormulationEMDA(DDMContextEMDA& context){
   const fullMatrix<double>& gC = gauss->getPoints();
   basis->preEvaluateFunctions(gC);
 
-  // Jacobian //
-  jac = new GroupOfJacobian(*ddomain, gC, "jacobian");
-
   // Get DDM Dofs from DDMContext //
   const map<Dof, Complex>& ddm = context.getDDMDofs();
 
   // Local Terms //
-  localLHS = new TermFieldField<double>(*jac, *basis, *gauss);
-  localRHS =
-    new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+  if(fspace->isScalar()){
+    jac      = new GroupOfJacobian(*ddomain, gC, "jacobian");
+    localLHS = new TermFieldField<double>(*jac, *basis, *gauss);
+    localRHS =
+      new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+  }
+
+  else{
+    jac      = new GroupOfJacobian(*ddomain, gC, "invert");
+    localLHS = new TermGradGrad<double>(*jac, *basis, *gauss);
+    localRHS =
+      new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+  }
 }
 
 FormulationEMDA::~FormulationEMDA(void){
@@ -86,6 +98,11 @@ void FormulationEMDA::update(void){
   basis->preEvaluateFunctions(gC);
 
   // New RHS
-  localRHS =
-    new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+  if(fspace->isScalar())
+    localRHS =
+      new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+
+  else
+    localRHS =
+      new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, ddm);
 }

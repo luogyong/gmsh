@@ -22,7 +22,6 @@ static double k;
 
 complex<double> fSourceScal(fullVector<double>& xyz){
   //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
-
   //return complex<double>(cos(k * p), sin(k * p));
 
   return complex<double>(1, 0);
@@ -32,8 +31,13 @@ complex<double> fSourceScal(fullVector<double>& xyz){
 }
 
 fullVector<complex<double> > fSourceVec(fullVector<double>& xyz){
-
   fullVector<complex<double> > f(3);
+  /*
+  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  f(0) = 0;
+  f(1) = complex<double>(cos(k * p), sin(k * p));
+  f(2) = 0;
+  */
   f(0) = 0;
   f(1) = 1;
   f(2) = 0;

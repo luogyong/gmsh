@@ -19,7 +19,7 @@ class DDMContextEMDA: public DDMContext{
 
  public:
   DDMContextEMDA(const GroupOfElement& domain,
-                 const FunctionSpaceScalar& fSpace,
+                 const FunctionSpace& fSpace,
                  double k, double chi);
 
   virtual ~DDMContextEMDA(void);

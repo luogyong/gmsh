@@ -19,7 +19,7 @@ class DDMContextOO2: public DDMContext{
 
  public:
   DDMContextOO2(const GroupOfElement& domain,
-                const FunctionSpaceScalar& fSpace,
+                const FunctionSpace& fSpace,
                 Complex a, Complex b);
 
   virtual ~DDMContextOO2(void);
