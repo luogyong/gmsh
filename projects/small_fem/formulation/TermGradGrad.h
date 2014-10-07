@@ -28,6 +28,11 @@ class TermGradGrad: public Term<scalar>{
                const Quadrature& quadrature);
 
   TermGradGrad(const GroupOfJacobian& goj,
+               const Basis& field,
+               const Basis& test,
+               const Quadrature& quadrature);
+
+  TermGradGrad(const GroupOfJacobian& goj,
                const Basis& basis,
                const Quadrature& quadrature,
                void  (*f)(fullVector<double>& xyz, fullMatrix<scalar>& T));
@@ -62,21 +67,32 @@ class TermGradGrad: public Term<scalar>{
 /**
    @fn TermGradGrad::TermGradGrad(const GroupOfJacobian& goj,const Basis& basis,const Quadrature& quadrature)
    @param goj A GroupOfJacobian
-   @param basis A Basis
+   @param basis A Basis for both unknwon field and test functions
    @param quadrature A Quadrature rule
 
    Instanciates a new Grad-Grad Term:
    @li The geomtry and the Jacobians are given by the GroupOfJacobian
    @li The Basis functions to use are given by the Basis
    @li The given Quadrature is used to compute the Term
-   @li The Basis function must be pre-evaluated at the integration points
+   @li The Basis functions must be pre-evaluated at the integration points
+   **
 
-   @todo Evaluate Basis in Term ?????
+   @fn TermGradGrad::TermGradGrad(const GroupOfJacobian& goj,const Basis& field,const Basis& test,const Quadrature& quadrature)
+   @param goj A GroupOfJacobian
+   @param field A Basis for the unknwon field
+   @param test A Basis for the test functions
+   @param quadrature A Quadrature rule
+
+   Instanciates a new Grad-Grad Term:
+   @li The geomtry and the Jacobians are given by the GroupOfJacobian
+   @li The Basis functions to use are given by the field and test
+   @li The given Quadrature is used to compute the Term
+   @li The Basis functions must be pre-evaluated at the integration points
    **
 
    @fn TermGradGrad::TermGradGrad(const GroupOfJacobian& goj,const Basis& basis,const Quadrature& quadrature,void (*f)(fullVector<double>& xyz, fullMatrix<scalar>& T))
    @param goj A GroupOfJacobian
-   @param basis A Basis
+   @param basis A Basis for both unknwon field and test functions
    @param quadrature A Quadrature rule
    @param f A multiplicative tensorial function
 
@@ -84,10 +100,8 @@ class TermGradGrad: public Term<scalar>{
    @li The geomtry and the Jacobians are given by the GroupOfJacobian
    @li The Basis functions to use are given by the Basis
    @li The given Quadrature is used to compute the Term
-   @li The Basis function must be pre-evaluated at the integration points
+   @li The Basis functions must be pre-evaluated at the integration points
    @li The given function is a multiplicative tensor for the whole Term
-
-   @todo Evaluate Basis in Term ?????
    **
 
    @fn TermGradGrad::~TermGradGrad

@@ -50,7 +50,7 @@ scalar Term<scalar>::getTermOutCache(size_t dofI, size_t dofJ, size_t elementId,
   lastI[threadId]   = i;
   lastCtr[threadId] = ctr;
 
-  return (*aM[i])(ctr, dofI * nFunction + dofJ);
+  return (*aM[i])(ctr, dofI * nFunctionField + dofJ);
 }
 
 template<typename scalar>

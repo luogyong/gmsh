@@ -45,7 +45,8 @@ void TermFieldField<scalar>::init(const GroupOfJacobian& goj,
   // Orientations & Functions //
   this->orientationStat = &goj.getAllElements().getOrientationStats(eType);
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
-  this->nFunction       = basis.getNFunction();
+  this->nFunctionField  = basis.getNFunction();
+  this->nFunctionTest   = basis.getNFunction();
 
   // Get Integration Data
   //const fullMatrix<double>& gC = quadrature.getPoints();
@@ -58,7 +59,7 @@ void TermFieldField<scalar>::init(const GroupOfJacobian& goj,
   computeC(basis, gW, cM);
   computeB(goj, gW.size(), bM);
 
-  this->allocA(this->nFunction * this->nFunction);
+  this->allocA(this->nFunctionField * this->nFunctionTest);
   this->computeA(bM, cM);
 
   // Clean up //
@@ -82,7 +83,8 @@ void TermFieldField<scalar>::computeC(const Basis& basis,
   for(size_t s = 0; s < this->nOrientation; s++)
     if((*this->orientationStat)[s] != 0)
       // If there is at least one element with orientation 's'
-      cM[s] = new fullMatrix<scalar>(nG, this->nFunction * this->nFunction);
+      cM[s] = new fullMatrix<scalar>(nG, this->nFunctionField *
+                                         this->nFunctionTest);
     else
       // Else: empty matrix
       cM[s] = new fullMatrix<scalar>(0, 0);
@@ -99,8 +101,8 @@ void TermFieldField<scalar>::computeC(const Basis& basis,
         // Loop on Functions
         l = 0;
 
-        for(size_t i = 0; i < this->nFunction; i++){
-          for(size_t j = 0; j < this->nFunction; j++){
+        for(size_t i = 0; i < this->nFunctionTest; i++){
+          for(size_t j = 0; j < this->nFunctionField; j++){
             (*cM[s])(g, l) = gW(g) * phi(i, g) * phi(j, g);
             l++;
           }

@@ -25,6 +25,18 @@ TermGradGrad<scalar>::TermGradGrad(const GroupOfJacobian& goj,
 
 template<typename scalar>
 TermGradGrad<scalar>::TermGradGrad(const GroupOfJacobian& goj,
+                                   const Basis& field,
+                                   const Basis& test,
+                                   const Quadrature& quadrature){
+  // Dummy Pre evaluation //
+  preEvalDummy(goj, quadrature);
+
+  // Init //
+  //init(goj, basis, quadrature);
+}
+
+template<typename scalar>
+TermGradGrad<scalar>::TermGradGrad(const GroupOfJacobian& goj,
                                    const Basis& basis,
                                    const Quadrature& quadrature,
                                    void  (*f)(fullVector<double>& xyz,
@@ -63,7 +75,8 @@ void TermGradGrad<scalar>::init(const GroupOfJacobian& goj,
   // Orientations & Functions //
   this->orientationStat = &goj.getAllElements().getOrientationStats(eType);
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
-  this->nFunction       = basis.getNFunction();
+  this->nFunctionField  = basis.getNFunction();
+  this->nFunctionTest   = basis.getNFunction();
 
   // Get Integration Data
   //const fullMatrix<double>& gC = quadrature.getPoints();
@@ -76,7 +89,7 @@ void TermGradGrad<scalar>::init(const GroupOfJacobian& goj,
   computeC(basis, getFunction, gW, cM);
   computeB(goj, gW.size(), bM);
 
-  this->allocA(this->nFunction * this->nFunction);
+  this->allocA(this->nFunctionField * this->nFunctionTest);
   this->computeA(bM, cM);
 
   // Clean up //
@@ -98,7 +111,8 @@ void TermGradGrad<scalar>::computeC(const Basis& basis,
   cM = new fullMatrix<scalar>*[this->nOrientation];
 
   for(size_t s = 0; s < this->nOrientation; s++)
-    cM[s] = new fullMatrix<scalar>(9 * nG, this->nFunction * this->nFunction);
+    cM[s] = new fullMatrix<scalar>(9 * nG, this->nFunctionField *
+                                           this->nFunctionTest);
 
   // Fill //
   //#pragma omp parallel
@@ -113,14 +127,14 @@ void TermGradGrad<scalar>::computeC(const Basis& basis,
 
     // Loop on Functions
     //#pragma omp for
-    for(size_t i = 0; i < this->nFunction; i++){
-      for(size_t j = 0; j < this->nFunction; j++){
+    for(size_t i = 0; i < this->nFunctionTest; i++){
+      for(size_t j = 0; j < this->nFunctionField; j++){
 
         // Loop on Gauss Points
         for(size_t g = 0; g < nG; g++){
           for(size_t a = 0; a < 3; a++){
             for(size_t b = 0; b < 3; b++){
-              (*cM[s])(g * 9 + a * 3 + b, i * this->nFunction + j) =
+              (*cM[s])(g * 9 + a * 3 + b, i * this->nFunctionField + j) =
                 gW(g) * phi(i, g * 3 + a) * phi(j, g * 3 + b);
             }
           }

@@ -66,7 +66,7 @@ Complex FormulationOO2::weak(size_t dofI, size_t dofJ, size_t elementId) const{
 }
 
 Complex FormulationOO2::rhs(size_t equationI, size_t elementId) const{
-  return localTermsPr->getTerm(0, equationI, elementId);
+  return localTermsPr->getTerm(equationI, 0, elementId);
 }
 
 const FunctionSpace& FormulationOO2::field(void) const{

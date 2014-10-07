@@ -113,7 +113,7 @@ template<typename scalar>
 scalar FormulationProjection<scalar>::rhs(size_t equationI,
                                           size_t elementId) const{
 
-  return localTerms2->getTerm(0, equationI, elementId);
+  return localTerms2->getTerm(equationI, 0, elementId);
 }
 
 template<typename scalar>

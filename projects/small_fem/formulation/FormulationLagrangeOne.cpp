@@ -33,7 +33,7 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
 }
 
 Complex FormulationLagrangeOne::rhs(size_t equationI, size_t elementId) const{
-  return Complex(projectionTerm->getTerm(0, equationI, elementId), 0);
+  return Complex(projectionTerm->getTerm(equationI, 0, elementId), 0);
 }
 
 const FunctionSpace& FormulationLagrangeOne::field(void) const{

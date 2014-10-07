@@ -60,7 +60,7 @@ double FormulationPoisson::weak(size_t dofI, size_t dofJ,
 double FormulationPoisson::rhs(size_t equationI,
                                size_t elementId) const{
 
-  return localTermsR->getTerm(0, equationI, elementId);
+  return localTermsR->getTerm(equationI, 0, elementId);
 }
 
 const FunctionSpace& FormulationPoisson::field(void) const{

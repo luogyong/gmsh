@@ -14,7 +14,8 @@
 template<typename scalar>
 class Term{
  protected:
-  size_t nFunction;
+  size_t nFunctionField;
+  size_t nFunctionTest;
   size_t nOrientation;
   const std::vector<size_t>* orientationStat;
 
@@ -70,7 +71,8 @@ getTerm(size_t dofI, size_t dofJ, size_t elementId) const{
 
   else
     // Else, rock baby yeah !
-    return (*aM[lastI[threadId]])(lastCtr[threadId], dofI * nFunction + dofJ);
+    return (*aM[lastI[threadId]])(lastCtr[threadId],
+                                  dofI * nFunctionField + dofJ);
 }
 
 //////////////////////////////////////

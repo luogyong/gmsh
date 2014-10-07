@@ -59,7 +59,8 @@ void TermProjectionField<scalar>::init(const GroupOfJacobian& goj,
   // Orientations & Function //
   this->orientationStat = &goj.getAllElements().getOrientationStats(eType);
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
-  this->nFunction       = basis.getNFunction();
+  this->nFunctionField  = 1;
+  this->nFunctionTest   = basis.getNFunction();
 
   // Get Integration Data
   const fullMatrix<double>& gC = quadrature.getPoints();
@@ -72,7 +73,7 @@ void TermProjectionField<scalar>::init(const GroupOfJacobian& goj,
   computeC(basis, gW, cM);
   computeB(goj, gC, evaluator, bM);
 
-  this->allocA(this->nFunction);
+  this->allocA(this->nFunctionTest);
   this->computeA(bM, cM);
 
   // Clean up //
@@ -93,7 +94,7 @@ void TermProjectionField<scalar>::computeC(const Basis& basis,
   cM = new fullMatrix<scalar>*[this->nOrientation];
 
   for(size_t s = 0; s < this->nOrientation; s++)
-    cM[s] = new fullMatrix<scalar>(nG, this->nFunction);
+    cM[s] = new fullMatrix<scalar>(nG, this->nFunctionTest);
 
   // Fill //
   for(size_t s = 0; s < this->nOrientation; s++){
@@ -102,7 +103,7 @@ void TermProjectionField<scalar>::computeC(const Basis& basis,
 
     // Loop on Gauss Points
     for(size_t g = 0; g < nG; g++)
-      for(size_t i = 0; i < this->nFunction; i++)
+      for(size_t i = 0; i < this->nFunctionTest; i++)
         (*cM[s])(g, i) = gW(g) * phi(i, g);
   }
 }

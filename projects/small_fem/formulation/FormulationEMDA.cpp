@@ -67,7 +67,7 @@ Complex FormulationEMDA::weak(size_t dofI, size_t dofJ, size_t elementId) const{
 }
 
 Complex FormulationEMDA::rhs(size_t equationI, size_t elementId) const{
-  return localRHS->getTerm(0, equationI, elementId);
+  return localRHS->getTerm(equationI, 0, elementId);
 }
 
 const FunctionSpace& FormulationEMDA::field(void) const{

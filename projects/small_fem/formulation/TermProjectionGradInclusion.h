@@ -80,7 +80,8 @@ void TermProjectionGrad<scalar>::init(const GroupOfJacobian& goj,
   // Orientations & Functions //
   this->orientationStat = &goj.getAllElements().getOrientationStats(eType);
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
-  this->nFunction       = basis.getNFunction();
+  this->nFunctionField  = 1;
+  this->nFunctionTest   = basis.getNFunction();
 
   // Get Integration Data
   const fullMatrix<double>& gC = quadrature.getPoints();
@@ -93,7 +94,7 @@ void TermProjectionGrad<scalar>::init(const GroupOfJacobian& goj,
   computeC(basis, getFunction, gW, cM);
   computeB(goj, gC, evaluator, bM);
 
-  this->allocA(this->nFunction);
+  this->allocA(this->nFunctionTest);
   this->computeA(bM, cM);
 
   // Clean up //
@@ -116,7 +117,7 @@ void TermProjectionGrad<scalar>::computeC(const Basis& basis,
   cM = new fullMatrix<scalar>*[this->nOrientation];
 
   for(size_t s = 0; s < this->nOrientation; s++)
-    cM[s] = new fullMatrix<scalar>(3 * nG, this->nFunction);
+    cM[s] = new fullMatrix<scalar>(3 * nG, this->nFunctionTest);
 
   // Fill //
   for(size_t s = 0; s < this->nOrientation; s++){
@@ -128,7 +129,7 @@ void TermProjectionGrad<scalar>::computeC(const Basis& basis,
 
     for(size_t g = 0; g < nG; g++){
       for(size_t a = 0; a < 3; a++){
-        for(size_t i = 0; i < this->nFunction; i++)
+        for(size_t i = 0; i < this->nFunctionTest; i++)
           (*cM[s])(k, i) = gW(g) * phi(i, k);
 
         k++;

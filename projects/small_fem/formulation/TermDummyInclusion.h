@@ -12,9 +12,10 @@ TermDummy<scalar>::TermDummy(void){
 
   this->orientationStat = &dummyStat;
   this->nOrientation    = 0;
-  this->nFunction       = 0;
+  this->nFunctionField  = 0;
+  this->nFunctionTest   = 0;
 
-  this->allocA(this->nFunction * this->nFunction);
+  this->allocA(this->nFunctionField * this->nFunctionTest);
 }
 
 template<typename scalar>

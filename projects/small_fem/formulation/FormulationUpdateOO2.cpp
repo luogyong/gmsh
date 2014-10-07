@@ -75,9 +75,9 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
 
 Complex FormulationUpdateOO2::rhs(size_t equationI, size_t elementId) const{
   return
-    Complex(-1, 0)     * lGin->getTerm(0, equationI, elementId) +
-    Complex(+2, 0) * a *   lU->getTerm(0, equationI, elementId) +
-    Complex(-2, 0) * b *  lDU->getTerm(0, equationI, elementId);
+    Complex(-1, 0)     * lGin->getTerm(equationI, 0, elementId) +
+    Complex(+2, 0) * a *   lU->getTerm(equationI, 0, elementId) +
+    Complex(-2, 0) * b *  lDU->getTerm(equationI, 0, elementId);
 }
 
 const FunctionSpace& FormulationUpdateOO2::field(void) const{

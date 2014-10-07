@@ -36,7 +36,7 @@ Complex FormulationOSRCOne::weak(size_t dofI, size_t dofJ,
 }
 
 Complex FormulationOSRCOne::rhs(size_t equationI, size_t elementId) const{
-  return localRHS->getTerm(0, equationI, elementId);
+  return localRHS->getTerm(equationI, 0, elementId);
 }
 
 const FunctionSpace& FormulationOSRCOne::field(void) const{

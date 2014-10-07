@@ -67,20 +67,31 @@ void compute(const Options& option){
   // MPI //
   MPIOStream cout(0, std::cout);
   int        myProc;
+  int         nProc;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+  MPI_Comm_size(MPI_COMM_WORLD, &nProc);
 
   // Get Domain //
   Mesh msh(option.getValue("-msh")[1]);
-  //GroupOfElement volume = msh.getFromPhysical(7);
-  //GroupOfElement border = msh.getFromPhysical(5);
-  GroupOfElement volume = msh.getFromPhysical(7, myProc + 1);
-  GroupOfElement border = msh.getFromPhysical(5, myProc + 1);
+
+  GroupOfElement* volume;
+  GroupOfElement* border;
+
+  if(nProc == 1){
+    volume = new GroupOfElement(msh.getFromPhysical(7));
+    border = new GroupOfElement(msh.getFromPhysical(5));
+  }
+
+  else{
+    volume = new GroupOfElement(msh.getFromPhysical(7, myProc + 1));
+    border = new GroupOfElement(msh.getFromPhysical(5, myProc + 1));
+  }
 
   // Full Domain //
   vector<const GroupOfElement*> domain(2);
-  domain[0] = &volume;
-  domain[1] = &border;
+  domain[0] = volume;
+  domain[1] = border;
 
   // Get Order //
   const size_t order = atoi(option.getValue("-o")[1].c_str());
@@ -110,8 +121,8 @@ void compute(const Options& option){
     fs = new FunctionSpaceVector(domain, order);
 
   // Formulations & System //
-  FormulationStiffness<Complex> stiff(volume, *fs, *fs);//, nu);
-  FormulationMass<Complex>       mass(volume, *fs, *fs);//, eps);
+  FormulationStiffness<Complex> stiff(*volume, *fs, *fs);//, nu);
+  FormulationMass<Complex>       mass(*volume, *fs, *fs);//, eps);
 
   SystemEigen sys;
   sys.addFormulation(stiff);
@@ -119,9 +130,9 @@ void compute(const Options& option){
 
   // Dirichlet //
   if(type == scal)
-    SystemHelper<Complex>::dirichlet(sys, *fs, border, fScal);
+    SystemHelper<Complex>::dirichlet(sys, *fs, *border, fScal);
   else
-    SystemHelper<Complex>::dirichlet(sys, *fs, border, fVect);
+    SystemHelper<Complex>::dirichlet(sys, *fs, *border, fVect);
 
   // Assemble and Solve //
   cout << "Eigenvalues problem" << endl << flush;
@@ -165,7 +176,7 @@ void compute(const Options& option){
   catch(...){
     FEMSolution<Complex> feSol;
     stringstream         name;
-    sys.getSolution(feSol, *fs, volume);
+    sys.getSolution(feSol, *fs, *volume);
 
     name << "eigen_mode_proc" << myProc;
     feSol.write(name.str());
@@ -173,6 +184,8 @@ void compute(const Options& option){
 
   // Clean //
   delete fs;
+  delete volume;
+  delete border;
 }
 
 int main(int argc, char** argv){
