@@ -8,6 +8,7 @@
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
 #include "DDMContextOSRC.h"
+#include "DDMContextJFLee.h"
 
 #include "System.h"
 #include "SystemHelper.h"
@@ -17,11 +18,15 @@
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
 #include "FormulationOSRC.h"
+#include "FormulationJFLee.h"
+
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
+
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
 #include "FormulationUpdateOSRC.h"
+#include "FormulationUpdateJFLee.h"
 
 using namespace std;
 
@@ -70,6 +75,7 @@ void compute(const Options& option){
   const string emdaType("emda");
   const string oo2Type("oo2");
   const string osrcType("osrc");
+  const string jflType("jfl");
 
   // Variables
   const double Pi = atan(1.0) * 4;
@@ -85,7 +91,7 @@ void compute(const Options& option){
     chi = atof(option.getValue("-chi")[1].c_str()) * k;
 
   // OO2 Stuff
-  if(ddmType == oo2Type){
+  else if(ddmType == oo2Type){
     lc = atof(option.getValue("-lc")[1].c_str());
 
     double ooXsiMin = 0;
@@ -106,11 +112,20 @@ void compute(const Options& option){
   }
 
   // OSRC Stuff
-  if(ddmType == osrcType){
+  else if(ddmType == osrcType){
     double ck = atof(option.getValue("-ck")[1].c_str());
     NPade     = atoi(option.getValue("-pade")[1].c_str());
     keps      = k + Complex(0, k * ck);
   }
+
+  // Jin Fa Lee Stuff
+  else if(ddmType == jflType){
+    lc = atof(option.getValue("-lc")[1].c_str());
+  }
+
+  // Unknown Stuff
+  else
+    throw Exception("DDM: Formulation %s is not known", ddmType.c_str());
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
@@ -148,10 +163,24 @@ void compute(const Options& option){
   else
     fs = new FunctionSpaceVector(domain, order);
 
-  vector<const FunctionSpaceScalar*> phi(NPade); // OSRC
+  // OSRC
+  vector<const FunctionSpaceScalar*> phi(NPade);
 
   for(int j = 0; j < NPade; j++)
     phi[j] = new FunctionSpaceScalar(ddmBorder, order);
+
+  // Jin Fa Lee
+  FunctionSpaceVector* JFPhi = NULL;
+  FunctionSpaceScalar* JFRho = NULL;
+
+  if(ddmType == jflType){
+    JFPhi = new FunctionSpaceVector(ddmBorder, order);
+
+    if(order == 0)
+      JFRho = new FunctionSpaceScalar(ddmBorder, 1);
+    else
+      JFRho = new FunctionSpaceScalar(ddmBorder, order);
+  }
 
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, *fs, k);
@@ -172,30 +201,36 @@ void compute(const Options& option){
     context = new DDMContextEMDA(ddmBorder, *fs, k, chi);
     context->setDDMDofs(ddmG);
 
-    ddm     = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
-    upDdm   = new FormulationUpdateEMDA(static_cast<DDMContextEMDA&>(*context));
+    ddm   = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
+    upDdm = new FormulationUpdateEMDA(static_cast<DDMContextEMDA&>(*context));
   }
 
   else if(ddmType == oo2Type){
     context = new DDMContextOO2(ddmBorder, *fs, ooA, ooB);
     context->setDDMDofs(ddmG);
 
-    ddm     = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
-    upDdm   = new FormulationUpdateOO2(static_cast<DDMContextOO2&>(*context));
+    ddm   = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
+    upDdm = new FormulationUpdateOO2(static_cast<DDMContextOO2&>(*context));
   }
 
   else if(ddmType == osrcType){
     context = new DDMContextOSRC(ddmBorder, *fs, phi, k, keps, NPade);
     context->setDDMDofs(ddmG);
 
-    ddm     = new FormulationOSRC(static_cast<DDMContextOSRC&>(*context));
-    upDdm   = new FormulationUpdateOSRC(static_cast<DDMContextOSRC&>(*context));
+    ddm   = new FormulationOSRC(static_cast<DDMContextOSRC&>(*context));
+    upDdm = new FormulationUpdateOSRC(static_cast<DDMContextOSRC&>(*context));
+  }
+
+  else if(ddmType == jflType){
+    context = new DDMContextJFLee(ddmBorder, *fs, *JFPhi, *JFRho, k, lc);
+    context->setDDMDofs(ddmG);
+
+    ddm   = new FormulationJFLee(static_cast<DDMContextJFLee&>(*context));
+    upDdm = new FormulationUpdateJFLee(static_cast<DDMContextJFLee&>(*context));
   }
 
   else
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
-
-  ddm->update();
 
   // Solve Non homogenous problem //
   System<Complex> nonHomogenous;
@@ -264,6 +299,12 @@ void compute(const Options& option){
   delete upDdm;
   delete context;
   delete fs;
+
+  if(JFPhi)
+    delete JFPhi;
+
+  if(JFRho)
+    delete JFRho;
 
   for(int j = 0; j < NPade; j++)
     delete phi[j];

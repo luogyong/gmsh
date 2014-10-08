@@ -42,12 +42,15 @@ class TermGradGrad: public Term<scalar>{
  private:
   // Init
   void init(const GroupOfJacobian& goj,
-            const Basis& basis,
+            const Basis& field,
+            const Basis& test,
             const Quadrature& quadrature);
 
   // Matrices
-  void computeC(const Basis& basis,
-                const BFunction& getFunction,
+  void computeC(const Basis& field,
+                const Basis& test,
+                const BFunction& getFunctionField,
+                const BFunction& getFunctionTest,
                 const fullVector<double>& gW,
                 fullMatrix<scalar>**& cM);
 

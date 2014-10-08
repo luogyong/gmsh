@@ -12,6 +12,7 @@ set(src
 
   FormulationEMDA.cpp
   FormulationUpdateEMDA.cpp
+
   FormulationOO2.cpp
   FormulationUpdateOO2.cpp
 
@@ -21,6 +22,17 @@ set(src
   FormulationOSRCThree.cpp
   FormulationOSRCFour.cpp
   FormulationUpdateOSRC.cpp
+
+  FormulationJFLee.cpp
+  FormulationJFLeeOne.cpp
+  FormulationJFLeeTwo.cpp
+  FormulationJFLeeThree.cpp
+  FormulationJFLeeFour.cpp
+  FormulationJFLeeFive.cpp
+  FormulationJFLeeSix.cpp
+  FormulationJFLeeSeven.cpp
+  FormulationJFLeeEight.cpp
+  FormulationUpdateJFLee.cpp
 
   TermProjectionField.cpp
   TermProjectionGrad.cpp

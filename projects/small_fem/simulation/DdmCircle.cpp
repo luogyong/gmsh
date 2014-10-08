@@ -17,12 +17,16 @@
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
 #include "FormulationOSRC.h"
+#include "FormulationJFLee.h"
+
 #include "FormulationDummy.h"
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
+
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
 #include "FormulationUpdateOSRC.h"
+#include "FormulationUpdateJFLee.h"
 
 using namespace std;
 
@@ -33,10 +37,10 @@ static double k; // Need to be more sexy !
 static double theta = 0;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  return Complex(cos(k * p), sin(k * p));
-  //return Complex(1, 0);
+  //return Complex(cos(k * p), sin(k * p));
+  return Complex(1, 0);
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
@@ -77,6 +81,7 @@ void compute(const Options& option){
   const string emdaType("emda");
   const string oo2Type("oo2");
   const string osrcType("osrc");
+  const string jflType("jfl");
 
   // Variables
   const double Pi = atan(1.0) * 4;
@@ -92,7 +97,7 @@ void compute(const Options& option){
     chi = atof(option.getValue("-chi")[1].c_str()) * k;
 
   // OO2 Stuff
-  if(ddmType == oo2Type){
+  else if(ddmType == oo2Type){
     lc = atof(option.getValue("-lc")[1].c_str());
 
     double ooXsiMin = 0;
@@ -113,11 +118,20 @@ void compute(const Options& option){
   }
 
   // OSRC Stuff
-  if(ddmType == osrcType){
+  else if(ddmType == osrcType){
     double ck = atof(option.getValue("-ck")[1].c_str());
     NPade     = atoi(option.getValue("-pade")[1].c_str());
     keps      = k + Complex(0, k * ck);
   }
+
+  // Jin Fa Lee Stuff
+  else if(ddmType == jflType){
+    lc = atof(option.getValue("-lc")[1].c_str());
+  }
+
+  // Unknown Stuff
+  else
+    throw Exception("DDM Circle: Formulation %s is not known", ddmType.c_str());
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
@@ -159,16 +173,28 @@ void compute(const Options& option){
   else
     fs = new FunctionSpaceVector(domain, order);
 
-  vector<const FunctionSpaceScalar*> phi(NPade); // OSRC
+  // OSRC
+  vector<const FunctionSpaceScalar*> phi(NPade);
 
   for(int j = 0; j < NPade; j++)
     phi[j] = new FunctionSpaceScalar(ddmBorder, order);
 
+  // Jin Fa Lee
+  FunctionSpaceVector* JFPhi = NULL;
+  FunctionSpaceScalar* JFRho = NULL;
+
+  if(ddmType == jflType){
+    JFPhi = new FunctionSpaceVector(ddmBorder, order);
+
+    if(order == 0)
+      JFRho = new FunctionSpaceScalar(ddmBorder, 1);
+    else
+      JFRho = new FunctionSpaceScalar(ddmBorder, order);
+  }
+
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, *fs, k);
-
-  // Sommerfeld
-  Formulation<Complex>* sommerfeld;
+  Formulation<Complex>*          sommerfeld;
 
   if(myProc == nProcs - 1)
     sommerfeld = new FormulationSommerfeld(infinity, *fs, k);
@@ -208,6 +234,14 @@ void compute(const Options& option){
 
     ddm     = new FormulationOSRC(static_cast<DDMContextOSRC&>(*context));
     upDdm   = new FormulationUpdateOSRC(static_cast<DDMContextOSRC&>(*context));
+  }
+
+  else if(ddmType == jflType){
+    context = new DDMContextJFLee(ddmBorder, *fs, *JFPhi, *JFRho, k, lc);
+    context->setDDMDofs(ddmG);
+
+    ddm   = new FormulationJFLee(static_cast<DDMContextJFLee&>(*context));
+    upDdm = new FormulationUpdateJFLee(static_cast<DDMContextJFLee&>(*context));
   }
 
   else
@@ -279,6 +313,12 @@ void compute(const Options& option){
   delete context;
   delete sommerfeld;
   delete fs;
+
+  if(JFPhi)
+    delete JFPhi;
+
+  if(JFRho)
+    delete JFRho;
 
   for(int j = 0; j < NPade; j++)
     delete phi[j];
