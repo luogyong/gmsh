@@ -44,10 +44,12 @@ Complex fSourceScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
+  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+
   fullVector<Complex> tmp(3);
 
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0);
+  tmp(1) = Complex(1, 0);// * Complex(cos(k * p), sin(k * p));
   tmp(2) = Complex(0, 0);
 
   return tmp;

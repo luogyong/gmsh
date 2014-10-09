@@ -58,10 +58,10 @@ mesh = '/home/nicolas/src/gmsh/build/'             + \
        '-setnumber TYPE'  + ' ' + str(TYPE)  + ' ' + \
        'cavity_haroche_2D.geo'
 
-ol.upload('cavity_haroche_2D.geo', 'onelab/', 'ace42')
-ol.call('mesh', mesh, 'ace42', 'onelab/')
+ol.upload('cavity_haroche_2D.geo', 'onelab/', 'ace42.montefiore.ulg.ac.be')
+ol.call('mesh', mesh, 'ace42.montefiore.ulg.ac.be', 'onelab/')
 #ol.run('mesh', 'gmsh -2 -part ' + str(nProc) + ' cavity_haroche_2D.geo')
-ol.download('onelab/cavity_haroche_2D.msh', '.', 'ace42')
+ol.download('onelab/cavity_haroche_2D.msh', '.', 'ace42.montefiore.ulg.ac.be')
 ol.mergeFile('cavity_haroche_2D.msh')
 
 ## Simulate
@@ -82,18 +82,18 @@ if postpro == 0:
 
 cmd += '-solver -eps_monitor' # -eps_view'
 
-ol.call('sf', cmd, 'ace42', 'onelab/')
+ol.call('sf', cmd, 'ace42.montefiore.ulg.ac.be', 'onelab/')
 
 ## Draw
 if postpro == 1:
     for i in range(0, nProc):
-        ol.download('onelab/harocheModes_proc' + str(i) + '.msh', '.', 'ace42')
+        ol.download('onelab/harocheModes_proc' + str(i) + '.msh', '.', 'ace42.montefiore.ulg.ac.be')
 
     for i in range(0, nProc):
         ol.mergeFile('harocheModes_proc' + str(i) + '.msh')
 
 ## Post pro
-ol.download('onelab/harocheValues.txt', '.', 'ace42')
+ol.download('onelab/harocheValues.txt', '.', 'ace42.montefiore.ulg.ac.be')
 
 freq = numpy.loadtxt('harocheValues.txt', usecols = [3], skiprows = 1)
 time = numpy.loadtxt('harocheValues.txt', usecols = [4], skiprows = 1)

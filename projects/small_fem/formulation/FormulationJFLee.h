@@ -43,14 +43,12 @@ class FormulationJFLee: public FormulationCoupled<Complex>{
   FormulationJFLeeOne*       formulationOne;
 
   // Local Terms //
-  TermProjectionGrad<Complex>* RHS;
-  TermGradGrad<double>*        PhiE;
-  TermGradGrad<double>*        DRhoPhi;
-  TermGradGrad<double>*        PhiPhi;
-  TermGradGrad<double>*        EPhi;
-  TermCurlCurl<double>*        DEDPhi;
-  TermFieldField<double>*      RhoRho;
-  TermGradGrad<double>*        PhiDRho;
+  TermProjectionGrad<Complex>* proj;
+  TermGradGrad<double>*        term11;
+  TermGradGrad<double>*        term01;
+  TermCurlCurl<double>*        term22;
+  TermFieldField<double>*      term00;
+  TermGradGrad<double>*        term10;
 
   // Formulations //
   std::list<const FormulationBlock<Complex>*> fList;
