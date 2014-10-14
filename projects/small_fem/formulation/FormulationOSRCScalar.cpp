@@ -1,15 +1,15 @@
 #include <cmath>
 
 #include "Exception.h"
-#include "FormulationOSRCOne.h"
-#include "FormulationOSRCTwo.h"
-#include "FormulationOSRCThree.h"
-#include "FormulationOSRCFour.h"
-#include "FormulationOSRC.h"
+#include "FormulationOSRCScalarOne.h"
+#include "FormulationOSRCScalarTwo.h"
+#include "FormulationOSRCScalarThree.h"
+#include "FormulationOSRCScalarFour.h"
+#include "FormulationOSRCScalar.h"
 
 using namespace std;
 
-FormulationOSRC::FormulationOSRC(DDMContextOSRC& context){
+FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRC& context){
   // Save DDMContext //
   this->context = &context;
 
@@ -26,7 +26,7 @@ FormulationOSRC::FormulationOSRC(DDMContextOSRC& context){
   size_t               eType = uniform.second;
 
   if(!uniform.first)
-    throw Exception("FormulationOSRC needs a uniform mesh");
+    throw Exception("FormulationOSRCScalar needs a uniform mesh");
 
   // Get Basis (same for field and auxiliary function spaces) //
   basis = &field->getBasis(eType); // Saved from update()
@@ -63,11 +63,12 @@ FormulationOSRC::FormulationOSRC(DDMContextOSRC& context){
     new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *field, ddm);
 
   // Formulations //
-  // NB: FormulationOSRC is a friend of FormulationOSRC{One,Two,Three,Four,} !
+  // NB: FormulationOSRCScalar is a friend
+  //     of FormulationOSRCScalar{One,Two,Three,Four,} !
   //     So it can instanciate those classes...
 
-  // Save FormulationOSRCOne for update()
-  formulationOne = new FormulationOSRCOne
+  // Save FormulationOSRCScalarOne for update()
+  formulationOne = new FormulationOSRCScalarOne
     (domain, *field, k, NPade, *localFF, *localPr);                // u.u'
 
   // Then push it in list
@@ -76,20 +77,20 @@ FormulationOSRC::FormulationOSRC(DDMContextOSRC& context){
   // Loop on phi[j]
   for(int j = 0; j < NPade; j++){
     fList.push_back
-      (new FormulationOSRCTwo
+      (new FormulationOSRCScalarTwo
        (domain, *aux[j], *field, k, keps, NPade, j+1, *localGG)); // phi[j].u'
 
     fList.push_back
-      (new FormulationOSRCThree
+      (new FormulationOSRCScalarThree
        (domain, *aux[j], keps, NPade, j+1, *localFF, *localGG)); // ph[j].ph[j]'
 
     fList.push_back
-      (new FormulationOSRCFour
+      (new FormulationOSRCScalarFour
        (domain, *field, *aux[j], *localFF));                     // u.phi[j]'
   }
 }
 
-FormulationOSRC::~FormulationOSRC(void){
+FormulationOSRCScalar::~FormulationOSRCScalar(void){
   // Iterate & Delete Formulations //
   list<const FormulationBlock<Complex>*>::iterator end = fList.end();
   list<const FormulationBlock<Complex>*>::iterator it  = fList.begin();
@@ -108,15 +109,15 @@ FormulationOSRC::~FormulationOSRC(void){
 }
 
 const list<const FormulationBlock<Complex>*>&
-FormulationOSRC::getFormulationBlocks(void) const{
+FormulationOSRCScalar::getFormulationBlocks(void) const{
   return fList;
 }
 
-bool FormulationOSRC::isBlock(void) const{
+bool FormulationOSRCScalar::isBlock(void) const{
   return false;
 }
 
-void FormulationOSRC::update(void){
+void FormulationOSRCScalar::update(void){
   // Delete RHS (localPr)
   delete localPr;
 
@@ -131,6 +132,7 @@ void FormulationOSRC::update(void){
   localPr =
     new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *field, ddm);
 
-  // Update FormulationOSRCOne (formulationOne): this FormulationBlock holds RHS
+  // Update FormulationOSRCScalarOne (formulationOne):
+  //                                             this FormulationBlock holds RHS
   formulationOne->update(*localPr);
 }

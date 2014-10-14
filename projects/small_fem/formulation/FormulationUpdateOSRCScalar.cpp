@@ -1,12 +1,15 @@
 #include "Exception.h"
-#include "FormulationOSRC.h"
+
 #include "FormulationHelper.h"
 #include "FormulationOSRCHelper.h"
-#include "FormulationUpdateOSRC.h"
+
+#include "FormulationOSRCScalar.h"
+#include "FormulationUpdateOSRCScalar.h"
 
 using namespace std;
 
-FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContextOSRC& context){
+FormulationUpdateOSRCScalar::
+FormulationUpdateOSRCScalar(DDMContextOSRC& context){
   // Save DDMContext //
   this->context = &context;
 
@@ -19,7 +22,7 @@ FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContextOSRC& context){
   size_t               eType = uniform.second;
 
   if(!uniform.first)
-    throw Exception("FormulationUpdateOSRC needs a uniform mesh");
+    throw Exception("FormulationUpdateOSRCScalar needs a uniform mesh");
 
   // Wavenumber //
   this->k = context.getWavenumber();
@@ -68,7 +71,7 @@ FormulationUpdateOSRC::FormulationUpdateOSRC(DDMContextOSRC& context){
   lAB   = NULL;
 }
 
-FormulationUpdateOSRC::~FormulationUpdateOSRC(void){
+FormulationUpdateOSRCScalar::~FormulationUpdateOSRCScalar(void){
   delete lGout;
   if(lGin)
     delete lGin;
@@ -81,36 +84,37 @@ FormulationUpdateOSRC::~FormulationUpdateOSRC(void){
   delete gauss;
 }
 
-Complex FormulationUpdateOSRC::weak(size_t dofI, size_t dofJ,
-                                    size_t elementId) const{
+Complex FormulationUpdateOSRCScalar::weak(size_t dofI, size_t dofJ,
+                                          size_t elementId) const{
   return
     Complex(lGout->getTerm(dofI, dofJ, elementId), 0);
 }
 
-Complex FormulationUpdateOSRC::rhs(size_t equationI, size_t elementId) const{
+Complex FormulationUpdateOSRCScalar::rhs(size_t equationI,
+                                         size_t elementId) const{
   return
     Complex(-1,  0    ) *     lGin->getTerm(equationI, 0, elementId) +
     Complex( 0, -2 * k) * C0 * lC0->getTerm(equationI, 0, elementId) +
     Complex( 0, -2 * k) *      lAB->getTerm(equationI, 0, elementId);
 }
 
-const FunctionSpace& FormulationUpdateOSRC::field(void) const{
+const FunctionSpace& FormulationUpdateOSRCScalar::field(void) const{
   return *ffspace;
 }
 
-const FunctionSpace& FormulationUpdateOSRC::test(void) const{
+const FunctionSpace& FormulationUpdateOSRCScalar::test(void) const{
   return *ffspace;
 }
 
-const GroupOfElement& FormulationUpdateOSRC::domain(void) const{
+const GroupOfElement& FormulationUpdateOSRCScalar::domain(void) const{
   return *ddomain;
 }
 
-bool FormulationUpdateOSRC::isBlock(void) const{
+bool FormulationUpdateOSRCScalar::isBlock(void) const{
   return true;
 }
 
-void FormulationUpdateOSRC::update(void){
+void FormulationUpdateOSRCScalar::update(void){
   // Delete RHS (lGin, lC0 & lAB)
   if(lGin)
     delete lGin;
@@ -140,7 +144,7 @@ void FormulationUpdateOSRC::update(void){
   lAB  = new TermProjectionField<Complex>(*jac, *basis, *gauss, *ffspace, UPhi);
 }
 
-void FormulationUpdateOSRC::resetUPhi(void){
+void FormulationUpdateOSRCScalar::resetUPhi(void){
   map<Dof, Complex>:: iterator UPhiEnd = UPhi.end();
   map<Dof, Complex>:: iterator UPhiIt;
 
@@ -148,7 +152,7 @@ void FormulationUpdateOSRC::resetUPhi(void){
     UPhiIt->second = Complex(0, 0);
 }
 
-void FormulationUpdateOSRC::getUPhi(void){
+void FormulationUpdateOSRCScalar::getUPhi(void){
   // UPhi[d] = sum_j (solU[d] - solPhi[j][d]) * A[j] / B[j] //
 
   // Iterator on solU and solPhi[j]

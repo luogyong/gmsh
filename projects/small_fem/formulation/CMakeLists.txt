@@ -23,6 +23,14 @@ set(src
   FormulationOSRCFour.cpp
   FormulationUpdateOSRC.cpp
 
+  FormulationOSRCScalar.cpp
+  FormulationOSRCScalarOne.cpp
+  FormulationOSRCScalarTwo.cpp
+  FormulationOSRCScalarThree.cpp
+  FormulationOSRCScalarFour.cpp
+  FormulationUpdateOSRCScalar.cpp
+  FormulationOSRCHelper.cpp
+
   FormulationJFLee.cpp
   FormulationJFLeeOne.cpp
   FormulationJFLeeTwo.cpp

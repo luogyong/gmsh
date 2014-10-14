@@ -2,6 +2,7 @@
 #include "Quadrature.h"
 #include "GroupOfJacobian.h"
 #include "FormulationOSRCOne.h"
+#include "FormulationOSRCHelper.h"
 
 using namespace std;
 
@@ -23,7 +24,7 @@ FormulationOSRCOne(const GroupOfElement& domain,
   this->localRHS = &localRHS;
 
   // Pade C0
-  C0 = FormulationOSRC::padeC0(NPade, M_PI / 4.);
+  C0 = FormulationOSRCHelper::padeC0(NPade, M_PI / 4.);
 }
 
 FormulationOSRCOne::~FormulationOSRCOne(void){

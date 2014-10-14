@@ -1,5 +1,5 @@
-#ifndef _FORMULATIONOSRC_H_
-#define _FORMULATIONOSRC_H_
+#ifndef _FORMULATIONOSRCSCALAR_H_
+#define _FORMULATIONOSRCSCALAR_H_
 
 #include <map>
 
@@ -13,29 +13,29 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "FormulationOSRCOne.h"
+#include "FormulationOSRCScalarOne.h"
 #include "DDMContextOSRC.h"
 
 /**
-   @class FormulationOSRC
-   @brief OSRC Formulation for DDM
+   @class FormulationOSRCScalar
+   @brief Scalar OSRC Formulation for DDM
 
-   OSRC Formulation for DDM
+   Scalar OSRC Formulation for DDM
  */
 
-class FormulationOSRCOne;
+class FormulationOSRCScalarOne;
 
-class FormulationOSRC: public FormulationCoupled<Complex>{
+class FormulationOSRCScalar: public FormulationCoupled<Complex>{
  private:
   // DDMContext //
   DDMContextOSRC* context;
 
   // Stuff for updating RHS //
-  const Basis*         basis;
-  const FunctionSpace* field;
-  Quadrature*          gaussFF;
-  GroupOfJacobian*     jacFF;
-  FormulationOSRCOne*  formulationOne;
+  const Basis*               basis;
+  const FunctionSpace*       field;
+  Quadrature*                gaussFF;
+  GroupOfJacobian*           jacFF;
+  FormulationOSRCScalarOne*  formulationOne;
 
   // Local Terms //
   TermFieldField<double>*       localFF;
@@ -46,9 +46,9 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
   std::list<const FormulationBlock<Complex>*> fList;
 
  public:
-  FormulationOSRC(DDMContextOSRC& context);
+  FormulationOSRCScalar(DDMContextOSRC& context);
 
-  virtual ~FormulationOSRC(void);
+  virtual ~FormulationOSRCScalar(void);
 
   virtual
     const std::list<const FormulationBlock<Complex>*>&
@@ -59,17 +59,17 @@ class FormulationOSRC: public FormulationCoupled<Complex>{
 };
 
 /**
-   @fn FormulationOSRC::FormulationOSRC
+   @fn FormulationOSRCScalar::FormulationOSRCScalar
    @param context A DDMContextOSRC
 
-   Instantiates a new FormulationOSRC with the given DDMContextOSRC
+   Instantiates a new FormulationOSRCScalar with the given DDMContextOSRC
    **
 
-   @fn FormulationOSRC::~FormulationOSRC
-   Deletes this FormulationOSRC
+   @fn FormulationOSRCScalar::~FormulationOSRCScalar
+   Deletes this FormulationOSRCScalar
    **
 
-   @fn FormulationOSRC::update
+   @fn FormulationOSRCScalar::update
    Updates the DDM Dof%s values from the DDMContext given at construction time
 */
 
