@@ -14,7 +14,7 @@
 #include "Quadrature.h"
 
 #include "FormulationOSRCScalarOne.h"
-#include "DDMContextOSRC.h"
+#include "DDMContextOSRCScalar.h"
 
 /**
    @class FormulationOSRCScalar
@@ -28,7 +28,7 @@ class FormulationOSRCScalarOne;
 class FormulationOSRCScalar: public FormulationCoupled<Complex>{
  private:
   // DDMContext //
-  DDMContextOSRC* context;
+  DDMContextOSRCScalar* context;
 
   // Stuff for updating RHS //
   const Basis*               basis;
@@ -46,7 +46,7 @@ class FormulationOSRCScalar: public FormulationCoupled<Complex>{
   std::list<const FormulationBlock<Complex>*> fList;
 
  public:
-  FormulationOSRCScalar(DDMContextOSRC& context);
+  FormulationOSRCScalar(DDMContextOSRCScalar& context);
 
   virtual ~FormulationOSRCScalar(void);
 
@@ -60,9 +60,9 @@ class FormulationOSRCScalar: public FormulationCoupled<Complex>{
 
 /**
    @fn FormulationOSRCScalar::FormulationOSRCScalar
-   @param context A DDMContextOSRC
+   @param context A DDMContextOSRCScalar
 
-   Instantiates a new FormulationOSRCScalar with the given DDMContextOSRC
+   Instantiates a new FormulationOSRCScalar with the given DDMContextOSRCScalar
    **
 
    @fn FormulationOSRCScalar::~FormulationOSRCScalar

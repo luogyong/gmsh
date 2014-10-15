@@ -9,7 +9,7 @@
 
 using namespace std;
 
-FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRC& context){
+FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   // Save DDMContext //
   this->context = &context;
 

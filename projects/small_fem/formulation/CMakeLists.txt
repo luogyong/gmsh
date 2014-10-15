@@ -16,19 +16,25 @@ set(src
   FormulationOO2.cpp
   FormulationUpdateOO2.cpp
 
-  FormulationOSRC.cpp
-  FormulationOSRCOne.cpp
-  FormulationOSRCTwo.cpp
-  FormulationOSRCThree.cpp
-  FormulationOSRCFour.cpp
-  FormulationUpdateOSRC.cpp
-
   FormulationOSRCScalar.cpp
   FormulationOSRCScalarOne.cpp
   FormulationOSRCScalarTwo.cpp
   FormulationOSRCScalarThree.cpp
   FormulationOSRCScalarFour.cpp
   FormulationUpdateOSRCScalar.cpp
+
+  FormulationOSRCVector.cpp
+  FormulationOSRCVectorOne.cpp
+  FormulationOSRCVectorTwo.cpp
+  FormulationOSRCVectorThree.cpp
+  FormulationOSRCVectorFour.cpp
+  FormulationOSRCVectorFive.cpp
+  FormulationOSRCVectorSix.cpp
+  FormulationOSRCVectorSeven.cpp
+  FormulationOSRCVectorEight.cpp
+  FormulationOSRCVectorNine.cpp
+  FormulationOSRCVectorTen.cpp
+
   FormulationOSRCHelper.cpp
 
   FormulationJFLee.cpp

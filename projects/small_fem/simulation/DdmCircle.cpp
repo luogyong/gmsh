@@ -7,7 +7,7 @@
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
-#include "DDMContextOSRC.h"
+#include "DDMContextOSRCScalar.h"
 
 #include "System.h"
 #include "SystemHelper.h"
@@ -16,7 +16,7 @@
 
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
-#include "FormulationOSRC.h"
+#include "FormulationOSRCScalar.h"
 #include "FormulationJFLee.h"
 
 #include "FormulationDummy.h"
@@ -25,7 +25,7 @@
 
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
-#include "FormulationUpdateOSRC.h"
+#include "FormulationUpdateOSRCScalar.h"
 #include "FormulationUpdateJFLee.h"
 
 using namespace std;
@@ -37,10 +37,10 @@ static double k; // Need to be more sexy !
 static double theta = 0;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  //return Complex(cos(k * p), sin(k * p));
-  return Complex(1, 0);
+  return Complex(cos(k * p), sin(k * p));
+  //return Complex(1, 0);
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
@@ -175,7 +175,7 @@ void compute(const Options& option){
   else
     fs = new FunctionSpaceVector(domain, order);
 
-  // OSRC
+  // OSRCScalar
   vector<const FunctionSpaceScalar*> phi(NPade);
 
   for(int j = 0; j < NPade; j++)
@@ -231,11 +231,13 @@ void compute(const Options& option){
   }
 
   else if(ddmType == osrcType){
-    context = new DDMContextOSRC(ddmBorder, *fs, phi, k, keps, NPade);
+    context = new DDMContextOSRCScalar(ddmBorder, *fs, phi, k, keps, NPade);
     context->setDDMDofs(ddmG);
 
-    ddm     = new FormulationOSRC(static_cast<DDMContextOSRC&>(*context));
-    upDdm   = new FormulationUpdateOSRC(static_cast<DDMContextOSRC&>(*context));
+    ddm     = new FormulationOSRCScalar
+                                 (static_cast<DDMContextOSRCScalar&>(*context));
+    upDdm   = new FormulationUpdateOSRCScalar
+                                 (static_cast<DDMContextOSRCScalar&>(*context));
   }
 
   else if(ddmType == jflType){

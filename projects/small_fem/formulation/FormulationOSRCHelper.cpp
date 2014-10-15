@@ -16,7 +16,7 @@ double FormulationOSRCHelper::pade_aj(int j, int N){
 }
 
 double FormulationOSRCHelper::pade_bj(int j, int N){
-  double tmp = cos((double)j * M_PI / (2. *N + 1.));
+  double tmp = cos((double)j * M_PI / (2. * N + 1.));
 
   return tmp * tmp;
 }
