@@ -7,7 +7,9 @@
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
+#include "DDMContextJFLee.h"
 #include "DDMContextOSRCScalar.h"
+#include "DDMContextOSRCVector.h"
 
 #include "System.h"
 #include "SystemHelper.h"
@@ -16,8 +18,9 @@
 
 #include "FormulationOO2.h"
 #include "FormulationEMDA.h"
-#include "FormulationOSRCScalar.h"
 #include "FormulationJFLee.h"
+#include "FormulationOSRCScalar.h"
+#include "FormulationOSRCVector.h"
 
 #include "FormulationDummy.h"
 #include "FormulationSommerfeld.h"
@@ -25,8 +28,9 @@
 
 #include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOO2.h"
-#include "FormulationUpdateOSRCScalar.h"
 #include "FormulationUpdateJFLee.h"
+#include "FormulationUpdateOSRCScalar.h"
+#include "FormulationUpdateOSRCVector.h"
 
 using namespace std;
 
@@ -37,10 +41,10 @@ static double k; // Need to be more sexy !
 static double theta = 0;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  return Complex(cos(k * p), sin(k * p));
-  //return Complex(1, 0);
+  //return Complex(cos(k * p), sin(k * p));
+  return Complex(1, 0);
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
@@ -175,11 +179,35 @@ void compute(const Options& option){
   else
     fs = new FunctionSpaceVector(domain, order);
 
-  // OSRCScalar
-  vector<const FunctionSpaceScalar*> phi(NPade);
+  // OSRC
+  vector<const FunctionSpaceScalar*> OSRCScalPhi;
+  vector<const FunctionSpaceVector*> OSRCVectPhi;
+  vector<const FunctionSpaceScalar*> OSRCVectRho;
+  FunctionSpaceVector*               OSRCVectR = NULL;
 
-  for(int j = 0; j < NPade; j++)
-    phi[j] = new FunctionSpaceScalar(ddmBorder, order);
+  if(ddmType == osrcType && type == scal){
+    OSRCScalPhi.resize(NPade);
+
+    for(int j = 0; j < NPade; j++)
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorder, order);
+  }
+
+  if(ddmType == osrcType && type == vect){
+    OSRCVectPhi.resize(NPade);
+    OSRCVectRho.resize(NPade);
+
+    for(int j = 0; j < NPade; j++)
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorder, order);
+
+    if(order == 0)
+      for(int j = 0; j < NPade; j++)
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, 1);
+    else
+      for(int j = 0; j < NPade; j++)
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, order);
+
+    OSRCVectR = new FunctionSpaceVector(ddmBorder, order);
+  }
 
   // Jin Fa Lee
   FunctionSpaceVector* JFPhi = NULL;
@@ -230,14 +258,28 @@ void compute(const Options& option){
     upDdm   = new FormulationUpdateOO2(static_cast<DDMContextOO2&>(*context));
   }
 
-  else if(ddmType == osrcType){
-    context = new DDMContextOSRCScalar(ddmBorder, *fs, phi, k, keps, NPade);
+  else if(ddmType == osrcType && type == scal){
+    context = new DDMContextOSRCScalar
+                                  (ddmBorder, *fs, OSRCScalPhi, k, keps, NPade);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationOSRCScalar
                                  (static_cast<DDMContextOSRCScalar&>(*context));
     upDdm   = new FormulationUpdateOSRCScalar
                                  (static_cast<DDMContextOSRCScalar&>(*context));
+  }
+
+  else if(ddmType == osrcType && type == vect){
+    context = new DDMContextOSRCVector
+                                  (ddmBorder,
+                                   *fs, OSRCVectPhi, OSRCVectRho, *OSRCVectR,
+                                   k, keps, NPade);
+    context->setDDMDofs(ddmG);
+
+    ddm   = new FormulationOSRCVector
+                                 (static_cast<DDMContextOSRCVector&>(*context));
+    upDdm = new FormulationUpdateOSRCVector
+                                 (static_cast<DDMContextOSRCVector&>(*context));
   }
 
   else if(ddmType == jflType){
@@ -324,8 +366,20 @@ void compute(const Options& option){
   if(JFRho)
     delete JFRho;
 
-  for(int j = 0; j < NPade; j++)
-    delete phi[j];
+  if((int)(OSRCScalPhi.size()) == NPade)
+    for(int j = 0; j < NPade; j++)
+      delete OSRCScalPhi[j];
+
+  if((int)(OSRCVectPhi.size()) == NPade)
+    for(int j = 0; j < NPade; j++)
+      delete OSRCVectPhi[j];
+
+  if((int)(OSRCVectRho.size()) == NPade)
+    for(int j = 0; j < NPade; j++)
+      delete OSRCVectRho[j];
+
+  if(OSRCVectR)
+    delete OSRCVectR;
 }
 
 int main(int argc, char** argv){

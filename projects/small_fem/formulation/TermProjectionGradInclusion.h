@@ -60,18 +60,11 @@ void TermProjectionGrad<scalar>::init(const GroupOfJacobian& goj,
   BFunction getFunction;
 
   switch(basis.getForm()){
-  case 0:
-    getFunction = &Basis::getPreEvaluatedDerivatives;
-    break;
+  case 0: getFunction = &Basis::getPreEvaluatedDerivatives; break;
+  case 1: getFunction = &Basis::getPreEvaluatedFunctions;   break;
 
-  case 1:
-    getFunction = &Basis::getPreEvaluatedFunctions;
-    break;
-
-  default:
-    throw
-      Exception
-      ("A Grad Term must use a 1form basis or the gradient of a 0form basis");
+  default: throw Exception("A Grad Term must use a 1form basis"
+                           "or the gradient of a 0form basis");
   }
 
   // Type //

@@ -3,6 +3,7 @@
 
 #include "FunctionSpace.h"
 #include "FunctionSpaceScalar.h"
+#include "FunctionSpaceVector.h"
 #include "GroupOfElement.h"
 #include "Dof.h"
 
@@ -26,7 +27,15 @@ class FormulationHelper{
                          const GroupOfElement& goe,
                          std::map<Dof, Complex>& data);
 
+  static void initDofMap(const std::vector<const FunctionSpace*>& fs,
+                         const GroupOfElement& goe,
+                         std::vector<std::map<Dof, Complex> >& data);
+
   static void initDofMap(const std::vector<const FunctionSpaceScalar*>& fs,
+                         const GroupOfElement& goe,
+                         std::vector<std::map<Dof, Complex> >& data);
+
+  static void initDofMap(const std::vector<const FunctionSpaceVector*>& fs,
                          const GroupOfElement& goe,
                          std::vector<std::map<Dof, Complex> >& data);
 };
@@ -51,8 +60,29 @@ class FormulationHelper{
    The Dof values are set to zero.
    **
 
+   @fn FormulationHelper::initDofMap(const std::vector<const FunctionSpace*>&,const GroupOfElement&,std::vector<std::map<Dof, std::complex<double> > >&)
+   @param fs A vector of FunctionSpace
+   @param goe A GroupOfElement
+   @param data A vector of Dof -- Value map
+
+   Populates the given map[i] with the Dof%s of the given FunctionSpace[i]
+   restricted to the given GroupOfElement, for all i in the given vectors.
+
+   The Dof values are set to zero.
+
    @fn FormulationHelper::initDofMap(const std::vector<const FunctionSpaceScalar*>&,const GroupOfElement&,std::vector<std::map<Dof, std::complex<double> > >&)
    @param fs A vector of FunctionSpaceScalar
+   @param goe A GroupOfElement
+   @param data A vector of Dof -- Value map
+
+   Populates the given map[i] with the Dof%s of the given FunctionSpace[i]
+   restricted to the given GroupOfElement, for all i in the given vectors.
+
+   The Dof values are set to zero.
+   **
+
+   @fn FormulationHelper::initDofMap(const std::vector<const FunctionSpaceVector*>&,const GroupOfElement&,std::vector<std::map<Dof, std::complex<double> > >&)
+   @param fs A vector of FunctionSpaceVector
    @param goe A GroupOfElement
    @param data A vector of Dof -- Value map
 

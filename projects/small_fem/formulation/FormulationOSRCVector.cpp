@@ -21,14 +21,14 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   // Save DDMContext //
   this->context = &context;
 
-  // Get Domain and FunctionSpaces from DDMContext //
+  // Get Domain and Auxiliary FunctionSpaces from DDMContext //
   const GroupOfElement&                     dom = context.getDomain();
   const vector<const FunctionSpaceVector*>& phi = context.getPhiFunctionSpace();
   const vector<const FunctionSpaceScalar*>& rho = context.getRhoFunctionSpace();
-  const FunctionSpace&                    field = context.getFunctionSpace();
+  const FunctionSpaceVector&                  R = context.getRFunctionSpace();
 
-  // Save R FunctionSpace
-  R = &context.getRFunctionSpace(); // Saved from update()
+  // Save Field FunctionSpace
+  field = &context.getFunctionSpace(); // Saved from update()
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = dom.isUniform();
@@ -38,7 +38,7 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
     throw Exception("FormulationOSRCVector needs a uniform mesh");
 
   // Get Vectorial Basis (from R FunctionSpace) //
-  basisV = &(R->getBasis(eType)); // Saved from update()
+  basisV = &(R.getBasis(eType)); // Saved from update()
   const size_t order = basisV->getOrder();
 
   // Get scalar Basis
@@ -56,10 +56,10 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   C0 = FormulationOSRCHelper::padeC0(NPade, M_PI / 4.);
 
   for(int i = 0; i < NPade; i++)
-    A[i] = FormulationOSRCHelper::padeAj(i, NPade, M_PI / 4.);
+    A[i] = FormulationOSRCHelper::padeA(i + 1, NPade, M_PI / 4.);
 
   for(int i = 0; i < NPade; i++)
-    B[i] = FormulationOSRCHelper::padeBj(i, NPade, M_PI / 4.);
+    B[i] = FormulationOSRCHelper::padeB(i + 1, NPade, M_PI / 4.);
 
   // Get DDM Dofs from DDMContext //
   const map<Dof, Complex>& ddm = context.getDDMDofs();
@@ -72,12 +72,15 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   basisV->preEvaluateFunctions(gC);
   basisV->preEvaluateDerivatives(gC);
 
+  basisS.preEvaluateFunctions(gC);
+  basisS.preEvaluateDerivatives(gC);
+
   jac = new GroupOfJacobian(dom, gC, "both"); // Saved from update()
 
   // NB: Since the Formulations share the same basis functions,
   //     the local terms will be the same !
   //     It's the Dof numbering imposed by the function spaces that will differ
-  RHS = new TermProjectionGrad<Complex>(*jac, *basisV,         *gauss, *R, ddm);
+  RHS = new TermProjectionGrad<Complex>(*jac, *basisV,     *gauss, *field, ddm);
   GG  = new TermGradGrad<double>       (*jac, *basisV,         *gauss);
   dFG = new TermGradGrad<double>       (*jac,  basisS,*basisV, *gauss);
   GdF = new TermGradGrad<double>       (*jac, *basisV, basisS, *gauss);
@@ -92,9 +95,9 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
 
   FormulationBlock<Complex>* f[7];
 
-  f[0] = new FormulationOSRCVectorOne  (dom,         *R    , k , C0, *GG, *RHS);
-  f[1] = new FormulationOSRCVectorTwo  (dom,  field, *R    , kE,     *GG, *CC);
-  f[2] = new FormulationOSRCVectorThree(dom, *R    ,  field,         *GG);
+  f[0] = new FormulationOSRCVectorOne  (dom,          R    , k , C0, *GG, *RHS);
+  f[1] = new FormulationOSRCVectorTwo  (dom, *field,  R    , kE,     *GG, *CC);
+  f[2] = new FormulationOSRCVectorThree(dom,  R    , *field,         *GG);
 
   // Save FormulationOSRCVectorOne for update()
   formulationOne = static_cast<FormulationOSRCVectorOne*>(f[0]);
@@ -108,11 +111,11 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   for(int i = 0; i < NPade; i++){
     f[0] = new FormulationOSRCVectorFour (dom,        *phi[i],kE,B[i], *GG,*CC);
     f[1] = new FormulationOSRCVectorFive (dom,*rho[i],*phi[i],kE,B[i],  *dFG);
-    f[2] = new FormulationOSRCVectorSix  (dom,*R     ,*phi[i],          *GG);
+    f[2] = new FormulationOSRCVectorSix  (dom, R     ,*phi[i],          *GG);
     f[3] = new FormulationOSRCVectorSeven(dom,        *rho[i],          *FF);
     f[4] = new FormulationOSRCVectorEight(dom,*phi[i],*rho[i],          *GdF);
-    f[5] = new FormulationOSRCVectorNine (dom,*phi[i],*R     ,kE,A[i],k,*CC);
-    f[6] = new FormulationOSRCVectorTen  (dom,*rho[i],*R     ,kE,A[i],k,*dFG);
+    f[5] = new FormulationOSRCVectorNine (dom,*phi[i], R     ,kE,A[i],k,*CC);
+    f[6] = new FormulationOSRCVectorTen  (dom,*rho[i], R     ,kE,A[i],k,*dFG);
 
     fList.push_back(f[0]);
     fList.push_back(f[1]);
@@ -166,7 +169,7 @@ void FormulationOSRCVector::update(void){
   basisV->preEvaluateFunctions(gC);
 
   // New RHS
-  RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *R, ddm);
+  RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *field, ddm);
 
   // Update FormulationOSRCVectorOne (formulationOne):
   //                                             this FormulationBlock holds RHS

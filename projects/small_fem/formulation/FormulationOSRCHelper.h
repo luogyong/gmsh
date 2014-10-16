@@ -21,8 +21,9 @@ class FormulationOSRCHelper{
 
  public:
   static Complex padeC0(int N, double theta);
-  static Complex padeAj(int j, int N, double theta);
-  static Complex padeBj(int j, int N, double theta);
+  static Complex padeR0(int N, double theta);
+  static Complex padeA(int j, int N, double theta);
+  static Complex padeB(int j, int N, double theta);
 };
 
 /**
@@ -42,7 +43,14 @@ class FormulationOSRCHelper{
    and complex rotation of theta
    **
 
-   @fn FormulationOSRCHelper::padeAj
+   @fn FormulationOSRCHelper::padeR0
+   @param N A natural number
+   @param theta A real number
+   @return Returns the R0 term of the OSRC Pade approximation for N terms
+   and complex rotation of theta
+   **
+
+   @fn FormulationOSRCHelper::padeA
    @param j A natural number
    @param N A natural number
    @param theta A real number
@@ -50,7 +58,7 @@ class FormulationOSRCHelper{
    and complex rotation of theta
    **
 
-   @fn FormulationOSRCHelper::padeBj
+   @fn FormulationOSRCHelper::padeB
    @param j A natural number
    @param N A natural number
    @param theta A real number

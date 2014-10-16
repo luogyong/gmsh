@@ -3,6 +3,7 @@ set(src
   DDMContextEMDA.cpp
   DDMContextOO2.cpp
   DDMContextOSRCScalar.cpp
+  DDMContextOSRCVector.cpp
   DDMContextJFLee.cpp
 )
 

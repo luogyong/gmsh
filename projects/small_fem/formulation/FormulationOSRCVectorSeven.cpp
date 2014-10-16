@@ -20,13 +20,13 @@ FormulationOSRCVectorSeven::~FormulationOSRCVectorSeven(void){
 }
 
 Complex FormulationOSRCVectorSeven::weak(size_t dofI, size_t dofJ,
-                                       size_t elementId) const{
+                                         size_t elementId) const{
 
   return localFF->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationOSRCVectorSeven::rhs(size_t equationI,
-                                      size_t elementId) const{
+                                        size_t elementId) const{
   return Complex(0, 0);
 }
 

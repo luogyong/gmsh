@@ -16,7 +16,7 @@ FormulationOSRCVectorOne(const GroupOfElement& domain,
                          const TermProjectionGrad<Complex>& localRHS){
   // Save Data //
   this->jOverK   = Complex(0, 1. / k);
-  this ->C0      = C0;
+  this->C0       = C0;
   this->ffield   = &field;
   this->ddomain  = &domain;
   this->localLHS = &localLHS;

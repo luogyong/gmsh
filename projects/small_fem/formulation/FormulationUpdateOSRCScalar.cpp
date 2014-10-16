@@ -35,9 +35,9 @@ FormulationUpdateOSRCScalar(DDMContextOSRCScalar& context){
   C0 = FormulationOSRCHelper::padeC0(NPade, M_PI / 4.);
 
   for(int j = 0; j < NPade; j++)
-    A[j] = FormulationOSRCHelper::padeAj(j + 1, NPade, M_PI / 4.);
+    A[j] = FormulationOSRCHelper::padeA(j + 1, NPade, M_PI / 4.);
   for(int j = 0; j < NPade; j++)
-    B[j] = FormulationOSRCHelper::padeBj(j + 1, NPade, M_PI / 4.);
+    B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, M_PI / 4.);
 
   // Basis //
   basis = &ffspace->getBasis(eType);

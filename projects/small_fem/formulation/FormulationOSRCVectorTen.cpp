@@ -15,7 +15,7 @@ FormulationOSRCVectorTen(const GroupOfElement& domain,
                          double  k,
                          const TermGradGrad<double>& localGG){
   // Save Data //
-  this->jOverK                = Complex(0, 1 / k);
+  this->jOverK                = Complex(0, 1. / k);
   this->plusOneOverKEpsSquare = Complex(1, 0) / (kEps * kEps);
   this->Ai                    = Ai;
   this->ffield                = &field;

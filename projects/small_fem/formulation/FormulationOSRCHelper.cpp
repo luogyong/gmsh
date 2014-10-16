@@ -34,7 +34,16 @@ Complex FormulationOSRCHelper::padeC0(int N, double theta){
   return sum * z;
 }
 
-Complex FormulationOSRCHelper::padeAj(int j, int N, double theta){
+Complex FormulationOSRCHelper::padeR0(int N, double theta){
+  Complex sum = padeC0(N, theta);
+
+  for(int j = 1; j <= N; j++)
+    sum += padeA(j, N, theta) / padeB(j, N, theta);
+
+  return sum;
+}
+
+Complex FormulationOSRCHelper::padeA(int j, int N, double theta){
   Complex one = Complex(1, 0);
   Complex res;
   Complex z;
@@ -48,7 +57,7 @@ Complex FormulationOSRCHelper::padeAj(int j, int N, double theta){
   return res;
 }
 
-Complex FormulationOSRCHelper::padeBj(int j, int N, double theta){
+Complex FormulationOSRCHelper::padeB(int j, int N, double theta){
   Complex one = Complex(1, 0);
   Complex res;
   Complex z;

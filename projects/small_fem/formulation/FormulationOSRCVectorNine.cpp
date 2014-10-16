@@ -15,7 +15,7 @@ FormulationOSRCVectorNine(const GroupOfElement& domain,
                           double  k,
                           const TermCurlCurl<double>& localCC){
   // Save Data //
-  this->jOverK                 = Complex( 0, 1 / k);
+  this->jOverK                 = Complex( 0, 1. / k);
   this->minusOneOverKEpsSquare = Complex(-1, 0) / (kEps * kEps);
   this->Ai                     = Ai;
   this->ffield                 = &field;

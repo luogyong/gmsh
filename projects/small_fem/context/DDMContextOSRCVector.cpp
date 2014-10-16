@@ -10,7 +10,7 @@ DDMContextOSRCVector(const GroupOfElement& domain,
                      const FunctionSpaceVector& r,
                      double k, Complex keps, int NPade){
   // Check if vector //
-  if(!fSpace.isVector())
+  if(fSpace.isScalar())
     throw Exception("DDMContextOSRCVector: need a vector function space");
 
   // Data for OSRCVector //

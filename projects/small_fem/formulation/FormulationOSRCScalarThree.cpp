@@ -25,7 +25,7 @@ FormulationOSRCScalarThree(const GroupOfElement& domain,
   this->localGG = &localGG;
 
   // Pade Bj //
-  Bj = FormulationOSRCHelper::padeBj(jPade, NPade, M_PI / 4.);
+  Bj = FormulationOSRCHelper::padeB(jPade, NPade, M_PI / 4.);
 }
 
 FormulationOSRCScalarThree::~FormulationOSRCScalarThree(void){

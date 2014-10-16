@@ -27,7 +27,7 @@ FormulationOSRCScalarTwo(const GroupOfElement& domain,
   this->localTerm = &localTerm;
 
   // Pade Aj //
-  Aj = FormulationOSRCHelper::padeAj(jPade, NPade, M_PI / 4.);
+  Aj = FormulationOSRCHelper::padeA(jPade, NPade, M_PI / 4.);
 }
 
 FormulationOSRCScalarTwo::~FormulationOSRCScalarTwo(void){
