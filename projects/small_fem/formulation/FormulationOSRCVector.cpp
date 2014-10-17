@@ -10,7 +10,6 @@
 #include "FormulationOSRCVectorSeven.h"
 #include "FormulationOSRCVectorEight.h"
 #include "FormulationOSRCVectorNine.h"
-#include "FormulationOSRCVectorTen.h"
 
 #include "FormulationOSRCHelper.h"
 #include "FormulationOSRCVector.h"
@@ -48,18 +47,19 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   double  k     = context.getWavenumber();
   Complex kE    = context.getComplexWavenumber();
   int     NPade = context.getNPade();
+  double theta = context.getRotation();
 
-  Complex         C0;
+  Complex         R0;
   vector<Complex> A(NPade);
   vector<Complex> B(NPade);
 
-  C0 = FormulationOSRCHelper::padeC0(NPade, M_PI / 4.);
+  R0 = FormulationOSRCHelper::padeR0(NPade, theta);
 
   for(int i = 0; i < NPade; i++)
-    A[i] = FormulationOSRCHelper::padeA(i + 1, NPade, M_PI / 4.);
+    A[i] = FormulationOSRCHelper::padeA(i + 1, NPade, theta);
 
   for(int i = 0; i < NPade; i++)
-    B[i] = FormulationOSRCHelper::padeB(i + 1, NPade, M_PI / 4.);
+    B[i] = FormulationOSRCHelper::padeB(i + 1, NPade, theta);
 
   // Get DDM Dofs from DDMContext //
   const map<Dof, Complex>& ddm = context.getDDMDofs();
@@ -90,17 +90,17 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   // Formulations //
   // NB: FormulationOSRCVector is a friend
   //     of FormulationOSRCVector{One,Two,Three,Four,Five,
-  //                              Six,Seven,Eight,Nine,Ten} !
+  //                              Six,Seven,Eight,Nine} !
   //     So it can instanciate those classes...
 
-  FormulationBlock<Complex>* f[7];
+  FormulationBlock<Complex>* f[6];
 
-  f[0] = new FormulationOSRCVectorOne  (dom,          R    , k , C0, *GG, *RHS);
-  f[1] = new FormulationOSRCVectorTwo  (dom, *field,  R    , kE,     *GG, *CC);
-  f[2] = new FormulationOSRCVectorThree(dom,  R    , *field,         *GG);
+  f[0] = new FormulationOSRCVectorOne  (dom,  R    , *field, k     , *GG);
+  f[1] = new FormulationOSRCVectorTwo  (dom, *field,  R    , kE, R0, *GG, *CC);
+  f[2] = new FormulationOSRCVectorThree(dom,  R    ,  R    ,     R0, *GG, *RHS);
 
-  // Save FormulationOSRCVectorOne for update()
-  formulationOne = static_cast<FormulationOSRCVectorOne*>(f[0]);
+  // Save FormulationOSRCVectorThree for update()
+  formulationThree = static_cast<FormulationOSRCVectorThree*>(f[2]);
 
   // Then push them in list
   fList.push_back(f[0]);
@@ -109,13 +109,14 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
 
   // Loop on Pade terms
   for(int i = 0; i < NPade; i++){
-    f[0] = new FormulationOSRCVectorFour (dom,        *phi[i],kE,B[i], *GG,*CC);
-    f[1] = new FormulationOSRCVectorFive (dom,*rho[i],*phi[i],kE,B[i],  *dFG);
-    f[2] = new FormulationOSRCVectorSix  (dom, R     ,*phi[i],          *GG);
-    f[3] = new FormulationOSRCVectorSeven(dom,        *rho[i],          *FF);
-    f[4] = new FormulationOSRCVectorEight(dom,*phi[i],*rho[i],          *GdF);
-    f[5] = new FormulationOSRCVectorNine (dom,*phi[i], R     ,kE,A[i],k,*CC);
-    f[6] = new FormulationOSRCVectorTen  (dom,*rho[i], R     ,kE,A[i],k,*dFG);
+    f[0] = new FormulationOSRCVectorFour (dom,*phi[i], R     ,R0,A[i],B[i],*GG);
+
+    f[1] = new FormulationOSRCVectorFive (dom, R     ,*phi[i],             *GG);
+    f[2] = new FormulationOSRCVectorSix  (dom,*phi[i],*phi[i],kE,B[i], *GG,*CC);
+    f[3] = new FormulationOSRCVectorSeven(dom,*rho[i],*phi[i],   B[i],    *dFG);
+
+    f[4] = new FormulationOSRCVectorEight(dom,*rho[i],*rho[i],kE,          *FF);
+    f[5] = new FormulationOSRCVectorNine (dom,*phi[i],*rho[i],            *GdF);
 
     fList.push_back(f[0]);
     fList.push_back(f[1]);
@@ -123,7 +124,6 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
     fList.push_back(f[3]);
     fList.push_back(f[4]);
     fList.push_back(f[5]);
-    fList.push_back(f[6]);
   }
 }
 
@@ -171,7 +171,7 @@ void FormulationOSRCVector::update(void){
   // New RHS
   RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *field, ddm);
 
-  // Update FormulationOSRCVectorOne (formulationOne):
+  // Update FormulationOSRCVectorThree (formulationThree):
   //                                             this FormulationBlock holds RHS
-  formulationOne->update(*RHS);
+  formulationThree->update(*RHS);
 }

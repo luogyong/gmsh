@@ -242,7 +242,8 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == scal){
     context = new DDMContextOSRCScalar
-                                  (ddmBorder, *fs, OSRCScalPhi, k, keps, NPade);
+                                  (ddmBorder, *fs, OSRCScalPhi, k, keps,
+                                   NPade, M_PI / 4.);
     context->setDDMDofs(ddmG);
 
     ddm   = new FormulationOSRCScalar
@@ -255,7 +256,7 @@ void compute(const Options& option){
     context = new DDMContextOSRCVector
                                   (ddmBorder,
                                    *fs, OSRCVectPhi, OSRCVectRho, *OSRCVectR,
-                                   k, keps, NPade);
+                                   k, keps, NPade, M_PI / 2.);
     context->setDDMDofs(ddmG);
 
     ddm   = new FormulationOSRCVector

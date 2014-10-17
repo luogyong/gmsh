@@ -10,18 +10,12 @@ FormulationOSRCVectorNine::
 FormulationOSRCVectorNine(const GroupOfElement& domain,
                           const FunctionSpace& field,
                           const FunctionSpace& test,
-                          Complex kEps,
-                          Complex Ai,
-                          double  k,
-                          const TermCurlCurl<double>& localCC){
+                          const TermGradGrad<double>& localGG){
   // Save Data //
-  this->jOverK                 = Complex( 0, 1. / k);
-  this->minusOneOverKEpsSquare = Complex(-1, 0) / (kEps * kEps);
-  this->Ai                     = Ai;
-  this->ffield                 = &field;
-  this->ttest                  = &test;
-  this->ddomain                = &domain;
-  this->localCC                = &localCC;
+  this->ffield  = &field;
+  this->ttest   = &test;
+  this->ddomain = &domain;
+  this->localGG = &localGG;
 }
 
 FormulationOSRCVectorNine::~FormulationOSRCVectorNine(void){
@@ -30,9 +24,7 @@ FormulationOSRCVectorNine::~FormulationOSRCVectorNine(void){
 Complex FormulationOSRCVectorNine::weak(size_t dofI, size_t dofJ,
                                         size_t elementId) const{
 
-  return
-    jOverK * Ai * minusOneOverKEpsSquare
-                * localCC->getTerm(dofI, dofJ, elementId);
+  return localGG->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationOSRCVectorNine::rhs(size_t equationI,

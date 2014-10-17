@@ -43,7 +43,7 @@ class FormulationOSRCScalarOne: public FormulationBlock<Complex>{
   FormulationOSRCScalarOne(const GroupOfElement& domain,
                            const FunctionSpace& field,
                            double k,
-                           int NPade,
+                           Complex C0,
                            const TermFieldField<double>& localLHS,
                            const TermProjectionField<Complex>& localRHS);
 

@@ -10,9 +10,9 @@
 
 /**
    @class FormulationOSRCVectorFive
-   @brief Helping class for FormulationOSRCVector <grad(rho), phi>
+   @brief Helping class for FormulationOSRCVector <r, phi>
 
-   Helping class for FormulationOSRCVector <grad(rho), phi>
+   Helping class for FormulationOSRCVector <r, phi>
 
    FormulationOSRCVector is a friend of FormulationOSRCVectorFive
  */
@@ -22,10 +22,6 @@ class FormulationOSRCVectorFive: public FormulationBlock<Complex>{
   friend class FormulationOSRCVector;
 
  private:
-  // Wavenumbers //
-  Complex plusOneOverKEpsSquare;
-  Complex Bi;
-
   // Function Space & Domain //
   const FunctionSpace*  ffield;
   const FunctionSpace*  ttest;
@@ -39,8 +35,6 @@ class FormulationOSRCVectorFive: public FormulationBlock<Complex>{
   FormulationOSRCVectorFive(const GroupOfElement& domain,
                             const FunctionSpace& field,
                             const FunctionSpace& test,
-                            Complex kEps,
-                            Complex Bi,
                             const TermGradGrad<double>& localGG);
 
  public:

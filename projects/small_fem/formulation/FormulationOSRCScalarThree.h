@@ -43,8 +43,7 @@ class FormulationOSRCScalarThree: public FormulationBlock<Complex>{
   FormulationOSRCScalarThree(const GroupOfElement& domain,
                              const FunctionSpace& auxiliary,
                              Complex keps,
-                             int NPade,
-                             int jPade,
+                             Complex Bj,
                              const TermFieldField<double>& localFF,
                              const TermGradGrad<double>& localGG);
 

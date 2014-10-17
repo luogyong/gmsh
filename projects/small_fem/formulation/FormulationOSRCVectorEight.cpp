@@ -10,12 +10,14 @@ FormulationOSRCVectorEight::
 FormulationOSRCVectorEight(const GroupOfElement& domain,
                            const FunctionSpace& field,
                            const FunctionSpace& test,
-                           const TermGradGrad<double>& localGG){
+                           Complex kEps,
+                           const TermFieldField<double>& localFF){
   // Save Data //
-  this->ffield  = &field;
-  this->ttest   = &test;
-  this->ddomain = &domain;
-  this->localGG = &localGG;
+  this->kEpsSquare = kEps * kEps;
+  this->ffield     = &field;
+  this->ttest      = &test;
+  this->ddomain    = &domain;
+  this->localFF    = &localFF;
 }
 
 FormulationOSRCVectorEight::~FormulationOSRCVectorEight(void){
@@ -24,7 +26,7 @@ FormulationOSRCVectorEight::~FormulationOSRCVectorEight(void){
 Complex FormulationOSRCVectorEight::weak(size_t dofI, size_t dofJ,
                                          size_t elementId) const{
 
-  return localGG->getTerm(dofI, dofJ, elementId);
+  return kEpsSquare * localFF->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationOSRCVectorEight::rhs(size_t equationI,

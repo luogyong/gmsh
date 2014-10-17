@@ -4,15 +4,16 @@
 #include "SmallFem.h"
 #include "FunctionSpaceVector.h"
 #include "TermGradGrad.h"
+#include "TermCurlCurl.h"
 
 #include "FormulationBlock.h"
 #include "FormulationOSRCVector.h"
 
 /**
    @class FormulationOSRCVectorSix
-   @brief Helping class for FormulationOSRCVector <r, phi>
+   @brief Helping class for FormulationOSRCVector -<phi, phi> + <d(phi), d(phi)>
 
-   Helping class for FormulationOSRCVector <r, phi>
+   Helping class for FormulationOSRCVector -<phi, phi> + <curl(phi), curl(phi)>
 
    FormulationOSRCVector is a friend of FormulationOSRCVectorSix
  */
@@ -22,6 +23,9 @@ class FormulationOSRCVectorSix: public FormulationBlock<Complex>{
   friend class FormulationOSRCVector;
 
  private:
+  // Wavenumber & Pade //
+  Complex BiOverKEpsSquare;
+
   // Function Space & Domain //
   const FunctionSpace*  ffield;
   const FunctionSpace*  ttest;
@@ -29,13 +33,17 @@ class FormulationOSRCVectorSix: public FormulationBlock<Complex>{
 
   // Local Terms //
   const TermGradGrad<double>* localGG;
+  const TermCurlCurl<double>* localCC;
 
  private:
   FormulationOSRCVectorSix(void);
   FormulationOSRCVectorSix(const GroupOfElement& domain,
                            const FunctionSpace& field,
                            const FunctionSpace& test,
-                           const TermGradGrad<double>& localGG);
+                           Complex kEps,
+                           Complex Bi,
+                           const TermGradGrad<double>& localGG,
+                           const TermCurlCurl<double>& localCC);
 
  public:
   virtual ~FormulationOSRCVectorSix(void);

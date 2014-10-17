@@ -17,6 +17,7 @@ class DDMContextOSRCScalar: public DDMContext{
   const std::vector<const FunctionSpaceScalar*>* phi;
 
   int     NPade;
+  double  theta;
   double  k;
   Complex keps;
 
@@ -24,11 +25,13 @@ class DDMContextOSRCScalar: public DDMContext{
   DDMContextOSRCScalar(const GroupOfElement& domain,
                        const FunctionSpace& fSpace,
                        const std::vector<const FunctionSpaceScalar*>& phi,
-                       double k, Complex keps, int NPade);
+                       double k, Complex keps,
+                       int NPade, double theta);
 
   virtual ~DDMContextOSRCScalar(void);
 
   int     getNPade(void) const;
+  double  getRotation(void) const;
   double  getWavenumber(void) const;
   Complex getComplexWavenumber(void) const;
 
@@ -44,6 +47,7 @@ class DDMContextOSRCScalar: public DDMContext{
    @param k The wavenumber of the scalar OSRC problem
    @param keps The complexified wavenumber of the scalar OSRC problem
    @param NPade The number of Pade term tu use
+   @param theta The complex rotation tu use
 
    Instanciates a new DDMContextOSRCScalar with the given parameters
    **
@@ -54,6 +58,10 @@ class DDMContextOSRCScalar: public DDMContext{
 
    @fn DDMContextOSRCScalar::getNPade
    @return Returns the number of Pade term of this DDMContextOSRCScalar
+   **
+
+   @fn DDMContextOSRCScalar::getRotation
+   @return Returns the complex rotation of this DDMContextOSRCScalar
    **
 
    @fn DDMContextOSRCScalar::getWavenumer
@@ -75,6 +83,10 @@ class DDMContextOSRCScalar: public DDMContext{
 
 inline int DDMContextOSRCScalar::getNPade(void) const{
   return NPade;
+}
+
+inline double DDMContextOSRCScalar::getRotation(void) const{
+  return theta;
 }
 
 inline double DDMContextOSRCScalar::getWavenumber(void) const{

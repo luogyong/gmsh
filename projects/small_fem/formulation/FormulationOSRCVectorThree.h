@@ -3,6 +3,7 @@
 
 #include "SmallFem.h"
 #include "FunctionSpaceVector.h"
+#include "TermProjectionGrad.h"
 #include "TermGradGrad.h"
 
 #include "FormulationBlock.h"
@@ -10,9 +11,9 @@
 
 /**
    @class FormulationOSRCVectorThree
-   @brief Helping class for FormulationOSRCVector <r, e>
+   @brief Helping class for FormulationOSRCVector <r, r> - <g, r>
 
-   Helping class for FormulationOSRCVector  <r, e>
+   Helping class for FormulationOSRCVector <r, r> - <g, r>
 
    FormulationOSRCVector is a friend of FormulationOSRCVectorThree
  */
@@ -22,20 +23,26 @@ class FormulationOSRCVectorThree: public FormulationBlock<Complex>{
   friend class FormulationOSRCVector;
 
  private:
+  // Pade //
+  Complex oneOverR0;
+
   // Function Space & Domain //
   const FunctionSpace*  ffield;
   const FunctionSpace*  ttest;
   const GroupOfElement* ddomain;
 
   // Local Terms //
-  const TermGradGrad<double>* localGG;
+  const TermGradGrad<double>*       localGG;
+  const TermProjectionGrad<Complex>* localRHS;
 
  private:
   FormulationOSRCVectorThree(void);
   FormulationOSRCVectorThree(const GroupOfElement& domain,
                              const FunctionSpace& field,
                              const FunctionSpace& test,
-                             const TermGradGrad<double>& localGG);
+                             Complex R0,
+                             const TermGradGrad<double>& localGG,
+                             const TermProjectionGrad<Complex>& localRHS);
 
  public:
   virtual ~FormulationOSRCVectorThree(void);
@@ -48,6 +55,9 @@ class FormulationOSRCVectorThree: public FormulationBlock<Complex>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
+
+ private:
+  void update(TermProjectionGrad<Complex>& localRHS);
 };
 
 /**

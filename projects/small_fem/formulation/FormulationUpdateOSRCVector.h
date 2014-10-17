@@ -28,9 +28,6 @@
 
 class FormulationUpdateOSRCVector: public FormulationBlock<Complex>{
  private:
-  // Wavenumber //
-  Complex twoJOverK;
-
   // DDMContext //
   DDMContextOSRCVector* context;
 
@@ -53,7 +50,7 @@ class FormulationUpdateOSRCVector: public FormulationBlock<Complex>{
   const std::vector<const FunctionSpaceVector*>* fPhi;
 
   // Pade //
-  Complex R0;
+  Complex twoR0;
   std::vector<Complex> A;
   std::vector<Complex> B;
 

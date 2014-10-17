@@ -24,22 +24,19 @@ FormulationUpdateOSRCVector(DDMContextOSRCVector& context){
   if(!uniform.first)
     throw Exception("FormulationUpdateOSRCVector needs a uniform mesh");
 
-  // Wavenumber //
-  double  k       = context.getWavenumber();
-  this->twoJOverK = Complex(0, 2. / k);
-
   // Pade //
-  NPade = context.getNPade();
+  double theta = context.getRotation();
+  NPade        = context.getNPade();
   A.resize(NPade);
   B.resize(NPade);
 
-  R0 = FormulationOSRCHelper::padeR0(NPade, M_PI / 4.);
+  twoR0 = FormulationOSRCHelper::padeR0(NPade, theta) * Complex(2, 0);
 
   for(int j = 0; j < NPade; j++)
-    A[j] = FormulationOSRCHelper::padeA(j + 1, NPade, M_PI / 4.);
+    A[j] = FormulationOSRCHelper::padeA(j + 1, NPade, theta);
 
   for(int j = 0; j < NPade; j++)
-    B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, M_PI / 4.);
+    B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, theta);
 
   // Basis //
   basis = &ffspace->getBasis(eType);
@@ -94,11 +91,10 @@ Complex FormulationUpdateOSRCVector::weak(size_t dofI, size_t dofJ,
 
 Complex FormulationUpdateOSRCVector::rhs(size_t equationI,
                                          size_t elementId) const{
-  // Sum the rest & return
   return
-    lGin->getTerm(equationI, 0, elementId)                  -
-      lR->getTerm(equationI, 0, elementId) * twoJOverK * R0 +
-    lPhi->getTerm(equationI, 0, elementId) * twoJOverK;
+    lGin->getTerm(equationI, 0, elementId)         -
+      lR->getTerm(equationI, 0, elementId) * twoR0 +
+    lPhi->getTerm(equationI, 0, elementId);
 }
 
 const FunctionSpace& FormulationUpdateOSRCVector::field(void) const{
@@ -160,7 +156,7 @@ void FormulationUpdateOSRCVector::getAllPhi(void){
   itZero  = solPhi[0].begin();
 
   for(; itZero != endZero; itZero++)
-    itZero->second = itZero->second * A[0] / B[0];
+    itZero->second = itZero->second * Complex(2, 0) * A[0] / B[0];
 
   // The sum other contributions
   for(int i = 1; i < NPade; i++){
@@ -168,6 +164,6 @@ void FormulationUpdateOSRCVector::getAllPhi(void){
     itI     = solPhi[i].begin();
 
     for(; itZero != endZero; itZero++, itI++)
-      itZero->second = itZero->second + itI->second * A[i] / B[i];
+      itZero->second = itZero->second + itI->second * Complex(2,0)* A[i] / B[i];
   }
 }

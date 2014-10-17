@@ -28,16 +28,17 @@ FormulationUpdateOSRCScalar(DDMContextOSRCScalar& context){
   this->k = context.getWavenumber();
 
   // Pade //
-  NPade = context.getNPade();
+  double theta = context.getRotation();
+  NPade        = context.getNPade();
   A.resize(NPade);
   B.resize(NPade);
 
-  C0 = FormulationOSRCHelper::padeC0(NPade, M_PI / 4.);
+  C0 = FormulationOSRCHelper::padeC0(NPade, theta);
 
   for(int j = 0; j < NPade; j++)
-    A[j] = FormulationOSRCHelper::padeA(j + 1, NPade, M_PI / 4.);
+    A[j] = FormulationOSRCHelper::padeA(j + 1, NPade, theta);
   for(int j = 0; j < NPade; j++)
-    B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, M_PI / 4.);
+    B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, theta);
 
   // Basis //
   basis = &ffspace->getBasis(eType);

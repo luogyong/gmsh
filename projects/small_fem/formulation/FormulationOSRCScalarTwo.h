@@ -46,8 +46,7 @@ class FormulationOSRCScalarTwo: public FormulationBlock<Complex>{
                            const FunctionSpace& field,
                            double  k,
                            Complex keps,
-                           int NPade,
-                           int jPade,
+                           Complex Aj,
                            const TermGradGrad<double>& localTerm);
 
  public:

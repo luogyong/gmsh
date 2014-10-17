@@ -16,7 +16,7 @@
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"
 
-#include "FormulationOSRCVectorOne.h"
+#include "FormulationOSRCVectorThree.h"
 #include "DDMContextOSRCVector.h"
 
 /**
@@ -26,7 +26,7 @@
    Vector OSRC Formulation for DDM
  */
 
-class FormulationOSRCVectorOne;
+class FormulationOSRCVectorThree;
 
 class FormulationOSRCVector: public FormulationCoupled<Complex>{
  private:
@@ -34,11 +34,11 @@ class FormulationOSRCVector: public FormulationCoupled<Complex>{
   DDMContextOSRCVector* context;
 
   // Stuff for updating RHS //
-  const Basis*               basisV;
-  const FunctionSpace*       field;
-  Quadrature*                gauss;
-  GroupOfJacobian*           jac;
-  FormulationOSRCVectorOne*  formulationOne;
+  const Basis*                basisV;
+  const FunctionSpace*        field;
+  Quadrature*                 gauss;
+  GroupOfJacobian*            jac;
+  FormulationOSRCVectorThree* formulationThree;
 
   // Local Terms //
   TermProjectionGrad<Complex>* RHS;

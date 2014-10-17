@@ -24,7 +24,8 @@ class FormulationOSRCVectorTwo: public FormulationBlock<Complex>{
 
  private:
   // Wavenumber //
-  Complex minusOneOverKEpsSquare;
+  Complex oneOverKEpsSquare;
+  Complex oneOverR0;
 
   // Function Space & Domain //
   const FunctionSpace*  ffield;
@@ -41,6 +42,7 @@ class FormulationOSRCVectorTwo: public FormulationBlock<Complex>{
                            const FunctionSpace& field,
                            const FunctionSpace& test,
                            Complex kEps,
+                           Complex R0,
                            const TermGradGrad<double>& localGG,
                            const TermCurlCurl<double>& localCC);
 

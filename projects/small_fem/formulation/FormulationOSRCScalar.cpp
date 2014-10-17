@@ -1,11 +1,14 @@
 #include <cmath>
 
 #include "Exception.h"
+
 #include "FormulationOSRCScalarOne.h"
 #include "FormulationOSRCScalarTwo.h"
 #include "FormulationOSRCScalarThree.h"
 #include "FormulationOSRCScalarFour.h"
 #include "FormulationOSRCScalar.h"
+
+#include "FormulationOSRCHelper.h"
 
 using namespace std;
 
@@ -35,7 +38,20 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   // k, keps and NPade //
   double k     = context.getWavenumber();
   Complex keps = context.getComplexWavenumber();
-  int NPade    = context.getNPade();
+
+  // Pade //
+  int    NPade = context.getNPade();
+  double theta = context.getRotation();
+  vector<Complex> A(NPade);
+  vector<Complex> B(NPade);
+
+  Complex C0 = FormulationOSRCHelper::padeC0(NPade, theta);
+
+  for(int j = 0; j < NPade; j++)
+    A[j] = FormulationOSRCHelper::padeA(j + 1, NPade, theta);
+
+  for(int j = 0; j < NPade; j++)
+    B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, theta);
 
   // Gaussian Quadrature //
   gaussFF = new Quadrature(eType, order, 2); // Saved from update()
@@ -69,7 +85,7 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
 
   // Save FormulationOSRCScalarOne for update()
   formulationOne = new FormulationOSRCScalarOne
-    (domain, *field, k, NPade, *localFF, *localPr);                // u.u'
+    (domain, *field, k, C0, *localFF, *localPr);            // u.u'
 
   // Then push it in list
   fList.push_back(formulationOne);
@@ -78,15 +94,15 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   for(int j = 0; j < NPade; j++){
     fList.push_back
       (new FormulationOSRCScalarTwo
-       (domain, *aux[j], *field, k, keps, NPade, j+1, *localGG)); // phi[j].u'
+       (domain, *aux[j], *field, k, keps, A[j], *localGG)); // phi[j].u'
 
     fList.push_back
       (new FormulationOSRCScalarThree
-       (domain, *aux[j], keps, NPade, j+1, *localFF, *localGG)); // ph[j].ph[j]'
+       (domain, *aux[j], keps, B[j], *localFF, *localGG)); // ph[j].ph[j]'
 
     fList.push_back
       (new FormulationOSRCScalarFour
-       (domain, *field, *aux[j], *localFF));                     // u.phi[j]'
+       (domain, *field, *aux[j], *localFF));               // u.phi[j]'
   }
 }
 

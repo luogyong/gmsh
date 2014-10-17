@@ -3,7 +3,6 @@
 
 #include "SmallFem.h"
 #include "FunctionSpaceVector.h"
-#include "TermProjectionGrad.h"
 #include "TermGradGrad.h"
 
 #include "FormulationBlock.h"
@@ -11,9 +10,9 @@
 
 /**
    @class FormulationOSRCVectorOne
-   @brief Helping class for FormulationOSRCVector <r, r> - <g, r>
+   @brief Helping class for FormulationOSRCVector <r, e>
 
-   Helping class for FormulationOSRCVector <r, r> -<g, r>
+   Helping class for FormulationOSRCVector <r, e>
 
    FormulationOSRCVector is a friend of FormulationOSRCVectorOne
  */
@@ -24,25 +23,23 @@ class FormulationOSRCVectorOne: public FormulationBlock<Complex>{
 
  private:
   // Wavenumber //
-  Complex jOverK;
-  Complex C0;
+  Complex jK;
 
   // Function Space & Domain //
   const FunctionSpace*  ffield;
+  const FunctionSpace*  ttest;
   const GroupOfElement* ddomain;
 
   // Local Terms //
-  const TermGradGrad<double>*        localLHS;
-  const TermProjectionGrad<Complex>* localRHS;
+  const TermGradGrad<double>* localGG;
 
  private:
   FormulationOSRCVectorOne(void);
   FormulationOSRCVectorOne(const GroupOfElement& domain,
                            const FunctionSpace& field,
+                           const FunctionSpace& test,
                            double  k,
-                           Complex C0,
-                           const TermGradGrad<double>& localLHS,
-                           const TermProjectionGrad<Complex>& localRHS);
+                           const TermGradGrad<double>& localGG);
 
  public:
   virtual ~FormulationOSRCVectorOne(void);
@@ -55,9 +52,6 @@ class FormulationOSRCVectorOne: public FormulationBlock<Complex>{
   virtual const GroupOfElement& domain(void) const;
 
   virtual bool isBlock(void) const;
-
- private:
-  void update(TermProjectionGrad<Complex>& localRHS);
 };
 
 /**

@@ -33,7 +33,6 @@ set(src
   FormulationOSRCVectorSeven.cpp
   FormulationOSRCVectorEight.cpp
   FormulationOSRCVectorNine.cpp
-  FormulationOSRCVectorTen.cpp
   FormulationUpdateOSRCVector.cpp
 
   FormulationOSRCHelper.cpp

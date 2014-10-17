@@ -9,11 +9,15 @@ FormulationOSRCVectorSeven::FormulationOSRCVectorSeven(void){
 FormulationOSRCVectorSeven::
 FormulationOSRCVectorSeven(const GroupOfElement& domain,
                            const FunctionSpace& field,
-                           const TermFieldField<double>& localFF){
+                           const FunctionSpace& test,
+                           Complex Bi,
+                           const TermGradGrad<double>& localGG){
   // Save Data //
+  this->minusBi = Complex(-1, 0) * Bi;
   this->ffield  = &field;
+  this->ttest   = &test;
   this->ddomain = &domain;
-  this->localFF = &localFF;
+  this->localGG = &localGG;
 }
 
 FormulationOSRCVectorSeven::~FormulationOSRCVectorSeven(void){
@@ -22,7 +26,7 @@ FormulationOSRCVectorSeven::~FormulationOSRCVectorSeven(void){
 Complex FormulationOSRCVectorSeven::weak(size_t dofI, size_t dofJ,
                                          size_t elementId) const{
 
-  return localFF->getTerm(dofI, dofJ, elementId);
+  return minusBi * localGG->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationOSRCVectorSeven::rhs(size_t equationI,
@@ -35,7 +39,7 @@ const FunctionSpace& FormulationOSRCVectorSeven::field(void) const{
 }
 
 const FunctionSpace& FormulationOSRCVectorSeven::test(void) const{
-  return *ffield;
+  return *ttest;
 }
 
 const GroupOfElement& FormulationOSRCVectorSeven::domain(void) const{

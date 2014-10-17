@@ -10,12 +10,16 @@ FormulationOSRCVectorThree::
 FormulationOSRCVectorThree(const GroupOfElement& domain,
                            const FunctionSpace& field,
                            const FunctionSpace& test,
-                           const TermGradGrad<double>& localGG){
+                           Complex R0,
+                           const TermGradGrad<double>& localGG,
+                           const TermProjectionGrad<Complex>& localRHS){
   // Save Data //
-  this->ffield  = &field;
-  this->ttest   = &test;
-  this->ddomain = &domain;
-  this->localGG = &localGG;
+  this->oneOverR0 = Complex(1, 0) / R0;
+  this->ffield    = &field;
+  this->ttest     = &test;
+  this->ddomain   = &domain;
+  this->localGG   = &localGG;
+  this->localRHS  = &localRHS;
 }
 
 FormulationOSRCVectorThree::~FormulationOSRCVectorThree(void){
@@ -24,12 +28,13 @@ FormulationOSRCVectorThree::~FormulationOSRCVectorThree(void){
 Complex FormulationOSRCVectorThree::weak(size_t dofI, size_t dofJ,
                                          size_t elementId) const{
 
-  return Complex(-1, 0) * localGG->getTerm(dofI, dofJ, elementId);
+  return localGG->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationOSRCVectorThree::rhs(size_t equationI,
                                         size_t elementId) const{
-  return Complex(0, 0);
+
+  return oneOverR0 * localRHS->getTerm(equationI, 0, elementId);
 }
 
 const FunctionSpace& FormulationOSRCVectorThree::field(void) const{
@@ -46,4 +51,8 @@ const GroupOfElement& FormulationOSRCVectorThree::domain(void) const{
 
 bool FormulationOSRCVectorThree::isBlock(void) const{
   return true;
+}
+
+void FormulationOSRCVectorThree::update(TermProjectionGrad<Complex>& localRHS){
+  this->localRHS = &localRHS;
 }

@@ -10,17 +10,15 @@ FormulationOSRCVectorOne::FormulationOSRCVectorOne(void){
 FormulationOSRCVectorOne::
 FormulationOSRCVectorOne(const GroupOfElement& domain,
                          const FunctionSpace& field,
+                         const FunctionSpace& test,
                          double  k,
-                         Complex C0 ,
-                         const TermGradGrad<double>& localLHS,
-                         const TermProjectionGrad<Complex>& localRHS){
+                         const TermGradGrad<double>& localGG){
   // Save Data //
-  this->jOverK   = Complex(0, 1. / k);
-  this->C0       = C0;
-  this->ffield   = &field;
-  this->ddomain  = &domain;
-  this->localLHS = &localLHS;
-  this->localRHS = &localRHS;
+  this->jK      = Complex(0, k);
+  this->ffield  = &field;
+  this->ttest   = &test;
+  this->ddomain = &domain;
+  this->localGG = &localGG;
 }
 
 FormulationOSRCVectorOne::~FormulationOSRCVectorOne(void){
@@ -29,11 +27,11 @@ FormulationOSRCVectorOne::~FormulationOSRCVectorOne(void){
 Complex FormulationOSRCVectorOne::weak(size_t dofI, size_t dofJ,
                                        size_t elementId) const{
 
-  return jOverK * C0 * localLHS->getTerm(dofI, dofJ, elementId);
+  return jK * localGG->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationOSRCVectorOne::rhs(size_t equationI, size_t elementId) const{
-  return localRHS->getTerm(equationI, 0, elementId);
+  return Complex(0, 0);
 }
 
 const FunctionSpace& FormulationOSRCVectorOne::field(void) const{
@@ -41,7 +39,7 @@ const FunctionSpace& FormulationOSRCVectorOne::field(void) const{
 }
 
 const FunctionSpace& FormulationOSRCVectorOne::test(void) const{
-  return *ffield;
+  return *ttest;
 }
 
 const GroupOfElement& FormulationOSRCVectorOne::domain(void) const{
@@ -50,8 +48,4 @@ const GroupOfElement& FormulationOSRCVectorOne::domain(void) const{
 
 bool FormulationOSRCVectorOne::isBlock(void) const{
   return true;
-}
-
-void FormulationOSRCVectorOne::update(TermProjectionGrad<Complex>& localRHS){
-  this->localRHS = &localRHS;
 }

@@ -13,18 +13,16 @@ FormulationOSRCScalarOne::
 FormulationOSRCScalarOne(const GroupOfElement& domain,
                          const FunctionSpace& field,
                          double k,
-                         int NPade,
+                         Complex C0,
                          const TermFieldField<double>& localLHS,
                          const TermProjectionField<Complex>& localRHS){
   // Save Data //
   this->k        = k;
+  this->C0       = C0;
   this->ffield   = &field;
   this->ddomain  = &domain;
   this->localLHS = &localLHS;
   this->localRHS = &localRHS;
-
-  // Pade C0
-  C0 = FormulationOSRCHelper::padeC0(NPade, M_PI / 4.);
 }
 
 FormulationOSRCScalarOne::~FormulationOSRCScalarOne(void){

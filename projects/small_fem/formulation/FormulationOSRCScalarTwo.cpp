@@ -15,19 +15,16 @@ FormulationOSRCScalarTwo(const GroupOfElement& domain,
                          const FunctionSpace& field,
                          double  k,
                          Complex keps,
-                         int NPade,
-                         int jPade,
+                         Complex Aj,
                          const TermGradGrad<double>& localTerm){
   // Save Data //
   this->k         = k;
   this->keps      = keps;
+  this->Aj        = Aj;
   this->ffield    = &field;
   this->faux      = &auxiliary;
   this->ddomain   = &domain;
   this->localTerm = &localTerm;
-
-  // Pade Aj //
-  Aj = FormulationOSRCHelper::padeA(jPade, NPade, M_PI / 4.);
 }
 
 FormulationOSRCScalarTwo::~FormulationOSRCScalarTwo(void){

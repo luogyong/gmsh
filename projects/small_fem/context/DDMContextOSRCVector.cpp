@@ -8,7 +8,8 @@ DDMContextOSRCVector(const GroupOfElement& domain,
                      const vector<const FunctionSpaceVector*>& phi,
                      const vector<const FunctionSpaceScalar*>& rho,
                      const FunctionSpaceVector& r,
-                     double k, Complex keps, int NPade){
+                     double k, Complex keps,
+                     int NPade, double theta){
   // Check if vector //
   if(fSpace.isScalar())
     throw Exception("DDMContextOSRCVector: need a vector function space");
@@ -20,6 +21,7 @@ DDMContextOSRCVector(const GroupOfElement& domain,
   this->rho    = &rho;
   this->r      = &r;
   this->NPade  = NPade;
+  this->theta  = theta;
   this->k      = k;
   this->keps   = keps;
 }

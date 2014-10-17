@@ -9,17 +9,17 @@ FormulationOSRCVectorFour::FormulationOSRCVectorFour(void){
 FormulationOSRCVectorFour::
 FormulationOSRCVectorFour(const GroupOfElement& domain,
                           const FunctionSpace& field,
-                          Complex kEps,
-                          Complex Bin,
-                          const TermGradGrad<double>& localGG,
-                          const TermCurlCurl<double>& localCC){
+                          const FunctionSpace& test,
+                          Complex R0,
+                          Complex Ai,
+                          Complex Bi,
+                          const TermGradGrad<double>& localGG){
   // Save Data //
-  this->minusOneOverKEpsSquare = Complex(-1, 0) / (kEps * kEps);
-  this->Bi                     = Bi;
-  this->ffield                 = &field;
-  this->ddomain                = &domain;
-  this->localGG                = &localGG;
-  this->localCC                = &localCC;
+  this->alpha   = Complex(-1, 0) * Ai / (Bi * R0);
+  this->ffield  = &field;
+  this->ttest   = &test;
+  this->ddomain = &domain;
+  this->localGG = &localGG;
 }
 
 FormulationOSRCVectorFour::~FormulationOSRCVectorFour(void){
@@ -27,10 +27,8 @@ FormulationOSRCVectorFour::~FormulationOSRCVectorFour(void){
 
 Complex FormulationOSRCVectorFour::weak(size_t dofI, size_t dofJ,
                                         size_t elementId) const{
-  return
-    localCC->getTerm(dofI, dofJ, elementId) * Bi * minusOneOverKEpsSquare +
-    localGG->getTerm(dofI, dofJ, elementId);
 
+  return alpha * localGG->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationOSRCVectorFour::rhs(size_t equationI,
@@ -43,7 +41,7 @@ const FunctionSpace& FormulationOSRCVectorFour::field(void) const{
 }
 
 const FunctionSpace& FormulationOSRCVectorFour::test(void) const{
-  return *ffield;
+  return *ttest;
 }
 
 const GroupOfElement& FormulationOSRCVectorFour::domain(void) const{

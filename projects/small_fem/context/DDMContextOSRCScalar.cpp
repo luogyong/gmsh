@@ -6,7 +6,9 @@ DDMContextOSRCScalar::
 DDMContextOSRCScalar(const GroupOfElement& domain,
                      const FunctionSpace& fSpace,
                      const vector<const FunctionSpaceScalar*>& phi,
-                     double k, Complex keps, int NPade){
+                     double k, Complex keps,
+                     int NPade, double theta){
+
   // Check if scalar //
   if(!fSpace.isScalar())
     throw Exception("DDMContextOSRCScalar: need a scalar function space");
@@ -16,6 +18,7 @@ DDMContextOSRCScalar(const GroupOfElement& domain,
   this->fSpace = &fSpace;
   this->phi    = &phi;
   this->NPade  = NPade;
+  this->theta  = theta;
   this->k      = k;
   this->keps   = keps;
 }

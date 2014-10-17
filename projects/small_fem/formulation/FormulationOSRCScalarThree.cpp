@@ -13,19 +13,16 @@ FormulationOSRCScalarThree::
 FormulationOSRCScalarThree(const GroupOfElement& domain,
                            const FunctionSpace& auxiliary,
                            Complex keps,
-                           int NPade,
-                           int jPade,
+                           Complex Bj,
                            const TermFieldField<double>& localFF,
                            const TermGradGrad<double>& localGG){
   // Save Data //
   this->keps    = keps;
+  this->Bj      = Bj;
   this->faux    = &auxiliary;
   this->ddomain = &domain;
   this->localFF = &localFF;
   this->localGG = &localGG;
-
-  // Pade Bj //
-  Bj = FormulationOSRCHelper::padeB(jPade, NPade, M_PI / 4.);
 }
 
 FormulationOSRCScalarThree::~FormulationOSRCScalarThree(void){

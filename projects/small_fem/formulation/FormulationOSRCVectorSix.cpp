@@ -10,12 +10,17 @@ FormulationOSRCVectorSix::
 FormulationOSRCVectorSix(const GroupOfElement& domain,
                          const FunctionSpace& field,
                          const FunctionSpace& test,
-                         const TermGradGrad<double>& localGG){
+                         Complex kEps,
+                         Complex Bi,
+                         const TermGradGrad<double>& localGG,
+                         const TermCurlCurl<double>& localCC){
   // Save Data //
-  this->ffield  = &field;
-  this->ttest   = &test;
-  this->ddomain = &domain;
-  this->localGG = &localGG;
+  this->BiOverKEpsSquare = Bi / (kEps * kEps);
+  this->ffield           = &field;
+  this->ttest            = &test;
+  this->ddomain          = &domain;
+  this->localGG          = &localGG;
+  this->localCC          = &localCC;
 }
 
 FormulationOSRCVectorSix::~FormulationOSRCVectorSix(void){
@@ -23,12 +28,12 @@ FormulationOSRCVectorSix::~FormulationOSRCVectorSix(void){
 
 Complex FormulationOSRCVectorSix::weak(size_t dofI, size_t dofJ,
                                        size_t elementId) const{
-
-  return Complex(-1, 0) * localGG->getTerm(dofI, dofJ, elementId);
+  return
+    Complex(-1, 0)   * localGG->getTerm(dofI, dofJ, elementId) +
+    BiOverKEpsSquare * localCC->getTerm(dofI, dofJ, elementId);
 }
 
-Complex FormulationOSRCVectorSix::rhs(size_t equationI,
-                                      size_t elementId) const{
+Complex FormulationOSRCVectorSix::rhs(size_t equationI, size_t elementId) const{
   return Complex(0, 0);
 }
 
