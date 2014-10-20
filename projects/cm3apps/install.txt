@@ -18,6 +18,13 @@ A) The packages needed to install gmsh are (gmsh has to be install to use cm3app
       - libfltk1.3-dev
       - libpng-dev
       - libjpeg-dev
+    # opensuse add
+      - freeglut-devel
+      - libopenssl-devel
+      - libcryptopp-devel   
+      - cairo-devel
+      - gmp-devel
+      - libSM-devel
 
    Note for Ubuntu 13.04 (and higher?) Python3 bindings are created by default. After testing it works as long as work py-driver is compatible with python3 If you print something in this files you have to convert it using "2to3 -w driver.py" Note that this command write in place but normally creates a backup driver.py.bak of the driver working with python2... it is maybe safer to do a copy by your own before.  
 
