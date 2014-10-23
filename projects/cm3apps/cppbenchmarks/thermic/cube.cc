@@ -15,7 +15,6 @@ int main(int argc, char ** argv)
   double young = 2.1e11;
   double nu = 0.3;
   double MUxy = young/(2.*(1.+nu));
-  double cv=1.;
   double t0=0.;
   double Kx=51.9;
   double alphax=12.e-6;
@@ -41,7 +40,7 @@ int main(int argc, char ** argv)
   //  compute solution and BC (given directly to the solver
   // creation of law
 
-  LinearThermoMechanicsDG3DMaterialLaw law1(lawnum,rho,young,young,young,nu,nu,nu,MUxy,MUxy,MUxy,alpha,alpha,alpha,cv,t0,Kx,Kx,Kx,alphax,alphax,alphax,cp);
+  LinearThermoMechanicsDG3DMaterialLaw law1(lawnum,rho,young,young,young,nu,nu,nu,MUxy,MUxy,MUxy,alpha,alpha,alpha,t0,Kx,Kx,Kx,alphax,alphax,alphax,cp);
 
   int nfield = 10; // number of the field (physical number of surface)
   ThermoMechanicsDG3DDomain myfield1(1000,nfield,space1,lawnum,fullDg,1.e6);
