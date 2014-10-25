@@ -6,6 +6,9 @@
 #include "SystemHelper.h"
 #include "MPIDofMap.h"
 #include "Exception.h"
+#include "MPIOStream.h"
+#include "Timer.h"
+
 #include "SolverDDM.h"
 
 using namespace std;
@@ -69,11 +72,13 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   // PETSc //
   // Unknown vector
   VecCreate(MPI_COMM_WORLD, &x);
+  VecSetType(x, "mpi");
   VecSetSizes(x, sizeFull, PETSC_DECIDE);
   VecSetFromOptions(x);
 
   // RHS vector
   VecCreate(MPI_COMM_WORLD, &b);
+  VecSetType(b, "mpi");
   VecSetSizes(b, sizeFull, PETSC_DECIDE);
   VecSetFromOptions(b);
 
@@ -81,7 +86,8 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   MatCreateShell(MPI_COMM_WORLD, sizeFull, sizeFull, PETSC_DECIDE, PETSC_DECIDE,
                  (void*)(this), &A);
 
-  MatShellSetOperation(A, MATOP_MULT, (void(*)(void))(matMult));
+  // Set opertation //
+  MatShellSetOperation(A, MATOP_MULT, (void(*)(void))(SolverDDM::matMult));
 }
 
 SolverDDM::~SolverDDM(void){
@@ -119,6 +125,131 @@ void SolverDDM::solve(int nStep){
   PetscBarrier(PETSC_NULL);
 
   KSPDestroy(&solver);
+}
+
+void SolverDDM::constructIterationMatrix(string name, string filename){
+  // Tell //
+  MPIOStream cout(0, std::cout);
+  cout << "  " << "SolverDDM::constructIterationMatrix" << endl
+       << "  " << "-----------------------------------" << endl;
+
+  // Get Size //
+  PetscInt size;
+  PetscInt check;
+  MatGetSize(A, &size, &check);
+
+  if(size != check)
+    throw Exception("SolverDDM::constructIterationMatrix(): "
+                    "Shell Matrix is not square");
+
+  // Get Local Size //
+  size_t sizeLoc = context->getDDMDofs().size();
+
+  // Allocate Inspection Vector //
+  Vec v;
+  VecCreate(PETSC_COMM_WORLD, &v);
+  VecSetType(v, "mpi");
+  VecSetSizes(v, sizeLoc, size);
+
+  // Allocate Resulting Vector //
+  Vec w;
+  VecDuplicate(v, &w);
+
+  // Get ranges //
+  PetscInt start;
+  PetscInt stop;
+  VecGetOwnershipRange(v, &start, &stop);
+
+  // Sanity //
+  PetscInt sanityVecStart;
+  PetscInt sanityVecStop;
+  VecGetOwnershipRange(w, &sanityVecStart, &sanityVecStop);
+
+  if(start != sanityVecStart || stop != sanityVecStop)
+    throw Exception("SolverDDM::constructIterationMatrix(): "
+                    "parallel vectors don't have the same parallel pattern");
+
+  // Allocate Iteration Matrix I //
+  ///////////////////////////////////////////////////////////////////////////
+  //  w0 w1 ... wn                                                         //
+  // +--+--+---+--+                                                        //
+  // |     p0     |   Each (group of) row is owned by a processor.         //
+  // +------------+   It has access to every column of its (group of) row. //
+  // |     p1     |                                                        //
+  // +------------+   Thus we need PETSc mpiaij format.                    //
+  // |     ...    |                                                        //
+  // +------------+   Each resulting vector wi is the ith column of I.     //
+  // |     pn     |                                                        //
+  // +--+--+---+--+                                                        //
+  ///////////////////////////////////////////////////////////////////////////
+
+  Mat I;
+  MatCreateDense(PETSC_COMM_WORLD, sizeLoc, sizeLoc, size, size, NULL, &I);
+  /*
+  MatCreate(PETSC_COMM_WORLD, &I);
+  MatSetType(I, "mpiaij");
+  MatSetSizes(I, sizeLoc, sizeLoc, size, size);
+  MatSetUp(I);
+  MatMPIAIJSetPreallocation(I, sizeLoc, PETSC_NULL, size - sizeLoc, PETSC_NULL);
+  */
+
+  // Sanity //
+  PetscInt sanityMatRowStart;
+  PetscInt sanityMatRowStop;
+  MatGetOwnershipRange(I, &sanityMatRowStart, &sanityMatRowStop);
+
+  if(start != sanityMatRowStart || stop != sanityMatRowStop)
+    throw Exception("SolverDDM::constructIterationMatrix(): "
+                    "parallel vector and matrix don't have "
+                    "the same parallel pattern");
+
+  // Local vector value and index //
+  PetscScalar*     tmp;
+  vector<PetscInt> idx(sizeLoc);
+
+  for(size_t i = 0; i < sizeLoc; i++)
+    idx[i] = start + i;
+
+  // Set v = [0..1..0]; apply A; store w in I //
+  for(PetscInt i = 0; i < size; i++){
+    // Tell
+    cout << "  " << "Constructing column: " << i << "/" << size << endl;
+
+    // Set v
+    VecScale(v, 0);
+    if(start <= i && i < stop)
+      VecSetValue(v, i, 1, INSERT_VALUES);
+
+    VecAssemblyBegin(v);
+    VecAssemblyEnd(v);
+
+    // Apply A
+    matMult(A, v, w);
+
+    // Store in I
+    VecGetArray(w, &tmp);
+    MatSetValues(I, sizeLoc, idx.data(), 1, &i, tmp, INSERT_VALUES);
+    VecRestoreArray(w, &tmp);
+  }
+
+  // Assemble I //
+  MatAssemblyBegin(I, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(I, MAT_FINAL_ASSEMBLY);
+
+  // Dump I //
+  PetscViewer viewer;
+
+  PetscViewerASCIIOpen(PETSC_COMM_WORLD, filename.c_str(), &viewer);
+  PetscObjectSetName((PetscObject)(I), name.c_str());
+  PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+
+  MatView(I, viewer);
+
+  // Clear //
+  VecDestroy(&v);
+  VecDestroy(&w);
+  MatDestroy(&I);
+  PetscViewerDestroy(&viewer);
 }
 
 void SolverDDM::getSolution(map<Dof, Complex>& ddm){
@@ -245,59 +376,64 @@ void SolverDDM::unserialize(map<Dof, Complex>& data,
 }
 
 template<>
-void SolverDDM::exchange(int target, vector<Complex>& out, vector<Complex>& in){
-  MPI_Status  status;
-  MPI_Request request;
-  size_t      size = out.size();
+void SolverDDM::exchange(int target, vector<Complex>& out, vector<Complex>& in,
+                         MPI_Request* send, MPI_Request* recv){
+  size_t size = out.size();
 
   // Asynchornous exchange //
   MPI_Isend((void*)(out.data()), size, MPI_DOUBLE_COMPLEX,
-            target, 0, MPI_COMM_WORLD, &request);
+            target, 0, MPI_COMM_WORLD, send);
 
-  MPI_Recv((void*)(in.data()), size, MPI_DOUBLE_COMPLEX,
-           target, 0, MPI_COMM_WORLD, &status);
-
-  // Buffer Coherence & MPI internals Free //
-  MPI_Wait(&request, &status);
+  MPI_Irecv((void*)(in.data()), size, MPI_DOUBLE_COMPLEX,
+            target, 0, MPI_COMM_WORLD, recv);
 }
 
 template<>
-void SolverDDM::exchange(int target, vector<int>& out, vector<int>& in){
-  MPI_Status  status;
-  MPI_Request request;
-  size_t      size = out.size();
+void SolverDDM::exchange(int target, vector<int>& out, vector<int>& in,
+                         MPI_Request* send, MPI_Request* recv){
+  //MPI_Status status;
+  size_t size = out.size();
 
   // Asynchornous exchange //
   MPI_Isend((void*)(out.data()), size, MPI_INT,
-            target, 0, MPI_COMM_WORLD, &request);
+            target, 0, MPI_COMM_WORLD, send);
 
-  MPI_Recv((void*)(in.data()), size, MPI_INT,
-           target, 0, MPI_COMM_WORLD, &status);
-
-  // Buffer Coherence & MPI internals Free //
-  MPI_Wait(&request, &status);
+  MPI_Irecv((void*)(in.data()), size, MPI_INT,
+            target, 0, MPI_COMM_WORLD, recv);
 }
 
 void SolverDDM::exchange(map<Dof, Complex>& data){
-  // Neighbour one //
+  MPI_Request  req[12];
+  MPI_Status  stat[12];
+
+  // Exchange with neighbour one //
   if(neighbourOne != -1){
     serialize(data, neighbourOne, outEntityOne, outTypeOne, outValueOne);
 
-    exchange<int>    (neighbourOne, outEntityOne, inEntityOne);
-    exchange<int>    (neighbourOne, outTypeOne  , inTypeOne);
-    exchange<Complex>(neighbourOne, outValueOne , inValueOne);
-
-    unserialize(data, inEntityOne, inTypeOne, inValueOne);
+    exchange<int>    (neighbourOne, outEntityOne, inEntityOne, &req[0],&req[1]);
+    exchange<int>    (neighbourOne, outTypeOne  , inTypeOne  , &req[2],&req[3]);
+    exchange<Complex>(neighbourOne, outValueOne , inValueOne , &req[4],&req[5]);
   }
 
-  // Neighbour two //
+  // Exchange with neighbour two //
   if(neighbourTwo != -1){
     serialize(data, neighbourTwo, outEntityTwo, outTypeTwo, outValueTwo);
 
-    exchange<int>    (neighbourTwo, outEntityTwo, inEntityTwo);
-    exchange<int>    (neighbourTwo, outTypeTwo  , inTypeTwo);
-    exchange<Complex>(neighbourTwo, outValueTwo , inValueTwo);
+    exchange<int>    (neighbourTwo, outEntityTwo, inEntityTwo, &req[6],&req[7]);
+    exchange<int>    (neighbourTwo, outTypeTwo  , inTypeTwo  , &req[8],&req[9]);
+    exchange<Complex>(neighbourTwo, outValueTwo , inValueTwo ,
+                      &req[10],&req[11]);
+  }
 
+  // Reconstruct data from neighbour one //
+  if(neighbourOne != -1){
+    MPI_Waitall(6, &req[0], &stat[0]);
+    unserialize(data, inEntityOne, inTypeOne, inValueOne);
+  }
+
+  // Reconstruct data from neighbour two //
+  if(neighbourTwo != -1){
+    MPI_Waitall(6, &req[6], &stat[6]);
     unserialize(data, inEntityTwo, inTypeTwo, inValueTwo);
   }
 
@@ -375,6 +511,10 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   ddm.update();
 
   // Solve Full Volume & Update Problems Once //
+  Timer solve;
+  Timer up;
+
+  solve.start();
   if(!solver->once){
     // Prepare Volume Problem
     volume.addFormulation(wave);
@@ -414,13 +554,22 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
     volume.assembleAgainRHS();  // Volume problem
     volume.solveAgain();        // --------------
 
+    up.start();
     upDdm.update();             // Recompute upDdm terms
+    up.stop();
 
     update.assembleAgainRHS();  // Update problem
     update.solveAgain();        // --------------
+
+    MPIOStream cout(1, std::cout);
+    //cout << "Updated: " << up.time()    << std::endl << std::flush;
   }
+  solve.stop();
 
   // Exchange ddmG //
+  MPIOStream cout(1, std::cout);
+  //cout << "Solved : " << solve.time() << std::endl << std::flush;
+
   update.getSolution(ddmG, 0);
   solver->exchange(ddmG);
   context.setDDMDofs(ddmG);

@@ -323,8 +323,8 @@ void compute(const Options& option){
 
   // DDM Solver //
   SolverDDM solver(wave, *sommerfeld, source, *context, *ddm, *upDdm, rhsG);
-
-  solver.solve(maxIt);
+  //solver.solve(maxIt);
+  solver.constructIterationMatrix("A", "A.m");
 
   // Full Problem //
   solver.getSolution(ddmG);

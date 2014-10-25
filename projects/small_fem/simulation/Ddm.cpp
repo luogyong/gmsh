@@ -305,7 +305,6 @@ void compute(const Options& option){
 
   // DDM Solver //
   SolverDDM solver(wave, sommerfeld, source, *context, *ddm, *upDdm, rhsG);
-
   solver.solve(maxIt);
 
   // Full Problem //

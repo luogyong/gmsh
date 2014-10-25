@@ -80,6 +80,7 @@ class SolverDDM{
   ~SolverDDM(void);
 
   void solve(int nStep);
+  void constructIterationMatrix(std::string name, std::string filename);
 
   void getSolution(std::map<Dof, Complex>& ddm);
 
@@ -88,13 +89,14 @@ class SolverDDM{
   std::pair<size_t, size_t> splitSize(void);
 
   void serialize(std::map<Dof, Complex>& data, int neighbour,
-                        std::vector<int>& entity, std::vector<int>& type,
-                        std::vector<Complex>& value);
+                 std::vector<int>& entity, std::vector<int>& type,
+                 std::vector<Complex>& value);
   void unserialize(std::map<Dof, Complex>& data,
-                          std::vector<int>& entity, std::vector<int>& type,
-                          std::vector<Complex>& value);
+                   std::vector<int>& entity, std::vector<int>& type,
+                   std::vector<Complex>& value);
   template<typename T>
-    void exchange(int target, std::vector<T>& out, std::vector<T>& in);
+    void exchange(int target, std::vector<T>& out, std::vector<T>& in,
+                  MPI_Request* send, MPI_Request* recv);
 
   void exchange(std::map<Dof, Complex>& data);
 
