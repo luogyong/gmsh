@@ -237,11 +237,28 @@ void SolverDDM::constructIterationMatrix(string name, string filename){
   MatAssemblyEnd(I, MAT_FINAL_ASSEMBLY);
 
   // Dump I //
-  PetscViewer viewer;
+  //////////////////////////////////////////////////////////////
+  // Binary format is used                                    //
+  //                                                          //
+  // Add the petscfolder/bin/matlab path to your matlab paths //
+  // and type the following command in matlab.                //
+  //                                                          //
+  // For real arithmetic:                                     //
+  // A = PetscBinaryRead(filename);                           //
+  //                                                          //
+  // For complex arithmetic:                                  //
+  // A = PetscBinaryRead(filename , 'complex', true);         //
+  //////////////////////////////////////////////////////////////
 
-  PetscViewerASCIIOpen(PETSC_COMM_WORLD, filename.c_str(), &viewer);
+  PetscViewer viewer;
   PetscObjectSetName((PetscObject)(I), name.c_str());
-  PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+
+  //PetscViewerASCIIOpen(PETSC_COMM_WORLD, filename.c_str(), &viewer);
+  //PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+
+  PetscViewerBinaryOpen(PETSC_COMM_WORLD, filename.c_str(),
+                        FILE_MODE_WRITE, &viewer);
+  PetscViewerSetFormat(viewer, PETSC_VIEWER_NATIVE);
 
   MatView(I, viewer);
 

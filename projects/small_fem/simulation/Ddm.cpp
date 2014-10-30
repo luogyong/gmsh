@@ -330,12 +330,17 @@ void compute(const Options& option){
   full.getSolution(ddmG, 0);
 
   // Draw Solution //
-  stringstream stream;
-  stream << "ddm" << myProc;
+  try{
+    option.getValue("-nopos");
+  }
+  catch(...){
+    stringstream stream;
+    stream << "ddm" << myProc;
 
-  FEMSolution<Complex> feSol;
-  full.getSolution(feSol, *fs, volume);
-  feSol.write(stream.str());
+    FEMSolution<Complex> feSol;
+    full.getSolution(feSol, *fs, volume);
+    feSol.write(stream.str());
+  }
 
   // Clean //
   delete ddm;
@@ -367,7 +372,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade");
+  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

@@ -323,8 +323,17 @@ void compute(const Options& option){
 
   // DDM Solver //
   SolverDDM solver(wave, *sommerfeld, source, *context, *ddm, *upDdm, rhsG);
-  //solver.solve(maxIt);
-  solver.constructIterationMatrix("A", "A.m");
+
+  try{
+    // Construct iteration operator
+    string name = option.getValue("-I")[1];
+    string filename = name + ".bin";
+    solver.constructIterationMatrix(name.c_str(), filename.c_str());
+  }
+  catch(...){
+    // Solve
+    solver.solve(maxIt);
+  }
 
   // Full Problem //
   solver.getSolution(ddmG);
@@ -347,12 +356,17 @@ void compute(const Options& option){
   full.solve();
 
   // Draw Solution //
-  stringstream stream;
-  stream << "circle" << myProc;
+  try{
+    option.getValue("-nopos");
+  }
+  catch(...){
+    stringstream stream;
+    stream << "circle" << myProc;
 
-  FEMSolution<Complex> feSol;
-  full.getSolution(feSol, *fs, volume);
-  feSol.write(stream.str());
+    FEMSolution<Complex> feSol;
+    full.getSolution(feSol, *fs, volume);
+    feSol.write(stream.str());
+  }
 
   // Clean //
   delete ddm;
@@ -385,7 +399,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade");
+  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,-nopos,-I");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
