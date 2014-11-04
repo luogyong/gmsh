@@ -2,7 +2,7 @@ Include "circle_concentric_data.geo";
 
 DefineConstant[ // allows to set these from outside
   // transmission boundary condition
-  TC_TYPE = {0, Name "Input/01Transmission condition",
+  TC_TYPE = {2, Name "Input/01Transmission condition",
     Choices {0="Order 0", 1="Order 2", 2="Pade (OSRC)"}},
   NP_OSRC = 4,
   // parameters for the DDM iterative solver

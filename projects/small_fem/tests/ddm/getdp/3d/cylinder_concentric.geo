@@ -42,7 +42,7 @@ For i In {0:N_DOM}
   EndIf
 EndFor
 
-ret[] = Extrude{0,0,1/6}{
+ret[] = Extrude{0,0,1}{
   Surface{ss[]}; Layers{LC}; //Recombine;
 };
 
