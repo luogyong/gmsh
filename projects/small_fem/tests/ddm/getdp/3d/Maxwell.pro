@@ -53,18 +53,59 @@ FunctionSpace {
     { Name Hcurl_e~{idom}; Type Form1;
       BasisFunction {
         { Name se; NameOfCoef ee; Function BF_Edge;
-	  Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}, GammaD0~{idom}}] ;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}, GammaD0~{idom}}] ;
+          Entity EdgesOf[All]; }
+        { Name se2; NameOfCoef ee2; Function BF_Edge_2E;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}, GammaD0~{idom}}] ;
+          Entity EdgesOf[All]; }
+
+        { Name se3a; NameOfCoef ee3a; Function BF_Edge_3F_a;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}, GammaD0~{idom}}] ;
+          Entity FacetsOf[All]; }
+        { Name se3b; NameOfCoef ee3b; Function BF_Edge_3F_b;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}, GammaD0~{idom}}] ;
+          Entity FacetsOf[All]; }
+        { Name se3c; NameOfCoef ee3c; Function BF_Edge_3F_c;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}, GammaD0~{idom}}] ;
+          Entity FacetsOf[All]; }
+
+        { Name se4; NameOfCoef ee4; Function BF_Edge_4E;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}, GammaD0~{idom}}] ;
           Entity EdgesOf[All]; }
       }
       Constraint {
-        { NameOfCoef ee; EntityType EdgesOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee  ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee2 ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+
+        { NameOfCoef ee3a; EntityType FacetsOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee3b; EntityType FacetsOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee3c; EntityType FacetsOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+
+        { NameOfCoef ee4 ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e_homog~{idom}; }
       }
     }
 
     { Name Hcurl_h~{idom}; Type Form1;
       BasisFunction {
         { Name sh; NameOfCoef he; Function BF_Edge;
-	  Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}}] ;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}}] ;
+          Entity EdgesOf[All]; }
+        { Name sh2; NameOfCoef he2; Function BF_Edge_2E;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}}] ;
+          Entity EdgesOf[All]; }
+
+        { Name sh3a; NameOfCoef he3a; Function BF_Edge_3F_a;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}}] ;
+          Entity FacetsOf[All]; }
+        { Name sh3b; NameOfCoef he3b; Function BF_Edge_3F_b;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}}] ;
+          Entity FacetsOf[All]; }
+        { Name sh3c; NameOfCoef he3c; Function BF_Edge_3F_c;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}}] ;
+          Entity FacetsOf[All]; }
+
+        { Name sh4; NameOfCoef he4; Function BF_Edge_4E;
+          Support Region[{Omega~{idom}, GammaD~{idom}, GammaInf~{idom}, Sigma~{idom}}] ;
           Entity EdgesOf[All]; }
       }
     }
@@ -72,10 +113,29 @@ FunctionSpace {
     { Name Hcurl_lambda~{idom}; Type Form1;
       BasisFunction {
         { Name se; NameOfCoef ee; Function BF_Edge;
-	  Support Region[{GammaD~{idom}}] ; Entity EdgesOf[All]; }
+          Support Region[{GammaD~{idom}}] ; Entity EdgesOf[All]; }
+        { Name se2; NameOfCoef ee2; Function BF_Edge_2E;
+          Support Region[{GammaD~{idom}}] ; Entity EdgesOf[All]; }
+
+        { Name se3a; NameOfCoef ee3a; Function BF_Edge_3F_a;
+          Support Region[{GammaD~{idom}}] ; Entity FacetsOf[All]; }
+        { Name se3b; NameOfCoef ee3b; Function BF_Edge_3F_b;
+          Support Region[{GammaD~{idom}}] ; Entity FacetsOf[All]; }
+        { Name se3c; NameOfCoef ee3c; Function BF_Edge_3F_c;
+          Support Region[{GammaD~{idom}}] ; Entity FacetsOf[All]; }
+
+        { Name se4; NameOfCoef ee4; Function BF_Edge_4E;
+          Support Region[{GammaD~{idom}}] ; Entity EdgesOf[All]; }
       }
       Constraint {
-        { NameOfCoef ee; EntityType EdgesOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee  ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee2 ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+
+        { NameOfCoef ee3a; EntityType FacetsOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee3b; EntityType FacetsOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+        { NameOfCoef ee3c; EntityType FacetsOf ; NameOfConstraint Dirichlet_e_homog~{idom}; }
+
+        { NameOfCoef ee4 ; EntityType EdgesOf  ; NameOfConstraint Dirichlet_e_homog~{idom}; }
       }
     }
 
@@ -83,28 +143,71 @@ FunctionSpace {
     { Name Hcurl_g_out~{idom}~{iSide}; Type Form1;
       BasisFunction {
         { Name se; NameOfCoef ee; Function BF_Edge;
-	  Support Region[{Sigma~{idom}~{iSide}}] ;
+          Support Region[{Sigma~{idom}~{iSide}}] ;
           Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+        /*
+        { Name se2; NameOfCoef ee2; Function BF_Edge_2E;
+          Support Region[{Sigma~{idom}~{iSide}}] ;
+          Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+
+        { Name se3a; NameOfCoef ee3a; Function BF_Edge_3F_a;
+          Support Region[{Sigma~{idom}~{iSide}}] ;
+          Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+        { Name se3b; NameOfCoef ee3b; Function BF_Edge_3F_b;
+          Support Region[{Sigma~{idom}~{iSide}}] ;
+          Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+        { Name se3c; NameOfCoef ee3c; Function BF_Edge_3F_c;
+          Support Region[{Sigma~{idom}~{iSide}}] ;
+          Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+
+        { Name se4; NameOfCoef ee4; Function BF_Edge_4E;
+          Support Region[{Sigma~{idom}~{iSide}}] ;
+          Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+        */
       }
     }
     EndFor
 
     If(TC_TYPE == 1)
       For iSide In {0:1}
-	{ Name Hgrad_rho~{idom}~{iSide} ; Type Form0 ;
-	  BasisFunction {
+        { Name Hgrad_rho~{idom}~{iSide} ; Type Form0 ;
+          BasisFunction {
             { Name srh1; NameOfCoef erh1; Function BF_Node;
-	      Support Region[{Sigma~{idom}~{iSide}}] ;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
               Entity NodesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
-          }
-	}
-	{ Name Hcurl_phi~{idom}~{iSide}; Type Form1;
-	  BasisFunction {
-            { Name sph1; NameOfCoef eph1; Function BF_Edge;
-	      Support Region[{Sigma~{idom}~{iSide}}] ;
+            /*
+            { Name srh12; NameOfCoef erh12; Function BF_Node_2E;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
               Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
+            */
           }
-	}
+        }
+        { Name Hcurl_phi~{idom}~{iSide}; Type Form1;
+          BasisFunction {
+            { Name sph1; NameOfCoef eph1; Function BF_Edge;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
+            /*
+            { Name sph12; NameOfCoef eph12; Function BF_Edge_2E;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
+
+            { Name sph13a; NameOfCoef eph13a; Function BF_Edge_3F_a;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
+            { Name sph13b; NameOfCoef eph13b; Function BF_Edge_3F_b;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
+            { Name sph13c; NameOfCoef eph13c; Function BF_Edge_3F_c;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
+
+            { Name sph14; NameOfCoef eph14; Function BF_Edge_4E;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}}]; }
+            */
+          }
+        }
       EndFor
     EndIf
 
@@ -113,25 +216,68 @@ FunctionSpace {
         { Name Hcurl_r~{idom}~{iSide}; Type Form1;
           BasisFunction {
             { Name ser1; NameOfCoef eer1; Function BF_Edge;
-	      Support Region[{Sigma~{idom}~{iSide}}] ;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
               Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+            /*
+            { Name ser12; NameOfCoef eer12; Function BF_Edge_2E;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+
+            { Name ser13a; NameOfCoef eer13a; Function BF_Edge_3F_a;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+            { Name ser13b; NameOfCoef eer13b; Function BF_Edge_3F_b;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+            { Name ser13c; NameOfCoef eer13c; Function BF_Edge_3F_c;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+
+            { Name ser14; NameOfCoef eer14; Function BF_Edge_4E;
+              Support Region[{Sigma~{idom}~{iSide}}] ;
+              Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+            */
           }
         }
         For j In {1:NP_OSRC}
-	  { Name Hgrad_rho~{j}~{idom}~{iSide} ; Type Form0 ;
-	    BasisFunction {
+          { Name Hgrad_rho~{j}~{idom}~{iSide} ; Type Form0 ;
+            BasisFunction {
               { Name srh1; NameOfCoef erh1; Function BF_Node;
-	        Support Region[{Sigma~{idom}~{iSide}}] ;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
                 Entity NodesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
-            }
-	  }
-	  { Name Hcurl_phi~{j}~{idom}~{iSide}; Type Form1;
-	    BasisFunction {
-              { Name sph1; NameOfCoef eph1; Function BF_Edge;
-		Support Region[{Sigma~{idom}~{iSide}}] ;
+              /*
+              { Name srh12; NameOfCoef erh12; Function BF_Node_2E;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
                 Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+              */
             }
-	  }
+          }
+          { Name Hcurl_phi~{j}~{idom}~{iSide}; Type Form1;
+            BasisFunction {
+              { Name sph1; NameOfCoef eph1; Function BF_Edge;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
+                Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+              /*
+              { Name sph12; NameOfCoef eph12; Function BF_Edge_2E;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
+                Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+
+              { Name sph13a; NameOfCoef eph13a; Function BF_Edge_3F_a;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
+                Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+              { Name sph13b; NameOfCoef eph13b; Function BF_Edge_3F_b;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
+                Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+              { Name sph13c; NameOfCoef eph13c; Function BF_Edge_3F_c;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
+                Entity FacetsOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+
+              { Name sph14; NameOfCoef eph14; Function BF_Edge_4E;
+                Support Region[{Sigma~{idom}~{iSide}}] ;
+                Entity EdgesOf[Sigma~{idom}~{iSide}, Not {GammaD~{idom}, GammaD0~{idom}, GammaInf~{idom}}]; }
+              */
+            }
+         }
         EndFor
       EndFor
     EndIf
