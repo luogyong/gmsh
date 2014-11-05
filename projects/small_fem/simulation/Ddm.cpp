@@ -22,6 +22,7 @@
 #include "FormulationOSRCScalar.h"
 #include "FormulationOSRCVector.h"
 
+#include "FormulationDummy.h"
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
 
@@ -33,18 +34,33 @@
 
 using namespace std;
 
-static const int scal = 0;
-static const int vect = 1;
+static const int    scal = 0;
+static const int    vect = 1;
+static       double k;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  return Complex(1, 0);
+  return Complex(std::sin(M_PI * 3 * xyz(1)), 0);
+}
+
+Complex fZeroScal(fullVector<double>& xyz){
+  return Complex(0, 0);
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   fullVector<Complex> tmp(3);
 
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0);
+  tmp(1) = Complex(std::cos(M_PI * 2 * xyz(1)), 0);
+  tmp(2) = Complex(0, 0);
+
+  return tmp;
+}
+
+fullVector<Complex> fZeroVect(fullVector<double>& xyz){
+  fullVector<Complex> tmp(3);
+
+  tmp(0) = Complex(0, 0);
+  tmp(1) = Complex(0, 0);
   tmp(2) = Complex(0, 0);
 
   return tmp;
@@ -70,7 +86,7 @@ void compute(const Options& option){
 
   // Get Parameters //
   const string ddmType = option.getValue("-ddm")[1];
-  const double k       = atof(option.getValue("-k")[1].c_str());
+  k                    = atof(option.getValue("-k")[1].c_str());
   const size_t order   = atoi(option.getValue("-o")[1].c_str());
   const size_t maxIt   = atoi(option.getValue("-max")[1].c_str());
 
@@ -134,29 +150,41 @@ void compute(const Options& option){
   Mesh msh(option.getValue("-msh")[1]);
   GroupOfElement volume(msh);
   GroupOfElement source(msh);
+  GroupOfElement zero(msh);
   GroupOfElement infinity(msh);
   GroupOfElement ddmBorder(msh);
 
+  volume.add(msh.getFromPhysical(myProc + 1));
+
   if(myProc == 0){
-    volume.add(msh.getFromPhysical(7));
-    source.add(msh.getFromPhysical(5));
-    infinity.add(msh.getFromPhysical(61));
-    ddmBorder.add(msh.getFromPhysical(4));
+       source.add(msh.getFromPhysical(nProcs + 1));
+    ddmBorder.add(msh.getFromPhysical(nProcs + 2));
+  }
+
+  else if(myProc == nProcs - 1){
+    ddmBorder.add(msh.getFromPhysical(myProc + nProcs + 1));
+     infinity.add(msh.getFromPhysical(myProc + nProcs + 2));
   }
 
   else{
-    volume.add(msh.getFromPhysical(8));
-    //No source//
-    infinity.add(msh.getFromPhysical(62));
-    ddmBorder.add(msh.getFromPhysical(4));
+    ddmBorder.add(msh.getFromPhysical(myProc + nProcs + 1));
+    ddmBorder.add(msh.getFromPhysical(myProc + nProcs + 2));
   }
 
-  // Full Domain //
-  vector<const GroupOfElement*> domain(4);
+  zero.add(msh.getFromPhysical(2 * nProcs + 2));
+
+  // Full Domain & Border //
+  GroupOfElement realBorder(msh);
+  realBorder.add(source);
+  realBorder.add(zero);
+
+  vector<const GroupOfElement*> domain(6);
   domain[0] = &volume;
-  domain[1] = &source;
-  domain[2] = &infinity;
-  domain[3] = &ddmBorder;
+  domain[1] = &realBorder;
+  domain[2] = &source;
+  domain[3] = &zero;
+  domain[4] = &infinity;
+  domain[5] = &ddmBorder;
 
   // Function Space //
   FunctionSpace* fs =  NULL;
@@ -210,8 +238,14 @@ void compute(const Options& option){
   }
 
   // Steady Wave Formulation //
-  FormulationSteadyWave<Complex> wave(volume, *fs, k);
-  FormulationSommerfeld          sommerfeld(infinity, *fs, k);
+  Formulation<Complex>* wave;
+  Formulation<Complex>* sommerfeld;
+
+  wave = new FormulationSteadyWave<Complex>(volume, *fs, k);
+  if(myProc == nProcs - 1)
+    sommerfeld = new FormulationSommerfeld(infinity, *fs, k);
+  else
+    sommerfeld = new FormulationDummy<Complex>;
 
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
@@ -278,15 +312,19 @@ void compute(const Options& option){
 
   // Solve Non homogenous problem //
   System<Complex> nonHomogenous;
-  nonHomogenous.addFormulation(wave);
-  nonHomogenous.addFormulation(sommerfeld);
+  nonHomogenous.addFormulation(*wave);
+  nonHomogenous.addFormulation(*sommerfeld);
   nonHomogenous.addFormulation(*ddm);
 
   // Constraint
-  if(fs->isScalar())
+  if(fs->isScalar()){
     SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, source, fSourceScal);
-  else
+    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, zero  , fZeroScal);
+  }
+  else{
     SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, source, fSourceVect);
+    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, zero  , fZeroVect);
+  }
 
   // Assemble & Solve
   nonHomogenous.assemble();
@@ -304,8 +342,18 @@ void compute(const Options& option){
   nonHomogenousDDM.getSolution(rhsG, 0);
 
   // DDM Solver //
-  SolverDDM solver(wave, sommerfeld, source, *context, *ddm, *upDdm, rhsG);
-  solver.solve(maxIt);
+  SolverDDM solver(*wave,*sommerfeld, realBorder, *context, *ddm, *upDdm, rhsG);
+
+  try{
+    // Construct iteration operator
+    string name = option.getValue("-I")[1];
+    string filename = name + ".bin";
+    solver.constructIterationMatrix(name.c_str(), filename.c_str());
+  }
+  catch(...){
+    // Solve
+    solver.solve(maxIt);
+  }
 
   // Full Problem //
   solver.getSolution(ddmG);
@@ -314,15 +362,19 @@ void compute(const Options& option){
   ddm->update();
 
   System<Complex> full;
-  full.addFormulation(wave);
-  full.addFormulation(sommerfeld);
+  full.addFormulation(*wave);
+  full.addFormulation(*sommerfeld);
   full.addFormulation(*ddm);
 
   // Constraint
-  if(fs->isScalar())
+  if(fs->isScalar()){
     SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceScal);
-  else
+    SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroScal);
+  }
+  else{
     SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceVect);
+    SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroVect);
+  }
 
   full.assemble();
   full.solve();
@@ -345,6 +397,8 @@ void compute(const Options& option){
   // Clean //
   delete ddm;
   delete upDdm;
+  delete wave;
+  delete sommerfeld;
   delete context;
   delete fs;
 
@@ -372,7 +426,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,-nopos");
+  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,-nopos,-I");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
