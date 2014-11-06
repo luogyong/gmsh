@@ -17,8 +17,8 @@ CL = LB / NL;
 // Geometry //
 // Points
 For n In {1:N+1}
-  Point(n)         = {+X / N * (n - 1), 0, 0, CL};
-  Point(n + N + 1) = {+X / N * (n - 1), Y, 0, CL};
+  Point(n)         = {+X / N * (n - 1), 0, 0.5, CL};
+  Point(n + N + 1) = {+X / N * (n - 1), Y, 0.5, CL};
 EndFor
 
 // Lines
@@ -37,17 +37,6 @@ Line Loop(n) = {n, n + (N + 1) + N, -(n + 1), -(n + (N + 1))};
   Plane Surface(n) = {n};
 EndFor
 
-// Physicals
-For n In {1:N}
-  Physical Surface(n) = {n};
-EndFor
-
-For n In {1:N+1}
-  Physical Line(n + N) = {n};
-EndFor
-
-Physical Line(2 * N + 2) = {1 + (N + 1):2 * (N + (N + 1))};
-
 // Mesh //
 For n In {1:N+1}
   Transfinite Line {n} = NY Using Progression 1;
@@ -61,3 +50,14 @@ EndFor
 For n In {1:N}
   Transfinite Surface {n};
 EndFor
+
+// Physicals //
+For n In {1:N}
+  Physical Surface(n) = {n};
+EndFor
+
+For n In {1:N+1}
+  Physical Line(n + N) = {n};
+EndFor
+
+Physical Line(2 * N + 2) = {1 + (N + 1):2 * (N + (N + 1))};

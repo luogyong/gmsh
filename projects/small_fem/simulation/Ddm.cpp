@@ -39,7 +39,10 @@ static const int    vect = 1;
 static       double k;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  return Complex(std::sin(M_PI * 3 * xyz(1)), 0);
+  const double ky = 1;
+  const double kz = 1;
+
+  return Complex(sin(M_PI * ky * xyz(1)) * sin(M_PI * kz * xyz(2)), 0);
 }
 
 Complex fZeroScal(fullVector<double>& xyz){
@@ -47,11 +50,23 @@ Complex fZeroScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  fullVector<Complex> tmp(3);
+  const Complex I = Complex(0, 1);
 
-  tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(std::cos(M_PI * 2 * xyz(1)), 0);
-  tmp(2) = Complex(0, 0);
+  const double ky = 1;
+  const double kz = 1;
+  const double kc = sqrt((ky * ky) + (kz * kz));
+
+  Complex beta;
+  if((k * k) - (kc * kc) >= 0)
+    beta = Complex(sqrt((k * k) - (kc * kc)), 0);
+
+  else
+    beta = Complex(0, -1 * sqrt((kc * kc) - (k * k)));
+
+  fullVector<Complex> tmp(3);
+  tmp(0) = Complex(            sin(M_PI*ky * xyz(1)) * sin(M_PI*kz * xyz(2)),0);
+  tmp(1) = I*beta*ky/(kc*kc) * cos(M_PI*ky * xyz(1)) * sin(M_PI*kz * xyz(2));
+  tmp(2) = I*beta*kz/(kc*kc) * cos(M_PI*kz * xyz(2)) * sin(M_PI*ky * xyz(1));
 
   return tmp;
 }
