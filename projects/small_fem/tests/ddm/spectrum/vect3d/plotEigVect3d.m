@@ -8,10 +8,10 @@ l3 = dlmread('l3.csv');
 
 figure;
 hold on;
-plot(real(l0), imag(l0), 'k+');
-plot(real(l1), imag(l1), 'ko');
+plot(real(l0), imag(l0), 'm+');
+plot(real(l1), imag(l1), 'kx');
 plot(real(l2), imag(l2), 'bo');
-plot(real(l3), imag(l3), 'ro');
+plot(real(l3), imag(l3), 'rs');
 hold off;
 
 title('OSRC Vectorial 3D');
