@@ -10,7 +10,7 @@ plot(real(lAsf), imag(lAsf), 'k+');
 plot(real(lAgp), imag(lAgp), 'rx');
 hold off;
 
-title('OSRC Scalar 2D -- Getdp vs SmallFem -- Order 1 -- Wavenumber 10')
+title('OSRC Scalar 2D -- Getdp vs SmallFem -- Order 1 -- 4 Subdomains -- Wavenumber 10')
 xlabel('Real(lambda)');
 ylabel('Imag(lambda)');
 legend({'SmallFem', 'Getdp'});
