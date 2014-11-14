@@ -2,8 +2,8 @@
 #include <iostream>
 
 #include "SmallFem.h"
-
 #include "SolverDDM.h"
+#include "MPIOStream.h"
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
@@ -42,6 +42,7 @@ Complex fSourceScal(fullVector<double>& xyz){
   const double ky = 1;
   const double kz = 1;
 
+  //return Complex(1, 0);
   return Complex(sin(M_PI * ky * xyz(1)) * sin(M_PI * kz * xyz(2)), 0);
 }
 
@@ -67,7 +68,12 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   tmp(0) = Complex(            sin(M_PI*ky * xyz(1)) * sin(M_PI*kz * xyz(2)),0);
   tmp(1) = I*beta*ky/(kc*kc) * cos(M_PI*ky * xyz(1)) * sin(M_PI*kz * xyz(2));
   tmp(2) = I*beta*kz/(kc*kc) * cos(M_PI*kz * xyz(2)) * sin(M_PI*ky * xyz(1));
-
+  /*
+  fullVector<Complex> tmp(3);
+  tmp(0) = Complex(0, 0);
+  tmp(1) = Complex(1, 0);
+  tmp(2) = Complex(0, 0);
+  */
   return tmp;
 }
 
@@ -85,6 +91,8 @@ void compute(const Options& option){
   // MPI //
   int nProcs;
   int myProc;
+  MPIOStream cout(0, std::cout);
+
   MPI_Comm_size(MPI_COMM_WORLD,&nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
 
@@ -326,6 +334,8 @@ void compute(const Options& option){
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
   // Solve Non homogenous problem //
+  cout << "Solving non homogenous problem" << endl << flush;
+
   System<Complex> nonHomogenous;
   nonHomogenous.addFormulation(*wave);
   nonHomogenous.addFormulation(*sommerfeld);
@@ -346,6 +356,8 @@ void compute(const Options& option){
   nonHomogenous.solve();
 
   // Solve Non homogenous DDM problem //
+  cout << "Computing right hand side" << endl << flush;
+
   context->setSystem(nonHomogenous);
   upDdm->update(); // update volume solution (at DDM border)
 
@@ -357,6 +369,8 @@ void compute(const Options& option){
   nonHomogenousDDM.getSolution(rhsG, 0);
 
   // DDM Solver //
+  cout << "Solving DDM problem" << endl << flush;
+
   SolverDDM solver(*wave,*sommerfeld, realBorder, *context, *ddm, *upDdm, rhsG);
 
   try{
@@ -371,6 +385,8 @@ void compute(const Options& option){
   }
 
   // Full Problem //
+  cout << "Solving full problem" << endl << flush;
+
   solver.getSolution(ddmG);
 
   context->setDDMDofs(ddmG);

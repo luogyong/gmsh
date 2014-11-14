@@ -2,8 +2,8 @@
 #include <iostream>
 
 #include "SmallFem.h"
-
 #include "SolverDDM.h"
+#include "MPIOStream.h"
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
@@ -41,19 +41,18 @@ static double k; // Need to be more sexy !
 static double theta = 0;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  //return Complex(cos(k * p), sin(k * p));
-  return Complex(1, 0);
+  return Complex (1, 0) * Complex(cos(k * p), sin(k * p));
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  //double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
+  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
   fullVector<Complex> tmp(3);
 
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0);// * Complex(cos(k * p), sin(k * p));
+  tmp(1) = Complex(1, 0) * Complex(cos(k * p), sin(k * p));
   tmp(2) = Complex(0, 0);
 
   return tmp;
@@ -63,6 +62,8 @@ void compute(const Options& option){
   // MPI //
   int nProcs;
   int myProc;
+  MPIOStream cout(0, std::cout);
+
   MPI_Comm_size(MPI_COMM_WORLD,&nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
 
@@ -295,6 +296,8 @@ void compute(const Options& option){
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
   // Solve Non homogenous problem //
+  cout << "Solving non homogenous problem" << endl << flush;
+
   System<Complex> nonHomogenous;
   nonHomogenous.addFormulation(wave);
   nonHomogenous.addFormulation(*sommerfeld);
@@ -311,6 +314,8 @@ void compute(const Options& option){
   nonHomogenous.solve();
 
   // Solve Non homogenous DDM problem //
+  cout << "Computing right hand side" << endl << flush;
+
   context->setSystem(nonHomogenous);
   upDdm->update(); // update volume solution (at DDM border)
 
@@ -322,6 +327,8 @@ void compute(const Options& option){
   nonHomogenousDDM.getSolution(rhsG, 0);
 
   // DDM Solver //
+  cout << "Solving DDM problem" << endl << flush;
+
   SolverDDM solver(wave, *sommerfeld, source, *context, *ddm, *upDdm, rhsG);
 
   try{
@@ -336,6 +343,8 @@ void compute(const Options& option){
   }
 
   // Full Problem //
+  cout << "Solving full problem" << endl << flush;
+
   solver.getSolution(ddmG);
 
   context->setDDMDofs(ddmG);
@@ -366,6 +375,14 @@ void compute(const Options& option){
     FEMSolution<Complex> feSol;
     full.getSolution(feSol, *fs, volume);
     feSol.write(stream.str());
+    /*
+    stringstream streamBorder;
+    streamBorder << "circleBorder" << myProc;
+
+    FEMSolution<Complex> feSolBorder;
+    full.getSolution(feSolBorder, *fs, ddmBorder);
+    feSolBorder.write(streamBorder.str());
+    */
   }
 
   // Clean //
