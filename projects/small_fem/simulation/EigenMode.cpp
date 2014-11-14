@@ -149,6 +149,17 @@ void compute(const Options& option){
   catch(...){
   }
 
+  // Set shift (if any, else default)
+  try{
+    const double shift = atof(option.getValue("-shift")[1].c_str());
+
+    sys.setWhichEigenpairs("target_magnitude");
+    sys.setTarget(Complex(shift, 0));
+  }
+
+  catch(...){
+  }
+
   // Solve
   sys.solve();
   cout << "Solved" << endl << flush;
@@ -190,7 +201,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-nopos,-type");
+  SmallFem::Keywords("-msh,-o,-n,-shift,-nopos,-type");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
