@@ -79,6 +79,23 @@ macro(add_cm3python_test PYFILE ARGN)
   add_test(NAME "${PROJECT_NAME}/${MYDIR}/${PYFILE}" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/runtestandclean.py ${CMAKE_BINARY_DIR}/bin/cm3py ${PYFILE} ${DELF})
 endmacro(add_cm3python_test)
 
+# same but MPI launch
+macro(add_cm3python_mpi_test NCPU PYFILE ARGN)
+	if(NOT ENABLE_MPI)
+	  message("You compile without MPI disable the MPI test ${PROJECT_NAME}/${MYDIR}/${PYFILE}")
+  else(NOT ENABLE_MPI)
+    # put absolute path on the files to delete
+    foreach(f ${ARGN})
+      set(DELF ${DELF} ${CMAKE_CURRENT_SOURCE_DIR}/${f})
+    endforeach(f ${ARGN})
+  
+    # add the current folder name to the test name
+    get_filename_component(MYDIR ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    string(REPLACE " " "_" MYDIR ${MYDIR})
+    # launch
+    add_test(NAME "${PROJECT_NAME}/${MYDIR}/${PYFILE}" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/runtestandclean.py "${MPIEXEC} -n ${NCPU} ${CMAKE_BINARY_DIR}/bin/cm3py" ${PYFILE} ${DELF})
+  endif(NOT ENABLE_MPI)  
+endmacro(add_cm3python_mpi_test)
 # add the different projects
 if(ENABLE_DGSHELL)
   set(CM3_PYTHON_PACKAGE ${CM3_PYTHON_PACKAGE}:${CMAKE_CURRENT_BINARY_DIR}/dgshell)
