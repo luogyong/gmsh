@@ -160,6 +160,14 @@ void compute(const Options& option){
   catch(...){
   }
 
+  // Set tolerance (if any, else default)
+  try{
+    sys.setTolerance(atof(option.getValue("-tol")[1].c_str()));
+  }
+
+  catch(...){
+  }
+
   // Solve
   sys.solve();
   cout << "Solved" << endl << flush;
@@ -201,7 +209,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-shift,-nopos,-type");
+  SmallFem::Keywords("-msh,-o,-n,-shift,-nopos,-type,-tol");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
