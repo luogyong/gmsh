@@ -26,11 +26,15 @@ NY   = NpLY;
 NZ   = NpLZ;
 NX   = Round(NpLX / NDOM) + 2;
 
+// Structured mesh ?
+IS_STRUCTURED = 0;
+cl = 10000;
+
 // Geometry (2D) //
 // Points
 For n In {1:NDOM+1}
-  Point(n)            = {+X / NDOM * (n - 1), 0, 0, 1};
-  Point(n + NDOM + 1) = {+X / NDOM * (n - 1), Y, 0, 1};
+  Point(n)            = {+X / NDOM * (n - 1), 0, 0, cl};
+  Point(n + NDOM + 1) = {+X / NDOM * (n - 1), Y, 0, cl};
 EndFor
 
 // Lines
@@ -50,24 +54,34 @@ Line Loop(n) = {n, n + (NDOM + 1) + NDOM, -(n + 1), -(n + (NDOM + 1))};
 EndFor
 
 // Mesh //
-For n In {1:NDOM+1}
-  Transfinite Line {n} = NY Using Progression 1;
-EndFor
+If(IS_STRUCTURED == 1)
+  For n In {1:NDOM+1}
+    Transfinite Line {n} = NY Using Progression 1;
+  EndFor
 
-For n In {1:NDOM}
-  Transfinite Line(n + (NDOM + 1)       ) = NX Using Progression 1;
-  Transfinite Line(n + (NDOM + 1) + NDOM) = NX Using Progression 1;
-EndFor
+  For n In {1:NDOM}
+    Transfinite Line(n + (NDOM + 1)       ) = NX Using Progression 1;
+    Transfinite Line(n + (NDOM + 1) + NDOM) = NX Using Progression 1;
+  EndFor
 
-For n In {1:NDOM}
-  Transfinite Surface {n};
-EndFor
+  For n In {1:NDOM}
+    Transfinite Surface {n};
+  EndFor
+EndIf
 
 // Extrusion //
-ext[] = Extrude {0, 0, Z} {
-  Surface{1:NDOM};
-  Layers{NZ};
-};
+If(IS_STRUCTURED == 1)
+  ext[] = Extrude {0, 0, Z} {
+    Surface{1:NDOM};
+    Layers{NZ};
+  };
+EndIf
+
+If(IS_STRUCTURED == 0)
+  ext[] = Extrude {0, 0, Z} {
+    Surface{1:NDOM};
+  };
+EndIf
 
 // Physicals //
 zero[] = {};
