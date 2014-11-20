@@ -172,6 +172,15 @@ void compute(const Options& option){
   domain[2] = &infinity;
   domain[3] = &ddmBorder;
 
+  // Dirichlet Border //
+  vector<const GroupOfElement*> dirichlet(1);
+  dirichlet[0] = &source;
+
+  // All Borders //
+  vector<const GroupOfElement*> allBorders(2);
+  allBorders[0] = &source;
+  allBorders[1] = &ddmBorder;
+
   // Function Space //
   FunctionSpace* fs = NULL;
 
@@ -190,7 +199,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorder, order);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(allBorders, order);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -198,16 +207,16 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorder, order);
+      OSRCVectPhi[j] = new FunctionSpaceVector(allBorders, order);
 
     if(order == 0)
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, 1);
+        OSRCVectRho[j] = new FunctionSpaceScalar(allBorders, 1);
     else
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, order);
+        OSRCVectRho[j] = new FunctionSpaceScalar(allBorders, order);
 
-    OSRCVectR = new FunctionSpaceVector(ddmBorder, order);
+    OSRCVectR = new FunctionSpaceVector(allBorders, order);
   }
 
   // Jin Fa Lee
@@ -215,12 +224,12 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(ddmBorder, order);
+    JFPhi = new FunctionSpaceVector(allBorders, order);
 
     if(order == 0)
-      JFRho = new FunctionSpaceScalar(ddmBorder, 1);
+      JFRho = new FunctionSpaceScalar(allBorders, 1);
     else
-      JFRho = new FunctionSpaceScalar(ddmBorder, order);
+      JFRho = new FunctionSpaceScalar(allBorders, order);
   }
 
   // Steady Wave Formulation //
@@ -244,7 +253,7 @@ void compute(const Options& option){
   Formulation<Complex>* upDdm = NULL;
 
   if(ddmType == emdaType){
-    context = new DDMContextEMDA(ddmBorder, *fs, k, chi);
+    context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, k, chi);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
@@ -252,7 +261,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == oo2Type){
-    context = new DDMContextOO2(ddmBorder, *fs, ooA, ooB);
+    context = new DDMContextOO2(ddmBorder, dirichlet, *fs, ooA, ooB);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
@@ -261,8 +270,8 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == scal){
     context = new DDMContextOSRCScalar
-                                  (ddmBorder, *fs, OSRCScalPhi,
-                                   k, keps, NPade, M_PI / 4.);
+                                  (ddmBorder, dirichlet, *fs,
+                                   OSRCScalPhi, k, keps, NPade, M_PI / 4.);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationOSRCScalar
@@ -273,7 +282,7 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == vect){
     context = new DDMContextOSRCVector
-                                  (ddmBorder,
+                                  (ddmBorder, dirichlet,
                                    *fs, OSRCVectPhi, OSRCVectRho, *OSRCVectR,
                                    k, keps, NPade, M_PI / 2.);
     context->setDDMDofs(ddmG);
@@ -285,7 +294,8 @@ void compute(const Options& option){
   }
 
   else if(ddmType == jflType){
-    context = new DDMContextJFLee(ddmBorder, *fs, *JFPhi, *JFRho, k, lc);
+    context = new DDMContextJFLee(ddmBorder, dirichlet, *fs,
+                                  *JFPhi, *JFRho, k, lc);
     context->setDDMDofs(ddmG);
 
     ddm   = new FormulationJFLee(static_cast<DDMContextJFLee&>(*context));
@@ -329,7 +339,7 @@ void compute(const Options& option){
   // DDM Solver //
   cout << "Solving DDM problem" << endl << flush;
 
-  SolverDDM solver(wave, *sommerfeld, source, *context, *ddm, *upDdm, rhsG);
+  SolverDDM solver(wave, *sommerfeld, *context, *ddm, *upDdm, rhsG);
 
   try{
     // Construct iteration operator

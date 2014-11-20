@@ -4,6 +4,7 @@ using namespace std;
 
 DDMContextOSRCVector::
 DDMContextOSRCVector(const GroupOfElement& domain,
+                     vector<const GroupOfElement*>& dirichlet,
                      const FunctionSpace& fSpace,
                      const vector<const FunctionSpaceVector*>& phi,
                      const vector<const FunctionSpaceScalar*>& rho,
@@ -15,15 +16,16 @@ DDMContextOSRCVector(const GroupOfElement& domain,
     throw Exception("DDMContextOSRCVector: need a vector function space");
 
   // Data for OSRCVector //
-  this->domain = &domain;
-  this->fSpace = &fSpace;
-  this->phi    = &phi;
-  this->rho    = &rho;
-  this->r      = &r;
-  this->NPade  = NPade;
-  this->theta  = theta;
-  this->k      = k;
-  this->keps   = keps;
+  this->domain    = &domain;
+  this->fSpace    = &fSpace;
+  this->dirichlet = dirichlet;
+  this->phi       = &phi;
+  this->rho       = &rho;
+  this->r         = &r;
+  this->NPade     = NPade;
+  this->theta     = theta;
+  this->k         = k;
+  this->keps      = keps;
 }
 
 DDMContextOSRCVector::~DDMContextOSRCVector(void){

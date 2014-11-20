@@ -37,6 +37,8 @@ class DDMContext{
   const GroupOfElement*  domain;
   const FunctionSpace*   fSpace;
 
+  std::vector<const GroupOfElement*> dirichlet;
+
   std::map<Dof, Complex>* ddm;
 
  public:
@@ -51,6 +53,8 @@ class DDMContext{
   const System<Complex>& getSystem(void)        const;
   const FunctionSpace&   getFunctionSpace(void) const;
   const GroupOfElement&  getDomain(void)        const;
+
+  const std::vector<const GroupOfElement*>& getDirichletDomain(void) const;
 };
 
 /**
@@ -86,6 +90,11 @@ class DDMContext{
 
    @fn DDMContext::getDomain
    @return Returns the domain defining the DDM border of this DDMContext
+   **
+
+   @fn DDMContext::getDirichletDomain
+   @return Returns the domain defining the support of the Dirichlet conditions
+   of this DDMContext
  */
 
 //////////////////////
@@ -116,5 +125,9 @@ inline const GroupOfElement& DDMContext::getDomain(void) const{
   return *domain;
 }
 
+inline const std::vector<const GroupOfElement*>&
+DDMContext::getDirichletDomain(void) const{
+  return dirichlet;
+}
 
 #endif

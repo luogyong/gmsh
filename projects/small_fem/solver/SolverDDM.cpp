@@ -15,7 +15,6 @@ using namespace std;
 
 SolverDDM::SolverDDM(const Formulation<Complex>& wave,
                      const Formulation<Complex>& sommerfeld,
-                     const GroupOfElement& dirichlet,
                      DDMContext& context,
                      Formulation<Complex>& ddm,
                      Formulation<Complex>& update,
@@ -36,9 +35,8 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   this->update     = new System<Complex>;
   this->once       = false;
 
-  // Dirichlet Domain & FunctionSpace //
-  this->dirichlet = &dirichlet;
-  this->fs        = &context.getFunctionSpace();
+  // FunctionSpace //
+  this->fs = &context.getFunctionSpace();
 
   // DDM Dof values //
   this->ddmG = &context.getDDMDofs();
@@ -320,7 +318,8 @@ void SolverDDM::buildNeighbourhood(const map<Dof, Complex>& local){
 
     else
       throw Exception("SolverDDM::buildOwnerMap(): "
-                      "a Dof can be shared by only two domains");
+                      "Dof %s is shared by more than two domains",
+                      it->first.toString().c_str());
   }
 }
 
@@ -528,24 +527,26 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   ddm.update();
 
   // Solve Full Volume & Update Problems Once //
-  Timer solve;
-  Timer up;
-
-  solve.start();
   if(!solver->once){
     // Prepare Volume Problem
     volume.addFormulation(wave);
     volume.addFormulation(sommerfeld);
     volume.addFormulation(ddm);
 
-    // Constraint
-    const GroupOfElement& dirichlet = *solver->dirichlet;
-    const FunctionSpace&  fs        = *solver->fs;
+    // Function Space //
+    const FunctionSpace& fs = *solver->fs;
 
+    // Constraint
+    const vector<const GroupOfElement*>&
+      dirichlet = context.getDirichletDomain();
+
+    size_t sizeDirichlet = dirichlet.size();
     if(fs.isScalar())
-      SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZeroScal);
+      for(size_t i = 0; i < sizeDirichlet; i++)
+        SystemHelper<Complex>::dirichlet(volume, fs, *dirichlet[i], fZeroScal);
     else
-      SystemHelper<Complex>::dirichlet(volume, fs, dirichlet, fZeroVect);
+      for(size_t i = 0; i < sizeDirichlet; i++)
+        SystemHelper<Complex>::dirichlet(volume, fs, *dirichlet[i], fZeroVect);
 
     // Assemble & Solve
     volume.assemble();
@@ -571,21 +572,11 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
     volume.assembleAgainRHS();  // Volume problem
     volume.solveAgain();        // --------------
 
-    up.start();
     upDdm.update();             // Recompute upDdm terms
-    up.stop();
 
     update.assembleAgainRHS();  // Update problem
     update.solveAgain();        // --------------
-
-    MPIOStream cout(1, std::cout);
-    //cout << "Updated: " << up.time()    << std::endl << std::flush;
   }
-  solve.stop();
-
-  // Exchange ddmG //
-  MPIOStream cout(1, std::cout);
-  //cout << "Solved : " << solve.time() << std::endl << std::flush;
 
   update.getSolution(ddmG, 0);
   solver->exchange(ddmG);

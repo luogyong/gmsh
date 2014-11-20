@@ -4,6 +4,7 @@
 using namespace std;
 
 DDMContextJFLee::DDMContextJFLee(const GroupOfElement& domain,
+                                 vector<const GroupOfElement*>& dirichlet,
                                  const FunctionSpace& fSpace,
                                  const FunctionSpace& fPhi,
                                  const FunctionSpace& fRho,
@@ -25,11 +26,12 @@ DDMContextJFLee::DDMContextJFLee(const GroupOfElement& domain,
                     "Auxiliary function space Rho must be scalar");
 
   // Data for JFLee //
-  this->domain = &domain;
-  this->fSpace = &fSpace;
-  this->fPhi   = static_cast<const FunctionSpaceVector*>(&fPhi);
-  this->fRho   = static_cast<const FunctionSpaceScalar*>(&fRho);
-  this->k      = k;
+  this->domain    = &domain;
+  this->fSpace    = &fSpace;
+  this->dirichlet = dirichlet;
+  this->fPhi      = static_cast<const FunctionSpaceVector*>(&fPhi);
+  this->fRho      = static_cast<const FunctionSpaceScalar*>(&fRho);
+  this->k         = k;
 
   // Coef //
   double kMax  = pi / lc;

@@ -33,9 +33,8 @@ class SolverDDM{
   System<Complex>* update;
   bool             once;
 
-  // Dirichlet Domain & FunctionSpace //
-  const GroupOfElement* dirichlet;
-  const FunctionSpace*  fs;
+  // FunctionSpace //
+  const FunctionSpace* fs;
 
   // DDM Dof values //
   std::map<Dof, Complex>* ddmG;
@@ -71,7 +70,6 @@ class SolverDDM{
  public:
   SolverDDM(const Formulation<Complex>& wave,
             const Formulation<Complex>& sommerfeld,
-            const GroupOfElement& dirichlet,
             DDMContext& context,
             Formulation<Complex>& ddm,
             Formulation<Complex>& update,

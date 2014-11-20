@@ -5,6 +5,7 @@
 #include "FunctionSpaceScalar.h"
 #include "FunctionSpaceVector.h"
 #include "GroupOfElement.h"
+#include "Exception.h"
 #include "Dof.h"
 
 #include "SmallFem.h"
@@ -38,6 +39,11 @@ class FormulationHelper{
   static void initDofMap(const std::vector<const FunctionSpaceVector*>& fs,
                          const GroupOfElement& goe,
                          std::vector<std::map<Dof, Complex> >& data);
+
+ private:
+  template<typename T>
+    static size_t getSize(const std::vector<const T*>& fs,
+                          std::vector<std::map<Dof, Complex> >& data);
 };
 
 /**
@@ -55,7 +61,7 @@ class FormulationHelper{
    @param data A Dof -- Value map
 
    Populates the given map with the Dof%s of the given FunctionSpace
-   restricted to the given GroupOfElement.
+   restricted to the 'goe' GroupOfElement.
 
    The Dof values are set to zero.
    **
@@ -66,7 +72,8 @@ class FormulationHelper{
    @param data A vector of Dof -- Value map
 
    Populates the given map[i] with the Dof%s of the given FunctionSpace[i]
-   restricted to the given GroupOfElement, for all i in the given vectors.
+   restricted to the 'goe' GroupOfElement,
+   for all i in the given vectors.
 
    The Dof values are set to zero.
 
@@ -76,7 +83,8 @@ class FormulationHelper{
    @param data A vector of Dof -- Value map
 
    Populates the given map[i] with the Dof%s of the given FunctionSpace[i]
-   restricted to the given GroupOfElement, for all i in the given vectors.
+   restricted to the 'goe' GroupOfElement,
+   for all i in the given vectors.
 
    The Dof values are set to zero.
    **
@@ -87,9 +95,24 @@ class FormulationHelper{
    @param data A vector of Dof -- Value map
 
    Populates the given map[i] with the Dof%s of the given FunctionSpace[i]
-   restricted to the given GroupOfElement, for all i in the given vectors.
+   restricted to the 'goe' GroupOfElement,
+   for all i in the given vectors.
 
    The Dof values are set to zero.
  */
+
+///////////////////////
+// Template Function //
+///////////////////////
+template<typename T>
+size_t FormulationHelper::getSize(const std::vector<const T*>& fs,
+                                  std::vector<std::map<Dof, Complex> >& data){
+  const size_t size = data.size();
+
+  if(size != fs.size())
+    throw Exception("FormulationHelper::initDofMap: %s",
+                    "vectors must have the same size");
+  return size;
+}
 
 #endif

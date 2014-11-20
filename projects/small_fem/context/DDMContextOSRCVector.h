@@ -25,6 +25,7 @@ class DDMContextOSRCVector: public DDMContext{
 
  public:
   DDMContextOSRCVector(const GroupOfElement& domain,
+                       std::vector<const GroupOfElement*>& dirichlet,
                        const FunctionSpace& fSpace,
                        const std::vector<const FunctionSpaceVector*>& phi,
                        const std::vector<const FunctionSpaceScalar*>& rho,
@@ -50,7 +51,8 @@ class DDMContextOSRCVector: public DDMContext{
 
 /**
    @fn DDMContextOSRCVector::DDMContextOSRCVector
-   @param domain The border for the vectorial OSRC problem
+   @param domain The DDM border for the vectorial OSRC problem
+   @param dirichlet The Dirichlet border for the vectorial OSRC problem
    @param fSpace The FunctionSpace for the vectorial OSRC problem
    @param phi A vector with the auxiliary FunctionSpace for vector OSRC problem
    @param k The wavenumber of the vectorial OSRC problem
