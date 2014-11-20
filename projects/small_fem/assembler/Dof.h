@@ -35,6 +35,7 @@ class Dof{
   bool operator<(const Dof& other) const;
   bool operator>(const Dof& other) const;
   bool operator==(const Dof& other) const;
+  bool operator!=(const Dof& other) const;
 
   std::string toString(void) const;
 };
@@ -112,6 +113,13 @@ class Dof{
    @li false otherwise
    **
 
+   @fn bool Dof::operator!=(const Dof& other) const
+   @param other An other Dof to compare with the current one
+   @return Returns :
+   @li false if the current Dof is equal to the other one
+   @li true otherwise
+   **
+
    @fn Dof::toString
    @return Returns the Dof string
    **
@@ -154,6 +162,10 @@ inline bool Dof::operator>(const Dof& other) const{
 
 inline bool Dof::operator==(const Dof& other) const{
   return (entity == other.entity) && (type == other.type);
+}
+
+inline bool Dof::operator!=(const Dof& other) const{
+  return !((entity == other.entity) && (type == other.type));
 }
 
 #endif
