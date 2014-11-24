@@ -36,6 +36,7 @@ class FormulationOSRCVector: public FormulationCoupled<Complex>{
   // Stuff for updating RHS //
   const Basis*                basisV;
   const FunctionSpace*        field;
+  const FunctionSpace*        fspaceG;
   Quadrature*                 gauss;
   GroupOfJacobian*            jac;
   FormulationOSRCVectorThree* formulationThree;

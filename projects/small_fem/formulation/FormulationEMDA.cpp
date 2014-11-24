@@ -12,7 +12,8 @@ FormulationEMDA::FormulationEMDA(DDMContextEMDA& context){
   this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
-  fspace  = &context.getFunctionSpace();
+  fspace  = &context.getFunctionSpace();  // Testing Field and Unknown Field
+  fspaceG = &context.getFunctionSpaceG(); // DDM Field
   ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
@@ -44,14 +45,14 @@ FormulationEMDA::FormulationEMDA(DDMContextEMDA& context){
     jac      = new GroupOfJacobian(*ddomain, gC, "jacobian");
     localLHS = new TermFieldField<double>(*jac, *basis, *gauss);
     localRHS =
-      new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+      new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
   }
 
   else{
     jac      = new GroupOfJacobian(*ddomain, gC, "invert");
     localLHS = new TermGradGrad<double>(*jac, *basis, *gauss);
     localRHS =
-      new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+      new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
   }
 }
 
@@ -100,9 +101,9 @@ void FormulationEMDA::update(void){
   // New RHS
   if(fspace->isScalar())
     localRHS =
-      new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+      new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
 
   else
     localRHS =
-      new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, ddm);
+      new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
 }

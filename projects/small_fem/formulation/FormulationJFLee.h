@@ -38,6 +38,7 @@ class FormulationJFLee: public FormulationCoupled<Complex>{
   // Stuff for updating RHS //
   const Basis*               basis;
   const FunctionSpaceVector* field;
+  const FunctionSpaceVector* fieldG;
   Quadrature*                gauss;
   GroupOfJacobian*           jac;
   FormulationJFLeeOne*       formulationOne;

@@ -50,7 +50,6 @@ Extrude {0, 0, LZ} {
 }
 
 // Mesh //
-
 Transfinite Surface "*";
 If(HEX == 1)
   Recombine Surface "*";

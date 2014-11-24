@@ -28,6 +28,7 @@ class DDMContextJFLee: public DDMContext{
   DDMContextJFLee(const GroupOfElement& domain,
                   std::vector<const GroupOfElement*>& dirichlet,
                   const FunctionSpace& fSpace,
+                  const FunctionSpace& fSpaceG,
                   const FunctionSpace& fPhi,
                   const FunctionSpace& fRho,
                   double k, double lc);
@@ -46,7 +47,8 @@ class DDMContextJFLee: public DDMContext{
    @fn DDMContextJFLee::DDMContextJFLee
    @param domain The DDM border for the JFLee problem
    @param dirichlet The Dirichlet border for the JFLee problem
-   @param fSpace The primary FunctionSpaceVector for the JFLee problem
+   @param fSpace The primary FunctionSpaceVector for the JFLee field
+   @param fSpaceG The primary FunctionSpaceVector for the JFLee DDM
    @param fPhi The auxiliary FunctionSpaceVector for the JFLee problem
    @param fRho The auxiliary FunctionSpaceScalar for the JFLee problem
    @param k The wavenumber of the JFLee problem

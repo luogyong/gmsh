@@ -27,7 +27,8 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   const FunctionSpaceVector&                  R = context.getRFunctionSpace();
 
   // Save Field FunctionSpace
-  field = &context.getFunctionSpace(); // Saved from update()
+  field   = &context.getFunctionSpace();  // Testing Field and Unknown Field
+  fspaceG = &context.getFunctionSpaceG(); // DDM Field
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = dom.isUniform();
@@ -37,7 +38,7 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
     throw Exception("FormulationOSRCVector needs a uniform mesh");
 
   // Get Vectorial Basis (from R FunctionSpace) //
-  basisV = &(R.getBasis(eType)); // Saved from update()
+  basisV = &(R.getBasis(eType)); // Saved for update()
   const size_t order = basisV->getOrder();
 
   // Get scalar Basis
@@ -65,7 +66,7 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   const map<Dof, Complex>& ddm = context.getDDMDofs();
 
   // Gaussian Quadrature //
-  gauss = new Quadrature(eType, order, 2); // Saved from update()
+  gauss = new Quadrature(eType, order, 2); // Saved for update()
   const fullMatrix<double>& gC = gauss->getPoints();
 
   // Local Terms //
@@ -75,12 +76,12 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   basisS.preEvaluateFunctions(gC);
   basisS.preEvaluateDerivatives(gC);
 
-  jac = new GroupOfJacobian(dom, gC, "both"); // Saved from update()
+  jac = new GroupOfJacobian(dom, gC, "both"); // Saved for update()
 
   // NB: Since the Formulations share the same basis functions,
   //     the local terms will be the same !
   //     It's the Dof numbering imposed by the function spaces that will differ
-  RHS = new TermProjectionGrad<Complex>(*jac, *basisV,     *gauss, *field, ddm);
+  RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *fspaceG, ddm);
   GG  = new TermGradGrad<double>       (*jac, *basisV,         *gauss);
   dFG = new TermGradGrad<double>       (*jac,  basisS,*basisV, *gauss);
   GdF = new TermGradGrad<double>       (*jac, *basisV, basisS, *gauss);
@@ -169,7 +170,7 @@ void FormulationOSRCVector::update(void){
   basisV->preEvaluateFunctions(gC);
 
   // New RHS
-  RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *field, ddm);
+  RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *fspaceG, ddm);
 
   // Update FormulationOSRCVectorThree (formulationThree):
   //                                             this FormulationBlock holds RHS

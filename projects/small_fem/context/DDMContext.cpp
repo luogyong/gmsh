@@ -7,7 +7,10 @@ DDMContext::DDMContext(void){
   system     = NULL;
   domain     = NULL;
   fSpace     = NULL;
+  fSpaceG    = NULL;
   ddm        = NULL;
+
+  dirichlet.clear();
 }
 
 DDMContext::~DDMContext(void){

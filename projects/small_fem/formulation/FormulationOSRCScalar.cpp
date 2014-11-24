@@ -22,7 +22,8 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
     context.getAuxFunctionSpace();
 
   // Save field FunctionSpace
-  field = &context.getFunctionSpace(); // Saved from update()
+  ffspace  = &context.getFunctionSpace();  // Testing Field and Unknown Field
+  ffspaceG = &context.getFunctionSpaceG(); // DDM Field
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = domain.isUniform();
@@ -32,7 +33,7 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
     throw Exception("FormulationOSRCScalar needs a uniform mesh");
 
   // Get Basis (same for field and auxiliary function spaces) //
-  basis = &field->getBasis(eType); // Saved from update()
+  basis = &ffspace->getBasis(eType); // Saved for update()
   const size_t order = basis->getOrder();
 
   // k, keps and NPade //
@@ -54,7 +55,7 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
     B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, theta);
 
   // Gaussian Quadrature //
-  gaussFF = new Quadrature(eType, order, 2); // Saved from update()
+  gaussFF = new Quadrature(eType, order, 2); // Saved for update()
   Quadrature gaussGG(eType, order - 1, 2);
 
   const fullMatrix<double>& gCFF = gaussFF->getPoints();
@@ -64,7 +65,7 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   basis->preEvaluateFunctions(gCFF);
   basis->preEvaluateDerivatives(gCGG);
 
-  jacFF = new GroupOfJacobian(domain, gCFF, "jacobian"); // Saved from update()
+  jacFF = new GroupOfJacobian(domain, gCFF, "jacobian"); // Saved for update()
   GroupOfJacobian jacGG(domain, gCGG, "invert");
 
   // Get DDM Dofs from DDMContext //
@@ -76,7 +77,7 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   localFF = new TermFieldField<double>(*jacFF, *basis, *gaussFF);
   localGG = new TermGradGrad<double>(jacGG, *basis, gaussGG);
   localPr =
-    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *field, ddm);
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *ffspaceG, ddm);
 
   // Formulations //
   // NB: FormulationOSRCScalar is a friend
@@ -85,7 +86,7 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
 
   // Save FormulationOSRCScalarOne for update()
   formulationOne = new FormulationOSRCScalarOne
-    (domain, *field, k, C0, *localFF, *localPr);            // u.u'
+    (domain, *ffspace, k, C0, *localFF, *localPr);            // u.u'
 
   // Then push it in list
   fList.push_back(formulationOne);
@@ -94,15 +95,15 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   for(int j = 0; j < NPade; j++){
     fList.push_back
       (new FormulationOSRCScalarTwo
-       (domain, *aux[j], *field, k, keps, A[j], *localGG)); // phi[j].u'
+       (domain, *aux[j], *ffspace, k, keps, A[j], *localGG)); // phi[j].u'
 
     fList.push_back
       (new FormulationOSRCScalarThree
-       (domain, *aux[j], keps, B[j], *localFF, *localGG)); // ph[j].ph[j]'
+       (domain, *aux[j], keps, B[j], *localFF, *localGG));    // ph[j].ph[j]'
 
     fList.push_back
       (new FormulationOSRCScalarFour
-       (domain, *field, *aux[j], *localFF));               // u.phi[j]'
+       (domain, *ffspace, *aux[j], *localFF));                // u.phi[j]'
   }
 }
 
@@ -146,7 +147,7 @@ void FormulationOSRCScalar::update(void){
 
   // New RHS
   localPr =
-    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *field, ddm);
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *ffspaceG, ddm);
 
   // Update FormulationOSRCScalarOne (formulationOne):
   //                                             this FormulationBlock holds RHS

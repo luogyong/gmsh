@@ -28,7 +28,10 @@ FormulationJFLee::FormulationJFLee(DDMContextJFLee& context){
     throw Exception
       ("FormulationJFLee needs a vectorial FunctionSpace for primary unknown");
 
-  field = static_cast<const FunctionSpaceVector*>(&context.getFunctionSpace());
+  field  = static_cast<const FunctionSpaceVector*>
+                                                 (&context.getFunctionSpace());
+  fieldG = static_cast<const FunctionSpaceVector*>
+                                                 (&context.getFunctionSpaceG());
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = domain.isUniform();
@@ -71,12 +74,12 @@ FormulationJFLee::FormulationJFLee(DDMContextJFLee& context){
   jac = new GroupOfJacobian(domain, gC, "both"); // Saved for update()
 
   // Local Terms //
-  proj   = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *field, ddm);
-  term11 = new TermGradGrad<double>       (*jac, *basis,              *gauss);
-  term01 = new TermGradGrad<double>       (*jac,  basisRho, basisPhi, *gauss);
-  term22 = new TermCurlCurl<double>       (*jac, *basis,              *gauss);
-  term00 = new TermFieldField<double>     (*jac,  basisRho          , *gauss);
-  term10 = new TermGradGrad<double>       (*jac,  basisPhi, basisRho, *gauss);
+  proj   = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fieldG, ddm);
+  term11 = new TermGradGrad<double>       (*jac, *basis,               *gauss);
+  term01 = new TermGradGrad<double>       (*jac,  basisRho, basisPhi,  *gauss);
+  term22 = new TermCurlCurl<double>       (*jac, *basis,               *gauss);
+  term00 = new TermFieldField<double>     (*jac,  basisRho          ,  *gauss);
+  term10 = new TermGradGrad<double>       (*jac,  basisPhi, basisRho,  *gauss);
 
   // Formulations //
   // NB: FormulationJFLee is a friend of FormulationJFLee{One,...,Eight,} !
@@ -138,7 +141,7 @@ void FormulationJFLee::update(void){
   basis->preEvaluateFunctions(gC);
 
   // New RHS
-  proj = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *field, ddm);
+  proj = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fieldG, ddm);
 
   // Update FormulationJFLeeOne (formulationOne):
   //                                          this FormulationBlock holds RHS

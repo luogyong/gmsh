@@ -6,6 +6,7 @@ using namespace std;
 DDMContextJFLee::DDMContextJFLee(const GroupOfElement& domain,
                                  vector<const GroupOfElement*>& dirichlet,
                                  const FunctionSpace& fSpace,
+                                 const FunctionSpace& fSpaceG,
                                  const FunctionSpace& fPhi,
                                  const FunctionSpace& fRho,
                                  double k, double lc){
@@ -28,6 +29,7 @@ DDMContextJFLee::DDMContextJFLee(const GroupOfElement& domain,
   // Data for JFLee //
   this->domain    = &domain;
   this->fSpace    = &fSpace;
+  this->fSpaceG   = &fSpaceG;
   this->dirichlet = dirichlet;
   this->fPhi      = static_cast<const FunctionSpaceVector*>(&fPhi);
   this->fRho      = static_cast<const FunctionSpaceScalar*>(&fRho);

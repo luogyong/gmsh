@@ -11,8 +11,8 @@ FormulationUpdateJFLee::FormulationUpdateJFLee(DDMContextJFLee& context){
 
   // Get Domain and FunctionSpace (primary and auxiliary) from DDMContext //
   ddomain = &context.getDomain();
-  ffield  = &context.getFunctionSpace();
-  fPhi    = &context.getPhi();
+  ffieldG = &context.getFunctionSpaceG(); // DDM field: testing and unknwon
+  fPhi    = &context.getPhi();            // Aux field
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = ddomain->isUniform();
@@ -22,7 +22,7 @@ FormulationUpdateJFLee::FormulationUpdateJFLee(DDMContextJFLee& context){
     throw Exception("FormulationUpdateJFLee needs a uniform mesh");
 
   // Basis //
-  basis = &ffield->getBasis(eType);
+  basis = &ffieldG->getBasis(eType);
 
   // Gaussian Quadrature //
   gauss = new Quadrature(eType, basis->getOrder(), 2);
@@ -69,11 +69,11 @@ Complex FormulationUpdateJFLee::rhs(size_t equationI, size_t elementId) const{
 }
 
 const FunctionSpace& FormulationUpdateJFLee::field(void) const{
-  return *ffield;
+  return *ffieldG;
 }
 
 const FunctionSpace& FormulationUpdateJFLee::test(void) const{
-  return *ffield;
+  return *ffieldG;
 }
 
 const GroupOfElement& FormulationUpdateJFLee::domain(void) const{
@@ -100,6 +100,6 @@ void FormulationUpdateJFLee::update(void){
   basis->preEvaluateFunctions(gC);
 
   // New RHS
-  lGin = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *ffield, ddm);
-  lPhi = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fPhi  , phi);
+  lGin = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *ffieldG, ddm);
+  lPhi = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fPhi   , phi);
 }

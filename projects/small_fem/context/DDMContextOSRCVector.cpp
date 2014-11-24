@@ -6,6 +6,7 @@ DDMContextOSRCVector::
 DDMContextOSRCVector(const GroupOfElement& domain,
                      vector<const GroupOfElement*>& dirichlet,
                      const FunctionSpace& fSpace,
+                     const FunctionSpace& fSpaceG,
                      const vector<const FunctionSpaceVector*>& phi,
                      const vector<const FunctionSpaceScalar*>& rho,
                      const FunctionSpaceVector& r,
@@ -18,6 +19,7 @@ DDMContextOSRCVector(const GroupOfElement& domain,
   // Data for OSRCVector //
   this->domain    = &domain;
   this->fSpace    = &fSpace;
+  this->fSpaceG   = &fSpaceG;
   this->dirichlet = dirichlet;
   this->phi       = &phi;
   this->rho       = &rho;

@@ -6,6 +6,7 @@ DDMContextOSRCScalar::
 DDMContextOSRCScalar(const GroupOfElement& domain,
                      vector<const GroupOfElement*>& dirichlet,
                      const FunctionSpace& fSpace,
+                     const FunctionSpace& fSpaceG,
                      const vector<const FunctionSpaceScalar*>& phi,
                      double k, Complex keps,
                      int NPade, double theta){
@@ -17,6 +18,7 @@ DDMContextOSRCScalar(const GroupOfElement& domain,
   // Data for OSRCScalar //
   this->domain    = &domain;
   this->fSpace    = &fSpace;
+  this->fSpaceG   = &fSpaceG;
   this->dirichlet = dirichlet;
   this->phi       = &phi;
   this->NPade     = NPade;

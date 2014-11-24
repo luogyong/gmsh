@@ -23,12 +23,14 @@ interpolateGrad(const MElement& element,
   vector<double> coef(nDof);
 
   for(size_t i = 0; i < nDof; i++){
-    it = dofValue->find(dof[i]);
-    if(it == end)
-      throw Exception("TermProjectionGrad::interpolateGrad() unknown dof %s",
-                      dof[i].toString().c_str());
+    if(dof[i] != Dof::RejectedDof()){
+      it = dofValue->find(dof[i]);
+      if(it == end)
+        throw Exception("TermProjectionGrad::interpolateGrad() unknown dof %s",
+                        dof[i].toString().c_str());
 
-    coef[i] = it->second;
+      coef[i] = it->second;
+    }
   }
 
   // Interpolate & Return //
@@ -50,12 +52,14 @@ interpolate(const MElement& element, const fullVector<double>& xyz) const{
   vector<double> coef(nDof);
 
   for(size_t i = 0; i < nDof; i++){
-    it = dofValue->find(dof[i]);
-    if(it == end)
-      throw Exception("TermProjectionGrad::interpolate() unknown dof %s",
-                      dof[i].toString().c_str());
+    if(dof[i] != Dof::RejectedDof()){
+      it = dofValue->find(dof[i]);
+      if(it == end)
+        throw Exception("TermProjectionGrad::interpolate() unknown dof %s",
+                        dof[i].toString().c_str());
 
-    coef[i] = it->second;
+      coef[i] = it->second;
+    }
   }
 
   // Interpolate & Return //
@@ -82,13 +86,15 @@ interpolateGrad(const MElement& element,
   vector<double> imCoef(nDof);
 
   for(size_t i = 0; i < nDof; i++){
-    it = dofValue->find(dof[i]);
-    if(it == end)
-      throw Exception("TermProjectionGrad::interpolateGrad() unknown dof %s",
-                      dof[i].toString().c_str());
+    if(dof[i] != Dof::RejectedDof()){
+      it = dofValue->find(dof[i]);
+      if(it == end)
+        throw Exception("TermProjectionGrad::interpolateGrad() unknown dof %s",
+                        dof[i].toString().c_str());
 
-    reCoef[i] = it->second.real();
-    imCoef[i] = it->second.imag();
+      reCoef[i] = it->second.real();
+      imCoef[i] = it->second.imag();
+    }
   }
 
   // Interpolate
@@ -121,13 +127,15 @@ interpolate(const MElement& element, const fullVector<double>& xyz) const{
   vector<double> imCoef(nDof);
 
   for(size_t i = 0; i < nDof; i++){
-    it = dofValue->find(dof[i]);
-    if(it == end)
-      throw Exception("TermProjectionGrad::interpolate() unknown dof %s",
-                      dof[i].toString().c_str());
+    if(dof[i] != Dof::RejectedDof()){
+      it = dofValue->find(dof[i]);
+      if(it == end)
+        throw Exception("TermProjectionGrad::interpolate() unknown dof %s",
+                        dof[i].toString().c_str());
 
-    reCoef[i] = it->second.real();
-    imCoef[i] = it->second.imag();
+      reCoef[i] = it->second.real();
+      imCoef[i] = it->second.imag();
+    }
   }
 
   // Interpolate

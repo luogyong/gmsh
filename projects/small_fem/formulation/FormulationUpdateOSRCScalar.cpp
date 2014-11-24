@@ -14,8 +14,10 @@ FormulationUpdateOSRCScalar(DDMContextOSRCScalar& context){
   this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
-  ffspace = &context.getFunctionSpace();
-  ddomain = &context.getDomain();
+  fspaceG   = &context.getFunctionSpaceG();   // DDM field: testing and unknwon
+  fspace    = &context.getFunctionSpace();    // e field
+  fspaceAux = &context.getAuxFunctionSpace(); // Auxiliary fields
+  ddomain   = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = ddomain->isUniform();
@@ -41,7 +43,7 @@ FormulationUpdateOSRCScalar(DDMContextOSRCScalar& context){
     B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, theta);
 
   // Basis //
-  basis = &ffspace->getBasis(eType);
+  basis = &fspaceG->getBasis(eType);
 
   // Gaussian Quadrature //
   gauss = new Quadrature(eType, basis->getOrder(), 2);
@@ -55,34 +57,36 @@ FormulationUpdateOSRCScalar(DDMContextOSRCScalar& context){
 
   // Init Volume & Auxiliary Solution //
   solPhi.resize(NPade);
-  FormulationHelper::initDofMap(*ffspace, *ddomain, solU);
-  FormulationHelper::initDofMap(context.getAuxFunctionSpace(),
-                                *ddomain, solPhi);
-
-  // Init UPhi //
-  UPhi = solU;
-  resetUPhi();
+  FormulationHelper::initDofMap(*fspace,    *ddomain, solU);
+  FormulationHelper::initDofMap(*fspaceAux, *ddomain, solPhi);
 
   // Local Terms //
   lGout = new TermFieldField<double>(*jac, *basis, *gauss);
 
-  // NB: lGin, lC0 and lAB will be computed at update, when vol Sys is available
-  lGin  = NULL;
-  lC0   = NULL;
-  lAB   = NULL;
+  // NB: lGin, lU & lPhi will be computed at update, when vol Sys is available
+  lGin = NULL;
+  lU   = NULL;
+  lPhi = new TermProjectionField<Complex>*[NPade];
+
+  for(int i = 0; i < NPade; i++)
+    lPhi[i] = NULL;
 }
 
 FormulationUpdateOSRCScalar::~FormulationUpdateOSRCScalar(void){
-  delete lGout;
   if(lGin)
     delete lGin;
-  if(lC0)
-    delete lC0;
-  if(lAB)
-    delete lAB;
 
-  delete jac;
-  delete gauss;
+  if(lU)
+    delete lU;
+
+  for(int i = 0; i < NPade; i++)
+    if(lPhi[i])
+      delete lPhi[i];
+
+  delete[] lPhi;
+  delete   lGout;
+  delete   jac;
+  delete   gauss;
 }
 
 Complex FormulationUpdateOSRCScalar::weak(size_t dofI, size_t dofJ,
@@ -93,18 +97,25 @@ Complex FormulationUpdateOSRCScalar::weak(size_t dofI, size_t dofJ,
 
 Complex FormulationUpdateOSRCScalar::rhs(size_t equationI,
                                          size_t elementId) const{
+  // Pade Sum //
+  Complex sum = Complex(0, 0);
+
+  for(int i = 0; i < NPade; i++)
+    sum += A[i] / B[i] * (     lU->getTerm(equationI, 0, elementId) -
+                          lPhi[i]->getTerm(equationI, 0, elementId));
+  // FEM Term //
   return
-    Complex(-1,  0    ) *     lGin->getTerm(equationI, 0, elementId) +
-    Complex( 0, -2 * k) * C0 * lC0->getTerm(equationI, 0, elementId) +
-    Complex( 0, -2 * k) *      lAB->getTerm(equationI, 0, elementId);
+    Complex(-1,  0    ) *      lGin->getTerm(equationI, 0, elementId) +
+    Complex( 0, -2 * k) * C0  *  lU->getTerm(equationI, 0, elementId) +
+    Complex( 0, -2 * k) * sum;
 }
 
 const FunctionSpace& FormulationUpdateOSRCScalar::field(void) const{
-  return *ffspace;
+  return *fspaceG;
 }
 
 const FunctionSpace& FormulationUpdateOSRCScalar::test(void) const{
-  return *ffspace;
+  return *fspaceG;
 }
 
 const GroupOfElement& FormulationUpdateOSRCScalar::domain(void) const{
@@ -116,13 +127,15 @@ bool FormulationUpdateOSRCScalar::isBlock(void) const{
 }
 
 void FormulationUpdateOSRCScalar::update(void){
-  // Delete RHS (lGin, lC0 & lAB)
+  // Delete RHS (lGin, lU and lPhi)
   if(lGin)
     delete lGin;
-  if(lC0)
-    delete lC0;
-  if(lAB)
-    delete lAB;
+  if(lU)
+    delete lU;
+
+  for(int i = 0; i < NPade; i++)
+    if(lPhi[i])
+      delete lPhi[i];
 
   // Get DDM Dofs, Volume and auxiliary solutions (at border) from DDMContext //
   const map<Dof, Complex>& ddm = context->getDDMDofs(); // ddm
@@ -131,42 +144,15 @@ void FormulationUpdateOSRCScalar::update(void){
   for(int i = 0; i < NPade; i++)
     context->getSystem().getSolution(solPhi[i], 0);     // solPhi[] (aux)
 
-  // UPhi[d] = sum_j (solU[d] - solPhi[j][d]) * A[j] / B[j] //
-  resetUPhi();
-  getUPhi();
-
   // Pre-evalution
   const fullMatrix<double>& gC = gauss->getPoints();
   basis->preEvaluateFunctions(gC);
 
   // New RHS
-  lGin = new TermProjectionField<Complex>(*jac, *basis, *gauss, *ffspace, ddm);
-  lC0  = new TermProjectionField<Complex>(*jac, *basis, *gauss, *ffspace, solU);
-  lAB  = new TermProjectionField<Complex>(*jac, *basis, *gauss, *ffspace, UPhi);
-}
+  lGin = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
+  lU   = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, solU);
 
-void FormulationUpdateOSRCScalar::resetUPhi(void){
-  map<Dof, Complex>:: iterator UPhiEnd = UPhi.end();
-  map<Dof, Complex>:: iterator UPhiIt;
-
-  for(UPhiIt = UPhi.begin(); UPhiIt != UPhiEnd; UPhiIt++)
-    UPhiIt->second = Complex(0, 0);
-}
-
-void FormulationUpdateOSRCScalar::getUPhi(void){
-  // UPhi[d] = sum_j (solU[d] - solPhi[j][d]) * A[j] / B[j] //
-
-  // Iterator on solU and solPhi[j]
-  map<Dof, Complex>:: iterator UPhiEnd = UPhi.end();
-  map<Dof, Complex>:: iterator UPhiIt;
-  map<Dof, Complex>::const_iterator solUIt;
-  map<Dof, Complex>::const_iterator solPhiJIt;
-
-  // Loop on j (Pade terms) and Degrees of freedom (iterators)
-  for(int j = 0; j < NPade; j++)
-    for(UPhiIt = UPhi.begin(),
-          solUIt = solU.begin(), solPhiJIt = solPhi[j].begin();
-        UPhiIt != UPhiEnd; UPhiIt++, solUIt++, solPhiJIt++)
-
-      UPhiIt->second += (solUIt->second - solPhiJIt->second) * A[j] / B[j];
+  for(int i = 0; i < NPade; i++)
+    lPhi[i] = new TermProjectionField<Complex>(*jac, *basis, *gauss,
+                                               *(*fspaceAux)[i], solPhi[i]);
 }

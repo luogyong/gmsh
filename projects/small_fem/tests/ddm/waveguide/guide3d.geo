@@ -1,40 +1,12 @@
 // User constant //
-DefineConstant[
-  X    = {2,         Name "Geometry/00X dimension"},
-  Y    = {1,         Name "Geometry/01Y dimension"},
-  Z    = {1,         Name "Geometry/02Z dimension"},
-  NDOM = {2,         Name "Geometry/03Number of subdomain"},
-
-  K    = {10,        Name "Geometry/04Wavenumber"},
-  L    = {2* Pi / K, Name "Geometry/05Wavelength", ReadOnly 1},
-
-  NpL  = {10,        Name "Geometry/06Mesh points per wavelength"}
-];
-
-// Number of wavelength
-NLX  = Round(X/L);
-NLY  = Round(Y/L);
-NLZ  = Round(Z/L);
-
-// Number of mesh element
-NpLX = NpL * NLX;
-NpLY = NpL * NLY;
-NpLZ = NpL * NLZ;
-
-// Number of mesh element per subdomain
-NY   = NpLY;
-NZ   = NpLZ;
-NX   = Round(NpLX / NDOM) + 2;
-
-// Structured mesh ?
-IS_STRUCTURED = 0;
-cl = 10000;
+DIM = 3;
+Include "guide_data.geo";
 
 // Geometry (2D) //
 // Points
 For n In {1:NDOM+1}
-  Point(n)            = {+X / NDOM * (n - 1), 0, 0, cl};
-  Point(n + NDOM + 1) = {+X / NDOM * (n - 1), Y, 0, cl};
+  Point(n)            = {+LX / NDOM * (n - 1),  0, 0, LC};
+  Point(n + NDOM + 1) = {+LX / NDOM * (n - 1), LY, 0, LC};
 EndFor
 
 // Lines
@@ -53,34 +25,15 @@ Line Loop(n) = {n, n + (NDOM + 1) + NDOM, -(n + 1), -(n + (NDOM + 1))};
   Plane Surface(n) = {n};
 EndFor
 
-// Mesh //
-If(IS_STRUCTURED == 1)
-  For n In {1:NDOM+1}
-    Transfinite Line {n} = NY Using Progression 1;
-  EndFor
-
-  For n In {1:NDOM}
-    Transfinite Line(n + (NDOM + 1)       ) = NX Using Progression 1;
-    Transfinite Line(n + (NDOM + 1) + NDOM) = NX Using Progression 1;
-  EndFor
-
-  For n In {1:NDOM}
-    Transfinite Surface {n};
-  EndFor
-EndIf
-
 // Extrusion //
-If(IS_STRUCTURED == 1)
-  ext[] = Extrude {0, 0, Z} {
-    Surface{1:NDOM};
-    Layers{NZ};
-  };
-EndIf
+ext[] = Extrude {0, 0, LZ} {
+  Surface{1:NDOM};
+};
 
-If(IS_STRUCTURED == 0)
-  ext[] = Extrude {0, 0, Z} {
-    Surface{1:NDOM};
-  };
+// Mesh //
+If(STRUCT == 1)
+  Transfinite Surface "*";
+  Transfinite Volume  "*";
 EndIf
 
 // Physicals //
@@ -100,3 +53,12 @@ EndFor
 
 Physical Surface(2 * NDOM + 1) = {ext[4 + (NDOM - 1) * 6]};
 Physical Surface(2 * NDOM + 2) = {zero[]};
+
+If(StrCmp(OnelabAction, "check")) // only mesh if not in onelab check mode
+  Printf("Meshing waveguide full...");
+  Mesh 3 ;
+  CreateDir Str(DIR);
+  Save StrCat(MSH_NAME, "all.msh");
+  Save "guide3d.msh";
+  Printf("Done.");
+EndIf

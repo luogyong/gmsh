@@ -32,7 +32,8 @@ class FormulationOSRCScalar: public FormulationCoupled<Complex>{
 
   // Stuff for updating RHS //
   const Basis*               basis;
-  const FunctionSpace*       field;
+  const FunctionSpace*       ffspace;
+  const FunctionSpace*       ffspaceG;
   Quadrature*                gaussFF;
   GroupOfJacobian*           jacFF;
   FormulationOSRCScalarOne*  formulationOne;

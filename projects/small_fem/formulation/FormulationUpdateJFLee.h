@@ -41,7 +41,7 @@ class FormulationUpdateJFLee: public FormulationBlock<Complex>{
   std::map<Dof, Complex> phi;
 
   // Function Space & Domain //
-  const FunctionSpace*  ffield;
+  const FunctionSpace*  ffieldG;
   const FunctionSpace*  fPhi;
   const GroupOfElement* ddomain;
 

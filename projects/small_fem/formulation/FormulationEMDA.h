@@ -33,6 +33,7 @@ class FormulationEMDA: public FormulationBlock<Complex>{
 
   // Function Space & Domain //
   const FunctionSpace*  fspace;
+  const FunctionSpace*  fspaceG;
   const GroupOfElement* ddomain;
 
   // Local Terms //

@@ -7,7 +7,8 @@ FormulationOO2::FormulationOO2(DDMContextOO2& context){
   this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
-  fspace  = &context.getFunctionSpace();
+  fspace  = &context.getFunctionSpace();  // Testing Field and Unknown Field
+  fspaceG = &context.getFunctionSpaceG(); // DDM Field
   ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
@@ -48,7 +49,7 @@ FormulationOO2::FormulationOO2(DDMContextOO2& context){
   localTermsFF = new TermFieldField<double>(*jacFF, *basis, *gaussFF);
   localTermsGG = new TermGradGrad<double>(jacGG, *basis, gaussGG);
   localTermsPr =
-    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, ddm);
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspaceG, ddm);
 }
 
 FormulationOO2::~FormulationOO2(void){
@@ -98,5 +99,5 @@ void FormulationOO2::update(void){
 
   // New RHS
   localTermsPr =
-    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, ddm);
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspaceG, ddm);
 }

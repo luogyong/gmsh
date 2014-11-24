@@ -14,7 +14,7 @@ FormulationUpdateOSRCVector(DDMContextOSRCVector& context){
   this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
-  ffspace = &context.getFunctionSpace();
+  fspaceG = &context.getFunctionSpaceG(); // For DDM Field: test and unknown
   ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
@@ -39,7 +39,7 @@ FormulationUpdateOSRCVector(DDMContextOSRCVector& context){
     B[j] = FormulationOSRCHelper::padeB(j + 1, NPade, theta);
 
   // Basis //
-  basis = &ffspace->getBasis(eType);
+  basis = &fspaceG->getBasis(eType);
 
   // Gaussian Quadrature //
   gauss = new Quadrature(eType, basis->getOrder(), 2);
@@ -98,11 +98,11 @@ Complex FormulationUpdateOSRCVector::rhs(size_t equationI,
 }
 
 const FunctionSpace& FormulationUpdateOSRCVector::field(void) const{
-  return *ffspace;
+  return *fspaceG;
 }
 
 const FunctionSpace& FormulationUpdateOSRCVector::test(void) const{
-  return *ffspace;
+  return *fspaceG;
 }
 
 const GroupOfElement& FormulationUpdateOSRCVector::domain(void) const{
@@ -141,7 +141,7 @@ void FormulationUpdateOSRCVector::update(void){
   basis->preEvaluateFunctions(gC);
 
   // New RHS
-  lGin = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *ffspace, ddm);
+  lGin = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
   lR   = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fR     , solR);
   lPhi = new TermProjectionGrad<Complex>(*jac, *basis, *gauss,  phiZero, alPhi);
 }

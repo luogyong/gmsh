@@ -1,63 +1,51 @@
 // User constant //
-DefineConstant[
-  X  = {2,         Name "Geometry/00X dimension"},
-  Y  = {1,         Name "Geometry/01Y dimension"},
-  N  = {4,         Name "Geometry/02Number of subdomain"},
-
-  K  = {10,        Name "Geometry/02Wavenumber"},
-  LB = {2* Pi / K, Name "Geometry/03Wavelength", ReadOnly 1},
-
-  NL = {10,        Name "Geometry/04Points per wavelength"},
-  NX = {X / LB * NL, Name "Geometry/05Mesh division", ReadOnly 1}
-];
-
-NY = NX;
-CL = LB / NL;
+DIM = 2;
+Include "guide_data.geo";
 
 // Geometry //
 // Points
-For n In {1:N+1}
-  Point(n)         = {+X / N * (n - 1), 0, 0.5, CL};
-  Point(n + N + 1) = {+X / N * (n - 1), Y, 0.5, CL};
+For n In {1:NDOM+1}
+  Point(n)            = {+LX / NDOM * (n - 1),  0, 0.5, LC};
+  Point(n + NDOM + 1) = {+LX / NDOM * (n - 1), LY, 0.5, LC};
 EndFor
 
 // Lines
-For n In {1:N+1}
-  Line(n) = {n, n + N + 1};
+For n In {1:NDOM+1}
+  Line(n) = {n, n + NDOM + 1};
 EndFor
 
-For n In {1:N}
-  Line(n + (N + 1)    ) = {n        , n     + 1};
-  Line(n + (N + 1) + N) = {n + N + 1, n + N + 2};
+For n In {1:NDOM}
+  Line(n + (NDOM + 1)       ) = {n           , n        + 1};
+  Line(n + (NDOM + 1) + NDOM) = {n + NDOM + 1, n + NDOM + 2};
 EndFor
 
 // Faces
-For n In {1:N}
-Line Loop(n) = {n, n + (N + 1) + N, -(n + 1), -(n + (N + 1))};
+For n In {1:NDOM}
+  Line Loop(n) = {n, n + (NDOM + 1) + NDOM, -(n + 1), -(n + (NDOM + 1))};
   Plane Surface(n) = {n};
 EndFor
 
 // Mesh //
-For n In {1:N+1}
-  Transfinite Line {n} = NY Using Progression 1;
-EndFor
-
-For n In {1:N}
-  Transfinite Line(n + (N + 1)    ) = NX Using Progression 1;
-  Transfinite Line(n + (N + 1) + N) = NX Using Progression 1;
-EndFor
-
-For n In {1:N}
-  Transfinite Surface {n};
-EndFor
+If(STRUCT == 1)
+  Transfinite Surface "*";
+EndIf
 
 // Physicals //
-For n In {1:N}
+For n In {1:NDOM}
   Physical Surface(n) = {n};
 EndFor
 
-For n In {1:N+1}
-  Physical Line(n + N) = {n};
+For n In {1:NDOM+1}
+  Physical Line(n + NDOM) = {n};
 EndFor
 
-Physical Line(2 * N + 2) = {1 + (N + 1):2 * (N + (N + 1))};
+Physical Line(2 * NDOM + 2) = {1 + (NDOM + 1):2 * (NDOM + (NDOM + 1))};
+
+If(StrCmp(OnelabAction, "check")) // only mesh if not in onelab check mode
+  Printf("Meshing waveguide full...");
+  Mesh 3 ;
+  CreateDir Str(DIR);
+  Save StrCat(MSH_NAME, "all.msh");
+  Save "guide2d.msh";
+  Printf("Done.");
+EndIf

@@ -9,7 +9,8 @@ FormulationUpdateOO2::FormulationUpdateOO2(DDMContextOO2& context){
   this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
-  fspace  = &context.getFunctionSpace();
+  fspaceG = &context.getFunctionSpaceG(); // DDM field: testing and unknwon
+  fspace  = &context.getFunctionSpace();  // e field
   ddomain = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
@@ -24,7 +25,7 @@ FormulationUpdateOO2::FormulationUpdateOO2(DDMContextOO2& context){
   this->b = context.getB();
 
   // Get Basis //
-  basis = &fspace->getBasis(eType);
+  basis = &fspaceG->getBasis(eType);
 
   // Gaussian Quadrature (Field - Field & Grad - Grad) //
   gaussFF = new Quadrature(eType, basis->getOrder()    , 2);
@@ -81,11 +82,11 @@ Complex FormulationUpdateOO2::rhs(size_t equationI, size_t elementId) const{
 }
 
 const FunctionSpace& FormulationUpdateOO2::field(void) const{
-  return *fspace;
+  return *fspaceG;
 }
 
 const FunctionSpace& FormulationUpdateOO2::test(void) const{
-  return *fspace;
+  return *fspaceG;
 }
 
 const GroupOfElement& FormulationUpdateOO2::domain(void) const{
@@ -118,7 +119,7 @@ void FormulationUpdateOO2::update(void){
 
   // New RHS
   lGin =
-    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, ddm);
+    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspaceG, ddm);
 
   lU   =
     new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *fspace, sol);

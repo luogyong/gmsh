@@ -42,7 +42,7 @@ class FormulationUpdateOSRCVector: public FormulationBlock<Complex>{
   std::vector<std::map<Dof, Complex> > solPhi;
 
   // Function Space & Domain //
-  const FunctionSpace*  ffspace;
+  const FunctionSpace*  fspaceG;
   const GroupOfElement* ddomain;
 
   // Auxiliary FunctionSpace //

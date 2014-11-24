@@ -42,6 +42,7 @@ class FormulationUpdateEMDA: public FormulationBlock<Complex>{
   std::map<Dof, Complex> sol;
 
   // Function Space & Domain //
+  const FunctionSpace*  fspaceG;
   const FunctionSpace*  fspace;
   const GroupOfElement* ddomain;
 

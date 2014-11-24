@@ -25,6 +25,7 @@ class DDMContextOSRCScalar: public DDMContext{
   DDMContextOSRCScalar(const GroupOfElement& domain,
                        std::vector<const GroupOfElement*>& dirichlet,
                        const FunctionSpace& fSpace,
+                       const FunctionSpace& fSpaceG,
                        const std::vector<const FunctionSpaceScalar*>& phi,
                        double k, Complex keps,
                        int NPade, double theta);
@@ -44,7 +45,8 @@ class DDMContextOSRCScalar: public DDMContext{
    @fn DDMContextOSRCScalar::DDMContextOSRCScalar
    @param domain The DDM border for the scalar OSRC problem
    @param dirichlet The Dirichlet border for the scalar OSRC problem
-   @param fSpace The FunctionSpace for the scalar OSRC problem
+   @param fSpace The FunctionSpace for the scalar OSRC field
+   @param fSpaceG The FunctionSpace for the scalar OSRC DDM
    @param phi A vector with the auxiliary FunctionSpace for scalar OSRC problem
    @param k The wavenumber of the scalar OSRC problem
    @param keps The complexified wavenumber of the scalar OSRC problem

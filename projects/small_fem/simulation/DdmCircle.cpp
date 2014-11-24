@@ -253,7 +253,7 @@ void compute(const Options& option){
   Formulation<Complex>* upDdm = NULL;
 
   if(ddmType == emdaType){
-    context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, k, chi);
+    context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, *fs, k, chi);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
@@ -261,7 +261,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == oo2Type){
-    context = new DDMContextOO2(ddmBorder, dirichlet, *fs, ooA, ooB);
+    context = new DDMContextOO2(ddmBorder, dirichlet, *fs, *fs, ooA, ooB);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
@@ -270,7 +270,7 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == scal){
     context = new DDMContextOSRCScalar
-                                  (ddmBorder, dirichlet, *fs,
+                                  (ddmBorder, dirichlet, *fs, *fs,
                                    OSRCScalPhi, k, keps, NPade, M_PI / 4.);
     context->setDDMDofs(ddmG);
 
@@ -282,8 +282,8 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == vect){
     context = new DDMContextOSRCVector
-                                  (ddmBorder, dirichlet,
-                                   *fs, OSRCVectPhi, OSRCVectRho, *OSRCVectR,
+                                  (ddmBorder, dirichlet, *fs, *fs,
+                                   OSRCVectPhi, OSRCVectRho, *OSRCVectR,
                                    k, keps, NPade, M_PI / 2.);
     context->setDDMDofs(ddmG);
 
@@ -294,7 +294,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == jflType){
-    context = new DDMContextJFLee(ddmBorder, dirichlet, *fs,
+    context = new DDMContextJFLee(ddmBorder, dirichlet, *fs, *fs,
                                   *JFPhi, *JFRho, k, lc);
     context->setDDMDofs(ddmG);
 

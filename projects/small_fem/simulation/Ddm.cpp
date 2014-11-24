@@ -39,11 +39,10 @@ static const int    vect = 1;
 static       double k;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  const double ky = 1;
-  const double kz = 1;
+  const double ky = 1 * M_PI / 1;
+  const double kz = 1 * M_PI / 1;
 
-  //return Complex(1, 0);
-  return Complex(sin(M_PI * ky * xyz(1)) * sin(M_PI * kz * xyz(2)), 0);
+  return Complex(sin(ky * xyz(1)) * sin(kz * xyz(2)), 0);
 }
 
 Complex fZeroScal(fullVector<double>& xyz){
@@ -51,11 +50,10 @@ Complex fZeroScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  /*
   const Complex I = Complex(0, 1);
 
-  const double ky = 1;
-  const double kz = 1;
+  const double ky = 1 * M_PI / 1;
+  const double kz = 1 * M_PI / 1;
   const double kc = sqrt((ky * ky) + (kz * kz));
 
   Complex beta;
@@ -66,14 +64,9 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
     beta = Complex(0, -1 * sqrt((kc * kc) - (k * k)));
 
   fullVector<Complex> tmp(3);
-  tmp(0) = Complex(            sin(M_PI*ky * xyz(1)) * sin(M_PI*kz * xyz(2)),0);
-  tmp(1) = I*beta*ky/(kc*kc) * cos(M_PI*ky * xyz(1)) * sin(M_PI*kz * xyz(2));
-  tmp(2) = I*beta*kz/(kc*kc) * cos(M_PI*kz * xyz(2)) * sin(M_PI*ky * xyz(1));
-  */
-  fullVector<Complex> tmp(3);
-  tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0);
-  tmp(2) = Complex(0, 0);
+  tmp(0) = Complex(                    sin(ky * xyz(1)) * sin(kz * xyz(2)),0);
+  tmp(1) = I * beta * ky / (kc * kc) * cos(ky * xyz(1)) * sin(kz * xyz(2));
+  tmp(2) = I * beta * kz / (kc * kc) * cos(kz * xyz(2)) * sin(ky * xyz(1));
 
   return tmp;
 }
@@ -139,7 +132,7 @@ void compute(const Options& option){
 
     double ooXsiMin = 0;
     double ooXsiMax = Pi / lc;
-    double ooDeltaK = Pi / .06;
+    double ooDeltaK = Pi;// / .06;
 
     double tmp0 =
       (k * k - ooXsiMin * ooXsiMin) * (k * k - (k - ooDeltaK) * (k - ooDeltaK));
@@ -205,24 +198,28 @@ void compute(const Options& option){
   domain[3] = &infinity;
   domain[4] = &ddmBorder;
 
+  // DDM Border container //
+  vector<const GroupOfElement*> ddmBorderTmp(1);
+  ddmBorderTmp[0] = &ddmBorder;
+
   // Dirichlet Border //
   vector<const GroupOfElement*> dirichlet(2);
   dirichlet[0] = &source;
   dirichlet[1] = &zero;
 
-  // All Borders //
-  vector<const GroupOfElement*> allBorders(3);
-  allBorders[0] = &source;
-  allBorders[1] = &zero;
-  allBorders[2] = &ddmBorder;
-
   // Function Space //
   FunctionSpace* fs = NULL;
+  FunctionSpace* fG = NULL;
 
-  if(type == scal)
-    fs = new FunctionSpaceScalar(domain,    order);
-  else
-    fs = new FunctionSpaceVector(domain,    order);
+  if(type == scal){
+    fs = new FunctionSpaceScalar(domain,                  order);
+    fG = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, order);
+  }
+
+  else{
+    fs = new FunctionSpaceVector(domain,                  order);
+    fG = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
+  }
 
   // OSRC
   vector<const FunctionSpaceScalar*> OSRCScalPhi;
@@ -234,7 +231,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(allBorders, order);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, order);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -242,16 +239,16 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(allBorders, order);
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
 
     if(order == 0)
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(allBorders, 1);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
     else
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(allBorders, order);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp, dirichlet,order);
 
-    OSRCVectR = new FunctionSpaceVector(allBorders, order);
+    OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
   }
 
   // Jin Fa Lee
@@ -259,12 +256,12 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(allBorders, order);
+    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
 
     if(order == 0)
-      JFRho = new FunctionSpaceScalar(allBorders, 1);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
     else
-      JFRho = new FunctionSpaceScalar(allBorders, order);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, order);
   }
 
   // Steady Wave Formulation //
@@ -280,8 +277,8 @@ void compute(const Options& option){
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
   map<Dof, Complex> rhsG;
-  FormulationHelper::initDofMap(*fs, ddmBorder, ddmG);
-  FormulationHelper::initDofMap(*fs, ddmBorder, rhsG);
+  FormulationHelper::initDofMap(*fG, ddmBorder, ddmG);
+  FormulationHelper::initDofMap(*fG, ddmBorder, rhsG);
 
   // Ddm Formulation //
   DDMContext*         context = NULL;
@@ -289,7 +286,7 @@ void compute(const Options& option){
   Formulation<Complex>* upDdm = NULL;
 
   if(ddmType == emdaType){
-    context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, k, chi);
+    context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, *fG, k, chi);
     context->setDDMDofs(ddmG);
 
     ddm   = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
@@ -297,7 +294,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == oo2Type){
-    context = new DDMContextOO2(ddmBorder, dirichlet, *fs, ooA, ooB);
+    context = new DDMContextOO2(ddmBorder, dirichlet, *fs, *fG, ooA, ooB);
     context->setDDMDofs(ddmG);
 
     ddm   = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
@@ -306,7 +303,7 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == scal){
     context = new DDMContextOSRCScalar
-                                  (ddmBorder, dirichlet, *fs,
+                                  (ddmBorder, dirichlet, *fs, *fG,
                                    OSRCScalPhi, k, keps, NPade, M_PI / 4.);
     context->setDDMDofs(ddmG);
 
@@ -318,8 +315,8 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == vect){
     context = new DDMContextOSRCVector
-                                  (ddmBorder, dirichlet,
-                                   *fs, OSRCVectPhi, OSRCVectRho, *OSRCVectR,
+                                  (ddmBorder, dirichlet, *fs, *fG,
+                                   OSRCVectPhi, OSRCVectRho, *OSRCVectR,
                                    k, keps, NPade, M_PI / 2.);
     context->setDDMDofs(ddmG);
 
@@ -330,7 +327,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == jflType){
-    context = new DDMContextJFLee(ddmBorder, dirichlet, *fs,
+    context = new DDMContextJFLee(ddmBorder, dirichlet, *fs, *fG,
                                   *JFPhi, *JFRho, k, lc);
     context->setDDMDofs(ddmG);
 
@@ -394,7 +391,6 @@ void compute(const Options& option){
 
   // Full Problem //
   cout << "Solving full problem" << endl << flush;
-
   solver.getSolution(ddmG);
 
   context->setDDMDofs(ddmG);
@@ -418,8 +414,6 @@ void compute(const Options& option){
   full.assemble();
   full.solve();
 
-  full.getSolution(ddmG, 0);
-
   // Draw Solution //
   try{
     option.getValue("-nopos");
@@ -440,6 +434,7 @@ void compute(const Options& option){
   delete sommerfeld;
   delete context;
   delete fs;
+  delete fG;
 
   if(JFPhi)
     delete JFPhi;

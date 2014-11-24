@@ -15,8 +15,9 @@ FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContextEMDA& context){
   this->context = &context;
 
   // Get Domain and FunctionSpace from DDMContext //
-  fspace  = &context.getFunctionSpace();
-  ddomain = &context.getDomain();
+  fspaceG  = &context.getFunctionSpaceG(); // DDM field: testing and unknwon
+  fspace   = &context.getFunctionSpace();  // e field
+  ddomain  = &context.getDomain();
 
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = ddomain->isUniform();
@@ -30,7 +31,7 @@ FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContextEMDA& context){
   this->chi = context.getChi();
 
   // Basis //
-  basis = &fspace->getBasis(eType);
+  basis = &fspaceG->getBasis(eType);
 
   // Gaussian Quadrature //
   gauss = new Quadrature(eType, basis->getOrder(), 2);
@@ -39,7 +40,7 @@ FormulationUpdateEMDA::FormulationUpdateEMDA(DDMContextEMDA& context){
   const fullMatrix<double>& gC = gauss->getPoints();
   basis->preEvaluateFunctions(gC);
 
-  // Init Volume Solution //
+  // Init Volume Solution (in e field represented by fspace) //
   FormulationHelper::initDofMap(*fspace, *ddomain, sol);
 
   // Local Terms //
@@ -81,11 +82,11 @@ Complex FormulationUpdateEMDA::rhs(size_t equationI, size_t elementId) const{
 }
 
 const FunctionSpace& FormulationUpdateEMDA::field(void) const{
-  return *fspace;
+  return *fspaceG;
 }
 
 const FunctionSpace& FormulationUpdateEMDA::test(void) const{
-  return *fspace;
+  return *fspaceG;
 }
 
 const GroupOfElement& FormulationUpdateEMDA::domain(void) const{
@@ -113,12 +114,12 @@ void FormulationUpdateEMDA::update(void){
 
   // New RHS
   if(fspace->isScalar()){
-    lGin = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, ddm);
-    lU   = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace, sol);
+    lGin= new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
+    lU  = new TermProjectionField<Complex>(*jac, *basis, *gauss, *fspace , sol);
   }
 
   else{
-    lGin = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, ddm);
-    lU   = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace, sol);
+    lGin= new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspaceG, ddm);
+    lU  = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fspace , sol);
   }
 }

@@ -21,6 +21,7 @@ class DDMContextOO2: public DDMContext{
   DDMContextOO2(const GroupOfElement& domain,
                 std::vector<const GroupOfElement*>& dirichlet,
                 const FunctionSpace& fSpace,
+                const FunctionSpace& fSpaceG,
                 Complex a, Complex b);
 
   virtual ~DDMContextOO2(void);
@@ -33,7 +34,8 @@ class DDMContextOO2: public DDMContext{
    @fn DDMContextOO2::DDMContextOO2
    @param domain The DDM border for the OO2 problem
    @param dirichlet The Dirichlet border for the OO2 problem
-   @param fSpace The FunctionSpace for the OO2 problem
+   @param fSpace The FunctionSpace for the OO2 field
+   @param fSpaceG The FunctionSpace for the OO2 DDM
    @param a The A value of the OO2 problem
    @param b The B value of the OO2 problem
 

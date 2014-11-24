@@ -24,7 +24,9 @@
    A DDMContext handles the variables common to all DDM Formulation%s,
    that is:
    @li the DDM border;
+   @li the Dirichlet border;
    @li the field FunctionSpace;
+   @li the DDM FunctionSpace;
    @li the volume problem System;
    @li the DDM Dof values.
 
@@ -36,6 +38,7 @@ class DDMContext{
   const System<Complex>* system;
   const GroupOfElement*  domain;
   const FunctionSpace*   fSpace;
+  const FunctionSpace*   fSpaceG;
 
   std::vector<const GroupOfElement*> dirichlet;
 
@@ -50,9 +53,10 @@ class DDMContext{
 
   std::map<Dof, Complex>& getDDMDofs(void);
 
-  const System<Complex>& getSystem(void)        const;
-  const FunctionSpace&   getFunctionSpace(void) const;
-  const GroupOfElement&  getDomain(void)        const;
+  const System<Complex>& getSystem(void)         const;
+  const FunctionSpace&   getFunctionSpace(void)  const;
+  const FunctionSpace&   getFunctionSpaceG(void) const;
+  const GroupOfElement&  getDomain(void)         const;
 
   const std::vector<const GroupOfElement*>& getDirichletDomain(void) const;
 };
@@ -88,6 +92,11 @@ class DDMContext{
    of this DDMContext
    **
 
+   @fn DDMContext::getFunctionSpaceG
+   @return Returns the FunctionSpace used for the DDM field
+   of this DDMContext
+   **
+
    @fn DDMContext::getDomain
    @return Returns the domain defining the DDM border of this DDMContext
    **
@@ -119,6 +128,10 @@ inline std::map<Dof, Complex>& DDMContext::getDDMDofs(void){
 
 inline const FunctionSpace& DDMContext::getFunctionSpace(void) const{
   return *fSpace;
+}
+
+inline const FunctionSpace& DDMContext::getFunctionSpaceG(void) const{
+  return *fSpaceG;
 }
 
 inline const GroupOfElement& DDMContext::getDomain(void) const{

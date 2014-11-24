@@ -34,19 +34,20 @@ class FormulationUpdateOSRCScalar: public FormulationBlock<Complex>{
   DDMContextOSRCScalar* context;
 
   // Stuff for updating RHS //
-  int NPade;
+  int              NPade;
   const Basis*     basis;
   Quadrature*      gauss;
   GroupOfJacobian* jac;
 
   // Volume Solution (field and auxiliary) //
-  std::map<Dof, Complex> solU;
-  std::map<Dof, Complex> UPhi;
+  std::map<Dof, Complex>               solU;
   std::vector<std::map<Dof, Complex> > solPhi;
 
   // Function Space & Domain //
-  const FunctionSpace*  ffspace;
-  const GroupOfElement* ddomain;
+  const FunctionSpace*                           fspaceG;
+  const FunctionSpace*                           fspace;
+  const std::vector<const FunctionSpaceScalar*>* fspaceAux;
+  const GroupOfElement*                          ddomain;
 
   // Pade //
   Complex C0;
@@ -54,10 +55,10 @@ class FormulationUpdateOSRCScalar: public FormulationBlock<Complex>{
   std::vector<Complex> B;
 
   // Local Terms //
-  TermFieldField<double>*       lGout;
-  TermProjectionField<Complex>* lGin;
-  TermProjectionField<Complex>* lC0;
-  TermProjectionField<Complex>* lAB;
+  TermFieldField<double>*        lGout;
+  TermProjectionField<Complex>*  lGin;
+  TermProjectionField<Complex>*  lU;
+  TermProjectionField<Complex>** lPhi;
 
  public:
   FormulationUpdateOSRCScalar(DDMContextOSRCScalar& context);
@@ -73,10 +74,6 @@ class FormulationUpdateOSRCScalar: public FormulationBlock<Complex>{
 
   virtual bool isBlock(void) const;
   virtual void update(void);
-
- private:
-  void resetUPhi(void);
-  void getUPhi(void);
 };
 
 /**

@@ -21,6 +21,7 @@ class DDMContextEMDA: public DDMContext{
   DDMContextEMDA(const GroupOfElement& domain,
                  std::vector<const GroupOfElement*>& dirichlet,
                  const FunctionSpace& fSpace,
+                 const FunctionSpace& fSpaceG,
                  double k, double chi);
 
   virtual ~DDMContextEMDA(void);
@@ -33,7 +34,8 @@ class DDMContextEMDA: public DDMContext{
    @fn DDMContextEMDA::DDMContextEMDA
    @param domain The DDM border for the EMDA problem
    @param dirichlet The Dirichlet border for the EMDA problem
-   @param fSpace The FunctionSpace for the EMDA problem
+   @param fSpace The FunctionSpace for the EMDA field
+   @param fSpaceG The FunctionSpace for the EMDA DDM
    @param k The wavenumber of the EMDA problem
    @param chi The chi of the EMDA problem
 

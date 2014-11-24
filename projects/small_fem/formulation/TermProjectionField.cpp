@@ -24,12 +24,14 @@ interpolate(const MElement& element,
   vector<double> coef(nDof);
 
   for(size_t i = 0; i < nDof; i++){
-    it = dofValue->find(dof[i]);
-    if(it == end)
-      throw Exception("TermProjectionField::interpolate unknown dof %s",
-                      dof[i].toString().c_str());
+    if(dof[i] != Dof::RejectedDof()){
+      it = dofValue->find(dof[i]);
+      if(it == end)
+        throw Exception("TermProjectionField::interpolate unknown dof %s",
+                        dof[i].toString().c_str());
 
-    coef[i] = it->second;
+      coef[i] = it->second;
+    }
   }
 
   // Interpolate & Return
@@ -56,13 +58,15 @@ interpolate(const MElement& element,
   vector<double> imagCoef(nDof);
 
   for(size_t i = 0; i < nDof; i++){
-    it = dofValue->find(dof[i]);
-    if(it == end)
-      throw Exception("TermProjectionField::interpolate unknown dof %s",
-                      dof[i].toString().c_str());
+    if(dof[i] != Dof::RejectedDof()){
+      it = dofValue->find(dof[i]);
+      if(it == end)
+        throw Exception("TermProjectionField::interpolate unknown dof %s",
+                        dof[i].toString().c_str());
 
-    realCoef[i] = it->second.real();
-    imagCoef[i] = it->second.imag();
+      realCoef[i] = it->second.real();
+      imagCoef[i] = it->second.imag();
+    }
   }
 
   // Interpolate
