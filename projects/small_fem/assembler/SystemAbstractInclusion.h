@@ -111,16 +111,20 @@ countTerms(size_t offset,
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM->getGlobalId(dofTest[i]);
+    if(dofTest[i] != Dof::RejectedDof()){
+      dofI = dofM->getGlobalId(dofTest[i]);
 
-    // If not a fixed Dof line
-    if(dofI != DofManager<scalar>::isFixedId()){
-      for(size_t j = 0; j < M; j++){
-        dofJ = dofM->getGlobalId(dofField[j]);
+      // If not a fixed Dof line
+      if(dofI != DofManager<scalar>::isFixedId()){
+        for(size_t j = 0; j < M; j++){
+          if(dofField[j] != Dof::RejectedDof()){
+            dofJ = dofM->getGlobalId(dofField[j]);
 
-        // If not a fixed Dof: count!
-        if(dofJ != DofManager<scalar>::isFixedId())
-          count++;
+            // If not a fixed Dof: count!
+            if(dofJ != DofManager<scalar>::isFixedId())
+              count++;
+          }
+        }
       }
     }
   }
@@ -144,26 +148,30 @@ assemble(SolverMatrix<scalar>& A,
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM->getGlobalId(dofTest[i]);
+    if(dofTest[i] != Dof::RejectedDof()){
+      dofI = dofM->getGlobalId(dofTest[i]);
 
-    // If not a fixed Dof line: assemble
-    if(dofI != DofManager<scalar>::isFixedId()){
-      for(size_t j = 0; j < M; j++){
-        dofJ = dofM->getGlobalId(dofField[j]);
+      // If not a fixed Dof line: assemble
+      if(dofI != DofManager<scalar>::isFixedId()){
+        for(size_t j = 0; j < M; j++){
+          if(dofField[j] != Dof::RejectedDof()){
+            dofJ = dofM->getGlobalId(dofField[j]);
 
-        // If not a fixed Dof
-        if(dofJ != DofManager<scalar>::isFixedId())
-          A.add(dofI, dofJ, formulation.weak(i, j, elementId));
+            // If not a fixed Dof
+            if(dofJ != DofManager<scalar>::isFixedId())
+              A.add(dofI, dofJ, formulation.weak(i, j, elementId));
 
-        // If fixed Dof (for column 'dofJ'):
-        //    add to right hand side (with a minus sign) !
-        else
-          b.add(dofI,
-                minusSign * dofM->getValue(dofField[j]) *
-                            formulation.weak(i, j, elementId));
+            // If fixed Dof (for column 'dofJ'):
+            //    add to right hand side (with a minus sign) !
+            else
+              b.add(dofI,
+                    minusSign * dofM->getValue(dofField[j]) *
+                                formulation.weak(i, j, elementId));
+          }
+        }
+
+        b.add(dofI, formulation.rhs(i, elementId));
       }
-
-      b.add(dofI, formulation.rhs(i, elementId));
     }
   }
 }
@@ -183,16 +191,20 @@ assembleLHSOnly(SolverMatrix<scalar>& A,
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM->getGlobalId(dofTest[i]);
+    if(dofTest[i] != Dof::RejectedDof()){
+      dofI = dofM->getGlobalId(dofTest[i]);
 
-    // If not a fixed Dof line: assemble
-    if(dofI != DofManager<scalar>::isFixedId()){
-      for(size_t j = 0; j < M; j++){
-        dofJ = dofM->getGlobalId(dofField[j]);
+      // If not a fixed Dof line: assemble
+      if(dofI != DofManager<scalar>::isFixedId()){
+        for(size_t j = 0; j < M; j++){
+          if(dofField[j] != Dof::RejectedDof()){
+            dofJ = dofM->getGlobalId(dofField[j]);
 
-        // If not a fixed Dof
-        if(dofJ != DofManager<scalar>::isFixedId())
-          A.add(dofI, dofJ, formulation.weak(i, j, elementId));
+            // If not a fixed Dof
+            if(dofJ != DofManager<scalar>::isFixedId())
+              A.add(dofI, dofJ, formulation.weak(i, j, elementId));
+          }
+        }
       }
     }
   }
@@ -213,21 +225,25 @@ assembleRHSOnly(SolverVector<scalar>& b,
   size_t dofJ;
 
   for(size_t i = 0; i < N; i++){
-    dofI = dofM->getGlobalId(dofTest[i]);
+    if(dofTest[i] != Dof::RejectedDof()){
+      dofI = dofM->getGlobalId(dofTest[i]);
 
-    // If not a fixed Dof line: assemble rhs
-    if(dofI != DofManager<scalar>::isFixedId()){
-      for(size_t j = 0; j < M; j++){
-        dofJ = dofM->getGlobalId(dofField[j]);
+      // If not a fixed Dof line: assemble rhs
+      if(dofI != DofManager<scalar>::isFixedId()){
+        for(size_t j = 0; j < M; j++){
+          if(dofField[j] != Dof::RejectedDof()){
+            dofJ = dofM->getGlobalId(dofField[j]);
 
-        // If a fixed Dof column: assemble rhs
-        if(dofJ == DofManager<scalar>::isFixedId())
-          b.add(dofI,
-                minusSign * dofM->getValue(dofField[j]) *
-                            formulation.weak(i, j, elementId));
+            // If a fixed Dof column: assemble rhs
+            if(dofJ == DofManager<scalar>::isFixedId())
+              b.add(dofI,
+                    minusSign * dofM->getValue(dofField[j]) *
+                                formulation.weak(i, j, elementId));
+          }
+        }
+
+        b.add(dofI, formulation.rhs(i, elementId));
       }
-
-      b.add(dofI, formulation.rhs(i, elementId));
     }
   }
 }

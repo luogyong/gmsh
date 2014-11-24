@@ -8,6 +8,7 @@
 #include <mpi.h>
 #include <sstream>
 
+#include "FunctionSpace.h"
 #include "MPIDofMap.h"
 #include "Exception.h"
 
@@ -63,7 +64,8 @@ void DofManager<scalar>::addToDofManager(const std::set<Dof>& dof){
 
   // Add to DofManager //
   for(; it != end; it++)
-    globalIdM.insert(std::pair<Dof, size_t>(*it, 0));
+    if(*it != Dof::RejectedDof())
+      globalIdM.insert(std::pair<Dof, size_t>(*it, 0));
 }
 
 template<typename scalar>
@@ -83,7 +85,8 @@ addToDofManager(const std::vector<std::vector<Dof> >& dof){
     nDof = dof[i].size();
 
     for(size_t j = 0; j < nDof; j++)
-      globalIdM.insert(std::pair<Dof, size_t>(dof[i][j], 0));
+      if(dof[i][j] != Dof::RejectedDof())
+        globalIdM.insert(std::pair<Dof, size_t>(dof[i][j], 0));
   }
 }
 

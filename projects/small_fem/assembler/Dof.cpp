@@ -1,5 +1,8 @@
+#include <limits.h>
 #include <sstream>
 #include "Dof.h"
+
+const Dof Dof::rejected(INT_MAX, INT_MAX);
 
 Dof::Dof(void){
   this->entity  = 0;

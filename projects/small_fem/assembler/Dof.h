@@ -11,13 +11,21 @@
 
    A Dof is defined by a pair of two integers called (entity, type).
    By themselfs, these integers have no meaning, they just define a Dof.
+
+   A Special Dof, called RejectedDof, defines a dummy Dof.
 */
 
 
 class Dof{
  private:
+  static const Dof rejected;
+
+ private:
   int entity;
   int type;
+
+ public:
+  static const Dof& RejectedDof(void);
 
  public:
    Dof(void);
@@ -42,6 +50,10 @@ class Dof{
 
 
 /**
+   @fn Dof::RejectedDof(void)
+   @return Returns the RejectedDof
+   **
+
    @fn Dof::Dof(void)
    Instanciates a new Dof with:
    @li entity = 0
@@ -128,6 +140,10 @@ class Dof{
 //////////////////////
 // Inline Functions //
 //////////////////////
+
+inline const Dof& Dof::RejectedDof(void){
+  return rejected;
+}
 
 inline int Dof::getEntity(void) const{
   return entity;
