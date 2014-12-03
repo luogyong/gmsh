@@ -341,59 +341,68 @@ void compute(const Options& option){
   // Solve Non homogenous problem //
   cout << "Solving non homogenous problem" << endl << flush;
 
-  System<Complex> nonHomogenous;
-  nonHomogenous.addFormulation(*wave);
-  nonHomogenous.addFormulation(*sommerfeld);
-  nonHomogenous.addFormulation(*ddm);
+  System<Complex>* nonHomogenous = new System<Complex>;
+  nonHomogenous->addFormulation(*wave);
+  nonHomogenous->addFormulation(*sommerfeld);
+  nonHomogenous->addFormulation(*ddm);
 
   // Constraint
   if(fs->isScalar()){
-    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, source, fSourceScal);
-    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, zero  , fZeroScal);
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceScal);
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero  , fZeroScal);
   }
   else{
-    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, source, fSourceVect);
-    SystemHelper<Complex>::dirichlet(nonHomogenous, *fs, zero  , fZeroVect);
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceVect);
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero  , fZeroVect);
   }
 
   // Assemble & Solve
-  nonHomogenous.assemble();
-  nonHomogenous.solve();
+  nonHomogenous->assemble();
+  nonHomogenous->solve();
 
   // Solve Non homogenous DDM problem //
   cout << "Computing right hand side" << endl << flush;
 
-  context->setSystem(nonHomogenous);
+  context->setSystem(*nonHomogenous);
   upDdm->update(); // update volume solution (at DDM border)
 
-  System<Complex> nonHomogenousDDM;
-  nonHomogenousDDM.addFormulation(*upDdm);
+  System<Complex>* nonHomogenousDDM = new System<Complex>;
+  nonHomogenousDDM->addFormulation(*upDdm);
 
-  nonHomogenousDDM.assemble();
-  nonHomogenousDDM.solve();
-  nonHomogenousDDM.getSolution(rhsG, 0);
+  nonHomogenousDDM->assemble();
+  nonHomogenousDDM->solve();
+  nonHomogenousDDM->getSolution(rhsG, 0);
+
+  // Clear Systems //
+  delete nonHomogenous;
+  delete nonHomogenousDDM;
 
   // DDM Solver //
   cout << "Solving DDM problem" << endl << flush;
 
-  SolverDDM solver(*wave,*sommerfeld, *context, *ddm, *upDdm, rhsG);
+  SolverDDM* solver =
+    new SolverDDM(*wave,*sommerfeld, *context, *ddm, *upDdm, rhsG);
 
   try{
     // Construct iteration operator
     string name = option.getValue("-I")[1];
     string filename = name + ".bin";
-    solver.constructIterationMatrix(name.c_str(), filename.c_str());
+    solver->constructIterationMatrix(name.c_str(), filename.c_str());
   }
   catch(...){
     // Solve
-    solver.solve(maxIt);
+    solver->solve(maxIt);
   }
+
+  // Get Solution
+  solver->getSolution(ddmG);
+  context->setDDMDofs(ddmG);
+
+  // Clear DDM //
+  delete solver;
 
   // Full Problem //
   cout << "Solving full problem" << endl << flush;
-  solver.getSolution(ddmG);
-
-  context->setDDMDofs(ddmG);
   ddm->update();
 
   System<Complex> full;
@@ -419,6 +428,8 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
+    cout << "Writing full problem" << endl << flush;
+
     stringstream stream;
     stream << "ddm" << myProc;
 
