@@ -41,10 +41,11 @@ class GroupOfElement{
 
   void add(const GroupOfElement& other);
 
-  bool            isEmpty(void)   const;
-  size_t          getId(void)     const;
-  size_t          getNumber(void) const;
-  const MElement& get(size_t i)   const;
+  bool            isEmpty(void)                     const;
+  bool            isMember(const MElement& element) const;
+  size_t          getId(void)                       const;
+  size_t          getNumber(void)                   const;
+  const MElement& get(size_t i)                     const;
 
   const std::vector<const MElement*>& getAll(void) const;
   const Mesh& getMesh(void) const;
@@ -92,6 +93,12 @@ class GroupOfElement{
 
    @fn GroupOfElement::isEmpty
    @return Returns true if this GroupOfElement has no elements
+   and false otherwise
+   **
+
+   @fn GroupOfElement::isMember
+   @param element A MElement
+   @return Returns true if the given MElement is a member of this GroupOfElement
    and false otherwise
    **
 

@@ -13,7 +13,8 @@
 
 #include "System.h"
 #include "SystemHelper.h"
-
+#include "Interpolator.h"
+#include "NodeSolution.h"
 #include "FormulationHelper.h"
 
 #include "FormulationOO2.h"
@@ -52,7 +53,7 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   fullVector<Complex> tmp(3);
 
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0) * Complex(cos(k * p), sin(k * p));
+  tmp(1) = Complex(1, 0);// * Complex(cos(k * p), sin(k * p));
   tmp(2) = Complex(0, 0);
 
   return tmp;
@@ -176,18 +177,19 @@ void compute(const Options& option){
   vector<const GroupOfElement*> dirichlet(1);
   dirichlet[0] = &source;
 
-  // All Borders //
-  vector<const GroupOfElement*> allBorders(2);
-  allBorders[0] = &source;
-  allBorders[1] = &ddmBorder;
-
   // Function Space //
   FunctionSpace* fs = NULL;
+  FunctionSpace* fG = NULL;
 
-  if(type == scal)
-    fs = new FunctionSpaceScalar(domain, order);
-  else
-    fs = new FunctionSpaceVector(domain, order);
+  if(type == scal){
+    fs = new FunctionSpaceScalar(domain,    order);
+    fG = new FunctionSpaceScalar(ddmBorder, order);
+  }
+
+  else{
+    fs = new FunctionSpaceVector(domain,    order);
+    fG = new FunctionSpaceVector(ddmBorder, order);
+  }
 
   // OSRC
   vector<const FunctionSpaceScalar*> OSRCScalPhi;
@@ -199,7 +201,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(allBorders, order);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorder, order);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -207,16 +209,16 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(allBorders, order);
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorder, order);
 
     if(order == 0)
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(allBorders, 1);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, 1);
     else
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(allBorders, order);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, order);
 
-    OSRCVectR = new FunctionSpaceVector(allBorders, order);
+    OSRCVectR = new FunctionSpaceVector(ddmBorder, order);
   }
 
   // Jin Fa Lee
@@ -224,12 +226,12 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(allBorders, order);
+    JFPhi = new FunctionSpaceVector(ddmBorder, order);
 
     if(order == 0)
-      JFRho = new FunctionSpaceScalar(allBorders, 1);
+      JFRho = new FunctionSpaceScalar(ddmBorder, 1);
     else
-      JFRho = new FunctionSpaceScalar(allBorders, order);
+      JFRho = new FunctionSpaceScalar(ddmBorder, order);
   }
 
   // Steady Wave Formulation //
@@ -244,8 +246,8 @@ void compute(const Options& option){
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
   map<Dof, Complex> rhsG;
-  FormulationHelper::initDofMap(*fs, ddmBorder, ddmG);
-  FormulationHelper::initDofMap(*fs, ddmBorder, rhsG);
+  FormulationHelper::initDofMap(*fG, ddmBorder, ddmG);
+  FormulationHelper::initDofMap(*fG, ddmBorder, rhsG);
 
   // Ddm Formulation //
   DDMContext*         context = NULL;
@@ -253,7 +255,7 @@ void compute(const Options& option){
   Formulation<Complex>* upDdm = NULL;
 
   if(ddmType == emdaType){
-    context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, *fs, k, chi);
+    context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, *fG, k, chi);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
@@ -261,7 +263,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == oo2Type){
-    context = new DDMContextOO2(ddmBorder, dirichlet, *fs, *fs, ooA, ooB);
+    context = new DDMContextOO2(ddmBorder, dirichlet, *fs, *fG, ooA, ooB);
     context->setDDMDofs(ddmG);
 
     ddm     = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
@@ -270,7 +272,7 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == scal){
     context = new DDMContextOSRCScalar
-                                  (ddmBorder, dirichlet, *fs, *fs,
+                                  (ddmBorder, dirichlet, *fs, *fG,
                                    OSRCScalPhi, k, keps, NPade, M_PI / 4.);
     context->setDDMDofs(ddmG);
 
@@ -282,7 +284,7 @@ void compute(const Options& option){
 
   else if(ddmType == osrcType && type == vect){
     context = new DDMContextOSRCVector
-                                  (ddmBorder, dirichlet, *fs, *fs,
+                                  (ddmBorder, dirichlet, *fs, *fG,
                                    OSRCVectPhi, OSRCVectRho, *OSRCVectR,
                                    k, keps, NPade, M_PI / 2.);
     context->setDDMDofs(ddmG);
@@ -294,7 +296,7 @@ void compute(const Options& option){
   }
 
   else if(ddmType == jflType){
-    context = new DDMContextJFLee(ddmBorder, dirichlet, *fs, *fs,
+    context = new DDMContextJFLee(ddmBorder, dirichlet, *fs, *fG,
                                   *JFPhi, *JFRho, k, lc);
     context->setDDMDofs(ddmG);
 
@@ -392,9 +394,39 @@ void compute(const Options& option){
     stringstream stream;
     stream << "circle" << myProc;
 
-    FEMSolution<Complex> feSol;
-    full.getSolution(feSol, *fs, volume);
-    feSol.write(stream.str());
+    try{
+      // Get Visu Mesh //
+      vector<string> visuStr = option.getValue("-interp");
+      Mesh           visuMsh(visuStr[1]);
+      GroupOfElement visuGoe(visuMsh.getFromPhysical(100 + myProc));
+
+      // Solution //
+      map<Dof, Complex> sol;
+
+      FormulationHelper::initDofMap(*fs, volume, sol);
+      full.getSolution(sol, 0);
+
+      // Vertex, Value Map //
+      map<const MVertex*, vector<Complex> > map;
+      Interpolator<Complex>::interpolate(volume, visuGoe, *fs, sol, map);
+
+      // Print //
+      stringstream name;
+      name << stream.str() << ".dat";
+
+      Interpolator<Complex>::write(name.str(), map);
+      /*
+      NodeSolution<Complex> nodeSol;
+      nodeSol.addNodeValue(0, 0, visuMsh, map);
+      nodeSol.write(stream.str());
+      */
+    }
+
+    catch(...){
+      FEMSolution<Complex> feSol;
+      full.getSolution(feSol, *fs, volume);
+      feSol.write(stream.str());
+    }
   }
 
   // Clean //
@@ -403,6 +435,7 @@ void compute(const Options& option){
   delete context;
   delete sommerfeld;
   delete fs;
+  delete fG;
 
   if(JFPhi)
     delete JFPhi;
@@ -428,7 +461,8 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,-nopos,-I");
+  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
+                     "-interp,-nopos,-I");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

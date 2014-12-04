@@ -1,6 +1,7 @@
 #ifndef _INTERPOLATOR_H_
 #define _INTERPOLATOR_H_
 
+#include <fstream>
 #include <map>
 
 #include "GroupOfElement.h"
@@ -12,10 +13,7 @@
    @brief Interpolating method for FEM Solutions
 
    This class allows the interpolation of a map of (Dof, value)
-   associated to a FunctionSpace
-
-   @todo
-   NEED TO BE MERGED WITH FEMSOLUTION: NEED HO PVIEW WITH ARBITRARY BASIS
+   associated to a FunctionSpace on a set of points
  */
 
 template <typename scalar>
@@ -28,7 +26,8 @@ class Interpolator{
                           const FunctionSpace& fs,
                           const std::map<Dof, scalar>& coef,
                           const fullMatrix<double>& point,
-                          fullMatrix<scalar>& values);
+                          fullMatrix<scalar>& values,
+                          std::vector<bool>& isValid);
 
   static void interpolate(const GroupOfElement& goe,
                           const GroupOfElement& point,
@@ -36,12 +35,19 @@ class Interpolator{
                           const std::map<Dof, scalar>& coef,
                           std::map<const MVertex*,
                                    std::vector<scalar> >& values);
+
+  static void write(std::string filename,
+                    const std::map<const MVertex*, std::vector<scalar> >&value);
+
  private:
   static void interpolate(const MElement& element,
                           const FunctionSpace& fs,
                           const std::vector<scalar>& coef,
                           const fullVector<double>& xyz,
                           fullVector<scalar>& value);
+
+  static void dump(std::ofstream& stream,
+                   const std::map<int, std::vector<double> >& data);
 };
 
 

@@ -243,7 +243,8 @@ void fem(double (*f)(fullVector<double>& xyz),
   sysProj.getSolution(sysSol, 0);
 
   // Interpolate on Ref Points //
-  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol);
+  vector<bool> isValid;
+  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol,isValid);
 
   // Post-processing //
   if(!nopos){
@@ -289,7 +290,8 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
   sysProj.getSolution(sysSol, 0);
 
   // Interpolate on Ref Points //
-  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol);
+  vector<bool> isValid;
+  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol,isValid);
 
   // Post-processing //
   if(!nopos){

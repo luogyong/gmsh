@@ -1,4 +1,4 @@
-#include <complex>
+#include "SmallFem.h"
 #include "Interpolator.h"
 
 #include "FunctionSpaceScalar.h"
@@ -46,12 +46,12 @@ interpolate(const MElement& element,
 // ---------------------- //
 
 template<>
-void Interpolator<complex<double> >::
+void Interpolator<Complex>::
 interpolate(const MElement& element,
             const FunctionSpace& fs,
-            const std::vector<complex<double> >& coef,
+            const std::vector<Complex>& coef,
             const fullVector<double>& xyz,
-            fullVector<complex<double> >& value){
+            fullVector<Complex>& value){
 
   // Real & Imaginary //
   const size_t size = coef.size();
@@ -81,7 +81,7 @@ interpolate(const MElement& element,
     double imag = fsScalar->interpolate(element, coefImag, xyz);
 
     // Complex
-    value(0) = complex<double>(real, imag);
+    value(0) = Complex(real, imag);
   }
 
   else{
@@ -97,8 +97,80 @@ interpolate(const MElement& element,
     fullVector<double> imag = fsVector->interpolate(element, coefImag, xyz);
 
     // Complex
-    value(0) = complex<double>(real(0), imag(0));
-    value(1) = complex<double>(real(1), imag(1));
-    value(2) = complex<double>(real(2), imag(2));
+    value(0) = Complex(real(0), imag(0));
+    value(1) = Complex(real(1), imag(1));
+    value(2) = Complex(real(2), imag(2));
   }
+}
+
+template<>
+void Interpolator<double>::write(string filename,
+                                 const map<const MVertex*,
+                                           vector<double> >& value){
+  // Open //
+  ofstream stream;
+  stream.open(filename.c_str());
+
+  // Header //
+  stream << value.size()                 << endl
+         << value.begin()->second.size() << endl
+         << "real"                       << endl;
+
+  // Iterators //
+  map<const MVertex*, vector<double> >::const_iterator  it = value.begin();
+  map<const MVertex*, vector<double> >::const_iterator end = value.end();
+
+  // Write //
+  map<int, vector<double> > data;
+
+  // Populate
+  for(; it != end; it++)
+    data.insert(pair<int, vector<double> >(it->first->getNum(), it->second));
+
+  // Dump
+  dump(stream, data);
+
+  // Close //
+  stream.close();
+}
+
+template<>
+void Interpolator<Complex>::write(string filename,
+                                  const map<const MVertex*,
+                                            vector<Complex> >& value){
+  // Open //
+  ofstream stream;
+  stream.open(filename.c_str());
+
+  // Header //
+  stream << "complex"                    << endl
+         << value.size()                 << endl
+         << value.begin()->second.size() << endl;
+
+  // Iterators //
+  map<const MVertex*, vector<Complex> >::const_iterator  it = value.begin();
+  map<const MVertex*, vector<Complex> >::const_iterator end = value.end();
+
+  // Write //
+  map<int, vector<double> > data;
+
+  // Populate
+  const int      dim = it->second.size();
+  vector<double> tmp(dim * 2);
+
+  for(; it != end; it++){
+    for(int i = 0; i < dim; i++)
+      tmp[i] = it->second[i].real();
+
+    for(int i = 0, j = dim; i < dim; i++, j++)
+      tmp[j] = it->second[i].imag();
+
+    data.insert(pair<int, vector<double> >(it->first->getNum(), tmp));
+  }
+
+  // Dump
+  dump(stream, data);
+
+  // Close //
+  stream.close();
 }

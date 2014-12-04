@@ -169,8 +169,10 @@ add_executable(pml   simulation/Pml.cpp)
 add_executable(scat  simulation/Scattering.cpp simulation/ScatteringHelper.cpp)
 add_executable(har   simulation/Haroche.cpp simulation/HarocheHelper.cpp)
 add_executable(har2d simulation/Haroche2D.cpp simulation/HarocheHelper2D.cpp)
+
 add_executable(ddm   simulation/Ddm.cpp)
 add_executable(cir   simulation/DdmCircle.cpp)
+add_executable(disc  simulation/DiscScattering.cpp)
 
 add_executable(proj simulation/Projection.cpp)
 add_executable(mesh simulation/Mesh.cpp)
@@ -191,8 +193,10 @@ target_link_libraries(pml   sf)
 target_link_libraries(scat  sf)
 target_link_libraries(har   sf)
 target_link_libraries(har2d sf)
+
 target_link_libraries(ddm   sf)
 target_link_libraries(cir   sf)
+target_link_libraries(disc  sf)
 
 target_link_libraries(proj sf)
 target_link_libraries(mesh sf)

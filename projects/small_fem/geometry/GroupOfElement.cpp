@@ -90,6 +90,16 @@ void GroupOfElement::add(const GroupOfElement& other){
   init();
 }
 
+bool GroupOfElement::isMember(const MElement& element) const{
+  const size_t size = this->element.size();
+
+  for(size_t i = 0; i < size; i++)
+    if(element.getNum() == this->element[i]->getNum())
+      return true;
+
+  return false;
+}
+
 void GroupOfElement::
 getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const{
   const size_t nElement = element.size();
