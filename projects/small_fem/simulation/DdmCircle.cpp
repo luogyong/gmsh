@@ -457,7 +457,8 @@ void compute(const Options& option){
         file.open(dumpName[1].c_str(), ofstream::out | ofstream::trunc);
 
         for(size_t i = 0; i < nHist; i++)
-          file << std::scientific << history[i] << endl;
+          file << std::scientific << std::setprecision(16)
+               << history[i] << endl;
 
         file.close();
       }

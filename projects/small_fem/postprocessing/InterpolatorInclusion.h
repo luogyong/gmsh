@@ -5,6 +5,8 @@
 // Damn you gcc: we want 'export' !            //
 /////////////////////////////////////////////////
 
+#include <iomanip>
+
 template<typename scalar>
 Interpolator<scalar>::Interpolator(void){
 }
@@ -180,7 +182,8 @@ void Interpolator<scalar>::dump(std::ofstream& stream,
     stream << it->first << " ";
 
     for(size_t i = 0; i < it->second.size(); i++)
-      stream << it->second[i] << " ";
+      stream << std::scientific << std::setprecision(16)
+             << it->second[i] << " ";
 
     stream << std::endl;
   }
