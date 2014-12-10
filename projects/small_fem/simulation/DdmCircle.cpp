@@ -44,7 +44,7 @@ static double theta = 0;
 Complex fSourceScal(fullVector<double>& xyz){
   double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  return Complex (1, 0) * Complex(cos(k * p), sin(k * p));
+  return Complex (1, 0);// * Complex(cos(k * p), sin(k * p));
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
@@ -80,10 +80,11 @@ void compute(const Options& option){
     throw Exception("Bad -type: %s", option.getValue("-type")[1].c_str());
 
   // Get Parameters //
-  const string ddmType = option.getValue("-ddm")[1];
-               k       = atof(option.getValue("-k")[1].c_str());
-  const size_t order   = atoi(option.getValue("-o")[1].c_str());
-  const size_t maxIt   = atoi(option.getValue("-max")[1].c_str());
+  const string ddmType  = option.getValue("-ddm")[1];
+               k        = atof(option.getValue("-k")[1].c_str());
+  const size_t orderVol = atoi(option.getValue("-ov")[1].c_str());
+  const size_t orderSur = atoi(option.getValue("-ob")[1].c_str());
+  const size_t maxIt    = atoi(option.getValue("-max")[1].c_str());
 
   // DDM Formulations //
   const string emdaType("emda");
@@ -182,13 +183,13 @@ void compute(const Options& option){
   FunctionSpace* fG = NULL;
 
   if(type == scal){
-    fs = new FunctionSpaceScalar(domain,    order);
-    fG = new FunctionSpaceScalar(ddmBorder, order);
+    fs = new FunctionSpaceScalar(domain,    orderVol);
+    fG = new FunctionSpaceScalar(ddmBorder, orderSur);
   }
 
   else{
-    fs = new FunctionSpaceVector(domain,    order);
-    fG = new FunctionSpaceVector(ddmBorder, order);
+    fs = new FunctionSpaceVector(domain,    orderVol);
+    fG = new FunctionSpaceVector(ddmBorder, orderSur);
   }
 
   // OSRC
@@ -201,7 +202,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorder, order);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorder, orderVol);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -209,16 +210,16 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorder, order);
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorder, orderVol);
 
-    if(order == 0)
+    if(orderVol == 0)
       for(int j = 0; j < NPade; j++)
         OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, 1);
     else
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, order);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, orderVol);
 
-    OSRCVectR = new FunctionSpaceVector(ddmBorder, order);
+    OSRCVectR = new FunctionSpaceVector(ddmBorder, orderVol);
   }
 
   // Jin Fa Lee
@@ -226,12 +227,12 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(ddmBorder, order);
+    JFPhi = new FunctionSpaceVector(ddmBorder, orderVol);
 
-    if(order == 0)
+    if(orderVol == 0)
       JFRho = new FunctionSpaceScalar(ddmBorder, 1);
     else
-      JFRho = new FunctionSpaceScalar(ddmBorder, order);
+      JFRho = new FunctionSpaceScalar(ddmBorder, orderVol);
   }
 
   // Steady Wave Formulation //
@@ -363,6 +364,10 @@ void compute(const Options& option){
   solver->getSolution(ddmG);
   context->setDDMDofs(ddmG);
 
+  // Get history
+  vector<double> history;
+  solver->getHistory(history);
+
   // Clear DDM //
   delete solver;
 
@@ -392,7 +397,13 @@ void compute(const Options& option){
     cout << "Writing full problem" << endl << flush;
 
     stringstream stream;
-    stream << "circle" << myProc;
+    try{
+      vector<string> name = option.getValue("-name");
+      stream << name[1] << myProc;
+    }
+    catch(...){
+      stream << "circle" << myProc;
+    }
 
     try{
       // Get Visu Mesh //
@@ -429,6 +440,33 @@ void compute(const Options& option){
     }
   }
 
+  // Dump history //
+  if(myProc == 0){
+    try{
+      const size_t nHist      = history.size();
+      vector<string> dumpName = option.getValue("-hist");
+
+      // If no name given, dumb on cout
+      if(dumpName.size() == 1){
+        for(size_t i = 0; i < nHist; i++)
+          cout << std::scientific << i << ": " << history[i] << endl;
+      }
+
+      else{
+        ofstream file;
+        file.open(dumpName[1].c_str(), ofstream::out | ofstream::trunc);
+
+        for(size_t i = 0; i < nHist; i++)
+          file << std::scientific << history[i] << endl;
+
+        file.close();
+      }
+
+    }
+    catch(...){
+    }
+  }
+
   // Clean //
   delete ddm;
   delete upDdm;
@@ -461,8 +499,8 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
-                     "-interp,-nopos,-I");
+  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
+                     "-interp,-hist,-name,-nopos,-I");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

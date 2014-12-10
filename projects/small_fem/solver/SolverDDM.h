@@ -67,6 +67,10 @@ class SolverDDM{
 
   std::map<Dof, Complex>* rhs;
 
+  // Residual history //
+  PetscReal* hist;
+  PetscInt  nHist;
+
  public:
   SolverDDM(const Formulation<Complex>& wave,
             const Formulation<Complex>& sommerfeld,
@@ -81,6 +85,7 @@ class SolverDDM{
   void constructIterationMatrix(std::string name, std::string filename);
 
   void getSolution(std::map<Dof, Complex>& ddm);
+  void getHistory(std::vector<double>& history) const;
 
  private:
   void buildNeighbourhood(const std::map<Dof, Complex>& local);

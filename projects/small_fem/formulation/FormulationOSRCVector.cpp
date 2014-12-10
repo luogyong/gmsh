@@ -37,8 +37,8 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   if(!uniform.first)
     throw Exception("FormulationOSRCVector needs a uniform mesh");
 
-  // Get Vectorial Basis (from R FunctionSpace) //
-  basisV = &(R.getBasis(eType)); // Saved for update()
+  // Get Vectorial Basis //
+  basisV = &(field->getBasis(eType)); // Saved for update()
   const size_t order = basisV->getOrder();
 
   // Get scalar Basis
@@ -48,7 +48,7 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   double  k     = context.getWavenumber();
   Complex kE    = context.getComplexWavenumber();
   int     NPade = context.getNPade();
-  double theta = context.getRotation();
+  double theta  = context.getRotation();
 
   Complex         R0;
   vector<Complex> A(NPade);

@@ -21,7 +21,7 @@ static double theta = 0;
 Complex fSourceScal(fullVector<double>& xyz){
   double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
 
-  return Complex (1, 0) * Complex(cos(k * p), sin(k * p));
+  return Complex (1, 0);// * Complex(cos(k * p), sin(k * p));
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
@@ -131,7 +131,13 @@ void compute(const Options& option){
     cout << "Writing solution..." << endl << flush;
 
     stringstream stream;
-    stream << "disc";
+    try{
+      vector<string> name = option.getValue("-name");
+      stream << name[1];
+    }
+    catch(...){
+      stream << "disc";
+    }
 
     try{
       // Get Visu Mesh //
@@ -175,7 +181,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-n,-interp,-nopos");
+  SmallFem::Keywords("-msh,-o,-k,-type,-n,-interp,-name,-nopos");
 
   SmallFem::Initialize(argc, argv);
 

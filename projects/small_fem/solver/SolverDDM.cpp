@@ -86,6 +86,10 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
 
   // Set opertation //
   MatShellSetOperation(A, MATOP_MULT, (void(*)(void))(SolverDDM::matMult));
+
+  // History //
+  hist  = NULL;
+  nHist = 0;
 }
 
 SolverDDM::~SolverDDM(void){
@@ -95,6 +99,9 @@ SolverDDM::~SolverDDM(void){
 
   delete volume;
   delete update;
+
+  if(nHist != 0)
+    PetscFree(hist);
 }
 
 void SolverDDM::solve(int nStep){
@@ -118,10 +125,15 @@ void SolverDDM::solve(int nStep){
   setVecFromDof(b, *rhs);
   PetscBarrier(PETSC_NULL);
 
-  // Solve and Delete Solver //
-  KSPSolve(solver, b, x);
-  PetscBarrier(PETSC_NULL);
+  // Set History
+  PetscMalloc(nStep * sizeof(PetscReal), (void**)(&hist));
+  KSPSetResidualHistory(solver, hist, nStep, PETSC_TRUE);
 
+  // Solve, Get History and Delete Solver //
+  KSPSolve(solver, b, x);
+  KSPGetResidualHistory(solver, &hist, &nHist);
+
+  PetscBarrier(PETSC_NULL);
   KSPDestroy(&solver);
 }
 
@@ -589,4 +601,11 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   // Wait for MPI coherence and return //
   PetscBarrier(PETSC_NULL);
   PetscFunctionReturn(0);
+}
+
+void SolverDDM::getHistory(vector<double>& history) const{
+  history.resize(nHist);
+
+  for(PetscInt i = 0; i < nHist; i++)
+    history[i] = hist[i];
 }
