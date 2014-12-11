@@ -13,7 +13,8 @@
 
 #include "System.h"
 #include "SystemHelper.h"
-
+#include "Interpolator.h"
+#include "NodeSolution.h"
 #include "FormulationHelper.h"
 
 #include "FormulationOO2.h"
@@ -64,9 +65,14 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
     beta = Complex(0, -1 * sqrt((kc * kc) - (k * k)));
 
   fullVector<Complex> tmp(3);
+  /*
   tmp(0) = Complex(                    sin(ky * xyz(1)) * sin(kz * xyz(2)),0);
   tmp(1) = I * beta * ky / (kc * kc) * cos(ky * xyz(1)) * sin(kz * xyz(2));
   tmp(2) = I * beta * kz / (kc * kc) * cos(kz * xyz(2)) * sin(ky * xyz(1));
+  */
+  tmp(0) = Complex(0, 0);
+  tmp(1) = Complex(1, 0);
+  tmp(2) = Complex(0, 0);
 
   return tmp;
 }
@@ -348,12 +354,12 @@ void compute(const Options& option){
 
   // Constraint
   if(fs->isScalar()){
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceScal);
     SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero  , fZeroScal);
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceScal);
   }
   else{
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceVect);
     SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero  , fZeroVect);
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceVect);
   }
 
   // Assemble & Solve
@@ -398,6 +404,10 @@ void compute(const Options& option){
   solver->getSolution(ddmG);
   context->setDDMDofs(ddmG);
 
+  // Get history
+  vector<double> history;
+  solver->getHistory(history);
+
   // Clear DDM //
   delete solver;
 
@@ -412,12 +422,12 @@ void compute(const Options& option){
 
   // Constraint
   if(fs->isScalar()){
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceScal);
     SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroScal);
+    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceScal);
   }
   else{
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceVect);
     SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroVect);
+    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceVect);
   }
 
   full.assemble();
@@ -431,11 +441,75 @@ void compute(const Options& option){
     cout << "Writing full problem" << endl << flush;
 
     stringstream stream;
-    stream << "ddm" << myProc;
+    try{
+      vector<string> name = option.getValue("-name");
+      stream << name[1] << myProc;
+    }
+    catch(...){
+      stream << "ddm" << myProc;
+    }
 
-    FEMSolution<Complex> feSol;
-    full.getSolution(feSol, *fs, volume);
-    feSol.write(stream.str());
+    try{
+      // Get Visu Mesh //
+      vector<string> visuStr = option.getValue("-interp");
+      Mesh           visuMsh(visuStr[1]);
+      GroupOfElement visuGoe(visuMsh.getFromPhysical(myProc + 1));
+
+      // Solution //
+      map<Dof, Complex> sol;
+
+      FormulationHelper::initDofMap(*fs, volume, sol);
+      full.getSolution(sol, 0);
+
+      // Vertex, Value Map //
+      map<const MVertex*, vector<Complex> > map;
+      Interpolator<Complex>::interpolate(volume, visuGoe, *fs, sol, map);
+
+      // Print //
+      stringstream name;
+      name << stream.str() << ".dat";
+
+      Interpolator<Complex>::write(name.str(), map);
+      /*
+      NodeSolution<Complex> nodeSol;
+      nodeSol.addNodeValue(0, 0, visuMsh, map);
+      nodeSol.write(stream.str());
+      */
+    }
+
+    catch(...){
+      FEMSolution<Complex> feSol;
+      full.getSolution(feSol, *fs, volume);
+      feSol.write(stream.str());
+    }
+  }
+
+  // Dump history //
+  if(myProc == 0){
+    try{
+      const size_t nHist      = history.size();
+      vector<string> dumpName = option.getValue("-hist");
+
+      // If no name given, dumb on cout
+      if(dumpName.size() == 1){
+        for(size_t i = 0; i < nHist; i++)
+          cout << std::scientific << i << ": " << history[i] << endl;
+      }
+
+      else{
+        ofstream file;
+        file.open(dumpName[1].c_str(), ofstream::out | ofstream::trunc);
+
+        for(size_t i = 0; i < nHist; i++)
+          file << std::scientific << std::setprecision(16)
+               << history[i] << endl;
+
+        file.close();
+      }
+
+    }
+    catch(...){
+    }
   }
 
   // Clean //
@@ -471,7 +545,8 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,-nopos,-I");
+  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
+                     "-interp,-hist,-name,-nopos,-I");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

@@ -1,11 +1,12 @@
-#include <cmath>
 #include <iostream>
 
 #include "SmallFem.h"
 
 #include "System.h"
 #include "SystemHelper.h"
+#include "Interpolator.h"
 
+#include "FormulationHelper.h"
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
 
@@ -41,15 +42,15 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
     beta = Complex(0, -1 * sqrt((kc * kc) - (k * k)));
 
   fullVector<Complex> tmp(3);
+  /*
   tmp(0) = Complex(                    sin(ky * xyz(1)) * sin(kz * xyz(2)),0);
   tmp(1) = I * beta * ky / (kc * kc) * cos(ky * xyz(1)) * sin(kz * xyz(2));
   tmp(2) = I * beta * kz / (kc * kc) * cos(kz * xyz(2)) * sin(ky * xyz(1));
-  /*
-  fullVector<Complex> tmp(3);
+  */
   tmp(0) = Complex(0, 0);
   tmp(1) = Complex(1, 0);
   tmp(2) = Complex(0, 0);
-  */
+
   return tmp;
 }
 
@@ -127,12 +128,12 @@ void compute(const Options& option){
 
   // Constraint
   if(fs->isScalar()){
-    SystemHelper<Complex>::dirichlet(system, *fs, source, fSourceScal);
     SystemHelper<Complex>::dirichlet(system, *fs, zero  , fZeroScal);
+    SystemHelper<Complex>::dirichlet(system, *fs, source, fSourceScal);
   }
   else{
-    SystemHelper<Complex>::dirichlet(system, *fs, source, fSourceVect);
     SystemHelper<Complex>::dirichlet(system, *fs, zero  , fZeroVect);
+    SystemHelper<Complex>::dirichlet(system, *fs, source, fSourceVect);
   }
 
   // Assemble
@@ -151,9 +152,46 @@ void compute(const Options& option){
   catch(...){
     cout << "Writing solution..." << endl << flush;
 
-    FEMSolution<Complex> feSol;
-    system.getSolution(feSol, *fs, volume);
-    feSol.write("waveguide");
+    stringstream stream;
+    try{
+      vector<string> name = option.getValue("-name");
+      stream << name[1];
+    }
+    catch(...){
+      stream << "waveguide";
+    }
+
+    try{
+      // Get Visu Mesh //
+      vector<string> visuStr = option.getValue("-interp");
+      Mesh           visuMsh(visuStr[1]);
+
+      // Get Solution //
+      map<Dof, Complex> sol;
+
+      FormulationHelper::initDofMap(*fs, volume, sol);
+      system.getSolution(sol, 0);
+
+      // Interoplate //
+      for(size_t i = 0; i < nDom; i++){
+        // GroupOfElement to interoplate on
+        GroupOfElement visuGoe(visuMsh.getFromPhysical(i + 1));
+
+        // Interpolation
+        stringstream name;
+        name << stream.str() << i << ".dat";
+
+        map<const MVertex*, vector<Complex> > map;
+        Interpolator<Complex>::interpolate(*perVolume[i], visuGoe, *fs,sol,map);
+        Interpolator<Complex>::write(name.str(), map);
+      }
+    }
+
+    catch(...){
+      FEMSolution<Complex> feSol;
+      system.getSolution(feSol, *fs, volume);
+      feSol.write(stream.str());
+    }
   }
 
   // Clean //
@@ -165,7 +203,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-n,-type,-nopos,");
+  SmallFem::Keywords("-msh,-o,-k,-n,-type,-interp,-name,-nopos,");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
