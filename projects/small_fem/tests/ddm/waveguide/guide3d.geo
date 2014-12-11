@@ -31,10 +31,13 @@ ext[] = Extrude {0, 0, LZ} {
 };
 
 // Mesh //
+// --> Buggy ?? --> reverts some triangle at boundary ??
+/*
 If(STRUCT == 1)
   Transfinite Surface "*";
   Transfinite Volume  "*";
 EndIf
+*/
 
 // Physicals //
 zero[] = {};

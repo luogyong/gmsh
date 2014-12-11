@@ -5,7 +5,7 @@ DefineConstant[
 
   K        = {10,              Name "Input/01Mesh/00Wavenumber"},
   LAMBDA   = {2* Pi / K,       Name "Input/01Mesh/01Wavelength",   ReadOnly 1},
-  N_LAMBDA = {10,              Name "Input/01Mesh/02Points per wavelength"},
+  N_LAMBDA = {5,               Name "Input/01Mesh/02Points per wavelength"},
   LC       = {LAMBDA/N_LAMBDA, Name "Input/01Mesh/03Mesh density", ReadOnly 1},
   STRUCT   = {1,               Name "Input/01Mesh/04Structured", Choices {0,1}},
 
