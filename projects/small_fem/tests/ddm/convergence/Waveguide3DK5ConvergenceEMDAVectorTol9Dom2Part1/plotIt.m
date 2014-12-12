@@ -14,6 +14,10 @@ m43 = dlmread('vector_emda_4_3.hist');
 %m42 = dlmread('vector_emda_3_1.hist');
 %m43 = dlmread('vector_emda_4_1.hist');
 
+l2Ddm = dlmread('vector_emda_4_4.l2');
+l2Ddm = l2Ddm(4:end, :);
+
+%%
 figure;
 hold on;
 
@@ -41,3 +45,25 @@ legend({'Full Order 1',
         'Mixed 4 and 2',
         'Mixed 4 and 3',
        });
+
+%%
+figure;
+hold on;
+
+semilogy([1:size(l2Ddm, 2)], l2Ddm(1, :), '-xk');
+semilogy([1:size(l2Ddm, 2)], l2Ddm(2, :), '-+r');
+semilogy([1:size(l2Ddm, 2)], l2Ddm(3, :), '-ob');
+semilogy([1:size(l2Ddm, 2)], l2Ddm(4, :), '-sg');
+
+grid;
+hold off;
+
+title('Mixed order convergence: vectorial waveguide EMDA -- K: 5');
+xlabel('Border Order');
+ylabel('L2 Error');
+
+legend({'Volume Order 1',
+        'Volume Order 2',
+        'Volume Order 3',
+        'Volume Order 4'
+       }, 'location', 'southwest');
