@@ -108,10 +108,11 @@ void compute(const Options& option){
     throw Exception("Bad -type: %s", option.getValue("-type")[1].c_str());
 
   // Get Parameters //
-  const string ddmType = option.getValue("-ddm")[1];
-  k                    = atof(option.getValue("-k")[1].c_str());
-  const size_t order   = atoi(option.getValue("-o")[1].c_str());
-  const size_t maxIt   = atoi(option.getValue("-max")[1].c_str());
+  const string ddmType  = option.getValue("-ddm")[1];
+               k        = atof(option.getValue("-k")[1].c_str());
+  const size_t orderVol = atoi(option.getValue("-ov")[1].c_str());
+  const size_t orderSur = atoi(option.getValue("-ob")[1].c_str());
+  const size_t maxIt    = atoi(option.getValue("-max")[1].c_str());
 
   // DDM Formulations //
   const string emdaType("emda");
@@ -218,13 +219,13 @@ void compute(const Options& option){
   FunctionSpace* fG = NULL;
 
   if(type == scal){
-    fs = new FunctionSpaceScalar(domain,                  order);
-    fG = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, order);
+    fs = new FunctionSpaceScalar(domain,                  orderVol);
+    fG = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderSur);
   }
 
   else{
-    fs = new FunctionSpaceVector(domain,                  order);
-    fG = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
+    fs = new FunctionSpaceVector(domain,                  orderVol);
+    fG = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
   }
 
   // OSRC
@@ -237,7 +238,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, order);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,orderVol);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -245,16 +246,17 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp,dirichlet,orderVol);
 
-    if(order == 0)
+    if(orderVol == 0)
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,1);
     else
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp, dirichlet,order);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,
+                                                 dirichlet, orderVol);
 
-    OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
+    OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderVol);
   }
 
   // Jin Fa Lee
@@ -262,12 +264,12 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, order);
+    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderVol);
 
-    if(order == 0)
+    if(orderVol == 0)
       JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
     else
-      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, order);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderVol);
   }
 
   // Steady Wave Formulation //
@@ -545,7 +547,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
+  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
                      "-interp,-hist,-name,-nopos,-I");
   SmallFem::Initialize(argc, argv);
 

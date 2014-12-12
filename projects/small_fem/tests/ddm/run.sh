@@ -1,14 +1,15 @@
 #!/bin/bash
 
 ## DATA
-TYPE='scalar'
+THREADS=6
+TYPE='vector'
 DDM='emda'
-DOM=4
-MSH='./cylinder/out/mesh_all.msh'
-REF='./cylinder/ref.msh'
+DOM=2
+MSH='/home/nicolas/mesh_all.msh'
+REF='/home/nicolas/fine.msh'
 OR=4
-OV=2
-OB=2
+OV=4
+OB=4
 K=5
 
 ## Useful
@@ -16,7 +17,7 @@ DOMMinus=$(bc <<< $DOM'-1')
 
 ## Reference Solution
 echo '#### Reference ####'
-disc -msh $MSH -k $K -n $DOM -type $TYPE -interp $REF -o $OR -name 'ref'
+waveg -msh $MSH -k $K -n $DOM -type $TYPE -interp $REF -o $OR -name 'ref'
 
 ## DDM
 for v in $(seq 1 $OV);
@@ -26,7 +27,7 @@ do
         NAME=$TYPE'_'$DDM'_'$v'_'$b
         echo '#### '$NAME' ####'
 
-        OMP_NUM_THREADS=1 mpirun -np $DOM cir -msh $MSH -k $K \
+        OMP_NUM_THREADS=$THREADS mpirun -np $DOM ddm -msh $MSH -k $K \
             -max 1000 -ddm $DDM \
             -pade 4 -ck 0 -chi 0 -lc 0.06 -type $TYPE -ov $v -ob $b \
             -name $NAME -interp $REF -hist $NAME'.hist' -solver -ksp_rtol 1e-9
