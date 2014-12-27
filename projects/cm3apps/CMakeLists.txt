@@ -40,7 +40,7 @@ option(ENABLE_MSCH "msch" OFF)
 #  NonLinearSolver is mandatory
 add_subdirectory(../NonLinearSolver "${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver")
 include_directories(. ../../Common ../../Numeric ../../Geo ../../Mesh
-   ../../Solver ../../Post ../../Plugin ../../Graphics ../NonLinearSolver/internalPoints ../NonLinearSolver/nlsolver ../NonLinearSolver ../NonLinearSolver/Interface ../NonLinearSolver/contact ../NonLinearSolver/materialLaw ../NonLinearSolver/Domain ../NonLinearSolver/BoundaryConditions ../NonLinearSolver/nlTerms ../NonLinearSolver/field ../NonLinearSolver/space ${GMSH_EXTERNAL_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver/gmsh/Common src ../../contrib/gmm ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver ../NonLinearSolver/periodicBC $ENV{NLSMPIINC} )
+   ../../Solver ../../Post ../../Plugin ../../Graphics ../NonLinearSolver/internalPoints ../NonLinearSolver/nlsolver ../NonLinearSolver ../NonLinearSolver/Interface ../NonLinearSolver/contact ../NonLinearSolver/materialLaw ../NonLinearSolver/Domain ../NonLinearSolver/BoundaryConditions ../NonLinearSolver/nlTerms ../NonLinearSolver/field ../NonLinearSolver/space ${GMSH_EXTERNAL_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver/gmsh/Common src ../../contrib/gmm ${CMAKE_CURRENT_BINARY_DIR}/NonLinearSolver ../NonLinearSolver/periodicBC ../NonLinearSolver/restart $ENV{NLSMPIINC} )
 
 
 # define some variables for the executable
