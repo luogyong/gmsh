@@ -148,15 +148,14 @@ void compute(const Options& option){
   //SystemHelper<Complex>::dirichlet(sys, fs, infinity, fInfinityVec);
 
   cout << "Free Space (Order: "  << order
-       << " --- Wavenumber: "    << k
-       << "): " << sys.getSize() << endl;
+       << " --- Wavenumber: "    << k << ")" << endl;
 
   // Assemble //
   sys.assemble();
   assemble.stop();
 
-  cout << "Assembled: " << assemble.time() << assemble.unit()
-       << endl << flush;
+  cout << "Assembled: " << sys.getSize() << " "
+       << "(" << assemble.time() << assemble.unit() << ")" << endl << flush;
 
   // Solve //
   solve.start();
@@ -171,7 +170,7 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
-
+    /*
     // Get Dofs In //
     set<Dof> dof;
     fs.getKeys(volume, dof);
@@ -218,11 +217,11 @@ void compute(const Options& option){
     NodeSolution<Complex> nSolIn;
     nSolIn.addNodeValue(0, 0, visuMsh, mapIn);
     nSolIn.write("pmlRefIn");
-
+    */
     FEMSolution<Complex> feSolIn;
     FEMSolution<Complex> feSolOut;
-    feSolIn.setModulusPhase();
-    feSolOut.setModulusPhase();
+    //feSolIn.setModulusPhase();
+    //feSolOut.setModulusPhase();
 
     sys.getSolution(feSolIn,  fs, volume);
     sys.getSolution(feSolOut, fs, outerSpace);

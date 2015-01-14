@@ -41,8 +41,8 @@ FormulationJFLee::FormulationJFLee(DDMContextJFLee& context){
     throw Exception("FormulationJFLee needs a uniform mesh");
 
   // Get Basis from primary space //
-  basis = &field->getBasis(eType); // Saved for update()
-  const size_t order = basis->getOrder();
+  basisE             = &field->getBasis(eType); // Saved for update()
+  const size_t order = basisE->getOrder();
 
   // Get auxiliary bases //
   const Basis& basisPhi = fPhi.getBasis(eType);
@@ -61,8 +61,8 @@ FormulationJFLee::FormulationJFLee(DDMContextJFLee& context){
   const fullMatrix<double>& gC = gauss->getPoints();
 
   // Pre evaluation //
-  basis->preEvaluateFunctions(gC);
-  basis->preEvaluateDerivatives(gC);
+  basisE->preEvaluateFunctions(gC);
+  basisE->preEvaluateDerivatives(gC);
 
   basisPhi.preEvaluateFunctions(gC);
   basisPhi.preEvaluateDerivatives(gC);
@@ -74,12 +74,14 @@ FormulationJFLee::FormulationJFLee(DDMContextJFLee& context){
   jac = new GroupOfJacobian(domain, gC, "both"); // Saved for update()
 
   // Local Terms //
-  proj   = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fieldG, ddm);
-  term11 = new TermGradGrad<double>       (*jac, *basis,               *gauss);
-  term01 = new TermGradGrad<double>       (*jac,  basisRho, basisPhi,  *gauss);
-  term22 = new TermCurlCurl<double>       (*jac, *basis,               *gauss);
-  term00 = new TermFieldField<double>     (*jac,  basisRho          ,  *gauss);
-  term10 = new TermGradGrad<double>       (*jac,  basisPhi, basisRho,  *gauss);
+  proj   = new TermProjectionGrad<Complex>(*jac, *basisE, *gauss, *fieldG, ddm);
+  termPE = new TermGradGrad<double>       (*jac,  basisPhi, *basisE  ,  *gauss);
+  termRP = new TermGradGrad<double>       (*jac,  basisRho,  basisPhi,  *gauss);
+  termPP = new TermGradGrad<double>       (*jac,  basisPhi,  basisPhi,  *gauss);
+  termEP = new TermGradGrad<double>       (*jac, *basisE  ,  basisPhi,  *gauss);
+  term22 = new TermCurlCurl<double>       (*jac, *basisE  ,  basisPhi,  *gauss);
+  termRR = new TermFieldField<double>     (*jac,  basisRho           ,  *gauss);
+  termPR = new TermGradGrad<double>       (*jac,  basisPhi,  basisRho , *gauss);
 
   // Formulations //
   // NB: FormulationJFLee is a friend of FormulationJFLee{One,...,Eight,} !
@@ -90,13 +92,13 @@ FormulationJFLee::FormulationJFLee(DDMContextJFLee& context){
 
   // Then push it in list
   fList.push_back(formulationOne);
-  fList.push_back(new FormulationJFLeeTwo  (domain,  fPhi,*field,  k, *term11));
-  fList.push_back(new FormulationJFLeeThree(domain,  fRho,  fPhi, C2, *term01));
-  fList.push_back(new FormulationJFLeeFour (domain,  fPhi,         k, *term11));
-  fList.push_back(new FormulationJFLeeFive (domain, *field, fPhi,  k, *term11));
+  fList.push_back(new FormulationJFLeeTwo  (domain,  fPhi,*field,  k, *termPE));
+  fList.push_back(new FormulationJFLeeThree(domain,  fRho,  fPhi, C2, *termRP));
+  fList.push_back(new FormulationJFLeeFour (domain,  fPhi,         k, *termPP));
+  fList.push_back(new FormulationJFLeeFive (domain, *field, fPhi,  k, *termEP));
   fList.push_back(new FormulationJFLeeSix  (domain, *field, fPhi, C1, *term22));
-  fList.push_back(new FormulationJFLeeSeven(domain,  fRho           , *term00));
-  fList.push_back(new FormulationJFLeeEight(domain,  fPhi,  fRho    , *term10));
+  fList.push_back(new FormulationJFLeeSeven(domain,  fRho           , *termRR));
+  fList.push_back(new FormulationJFLeeEight(domain,  fPhi,  fRho    , *termPR));
 }
 
 FormulationJFLee::~FormulationJFLee(void){
@@ -109,11 +111,13 @@ FormulationJFLee::~FormulationJFLee(void){
 
   // Delete terms //
   delete proj;
-  delete term11;
-  delete term01;
+  delete termPE;
+  delete termRP;
+  delete termPP;
+  delete termEP;
   delete term22;
-  delete term00;
-  delete term10;
+  delete termRR;
+  delete termPR;
 
   // Delete update stuffs //
   delete jac;
@@ -138,10 +142,10 @@ void FormulationJFLee::update(void){
 
   // Pre-evalution
   const fullMatrix<double>& gC = gauss->getPoints();
-  basis->preEvaluateFunctions(gC);
+  basisE->preEvaluateFunctions(gC);
 
   // New RHS
-  proj = new TermProjectionGrad<Complex>(*jac, *basis, *gauss, *fieldG, ddm);
+  proj = new TermProjectionGrad<Complex>(*jac, *basisE, *gauss, *fieldG, ddm);
 
   // Update FormulationJFLeeOne (formulationOne):
   //                                          this FormulationBlock holds RHS

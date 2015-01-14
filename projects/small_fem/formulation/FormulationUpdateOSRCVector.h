@@ -32,7 +32,7 @@ class FormulationUpdateOSRCVector: public FormulationBlock<Complex>{
   DDMContextOSRCVector* context;
 
   // Stuff for updating RHS //
-  int NPade;
+  int              NPade;
   const Basis*     basis;
   Quadrature*      gauss;
   GroupOfJacobian* jac;
@@ -42,12 +42,10 @@ class FormulationUpdateOSRCVector: public FormulationBlock<Complex>{
   std::vector<std::map<Dof, Complex> > solPhi;
 
   // Function Space & Domain //
-  const FunctionSpace*  fspaceG;
-  const GroupOfElement* ddomain;
-
-  // Auxiliary FunctionSpace //
+  const FunctionSpace*                           fspaceG;
   const FunctionSpaceVector*                     fR;
   const std::vector<const FunctionSpaceVector*>* fPhi;
+  const GroupOfElement*                          ddomain;
 
   // Pade //
   Complex twoR0;
@@ -55,10 +53,10 @@ class FormulationUpdateOSRCVector: public FormulationBlock<Complex>{
   std::vector<Complex> B;
 
   // Local Terms //
-  TermGradGrad<double>*        lGout;
-  TermProjectionGrad<Complex>* lGin;
-  TermProjectionGrad<Complex>* lR;
-  TermProjectionGrad<Complex>* lPhi;
+  TermGradGrad<double>*         lGout;
+  TermProjectionGrad<Complex>*  lGin;
+  TermProjectionGrad<Complex>*  lR;
+  TermProjectionGrad<Complex>** lPhi;
 
  public:
   FormulationUpdateOSRCVector(DDMContextOSRCVector& context);

@@ -36,7 +36,7 @@ class FormulationJFLee: public FormulationCoupled<Complex>{
   DDMContextJFLee* context;
 
   // Stuff for updating RHS //
-  const Basis*               basis;
+  const Basis*               basisE;
   const FunctionSpaceVector* field;
   const FunctionSpaceVector* fieldG;
   Quadrature*                gauss;
@@ -45,11 +45,13 @@ class FormulationJFLee: public FormulationCoupled<Complex>{
 
   // Local Terms //
   TermProjectionGrad<Complex>* proj;
-  TermGradGrad<double>*        term11;
-  TermGradGrad<double>*        term01;
+  TermGradGrad<double>*        termPE;
+  TermGradGrad<double>*        termRP;
+  TermGradGrad<double>*        termPP;
+  TermGradGrad<double>*        termEP;
   TermCurlCurl<double>*        term22;
-  TermFieldField<double>*      term00;
-  TermGradGrad<double>*        term10;
+  TermFieldField<double>*      termRR;
+  TermGradGrad<double>*        termPR;
 
   // Formulations //
   std::list<const FormulationBlock<Complex>*> fList;

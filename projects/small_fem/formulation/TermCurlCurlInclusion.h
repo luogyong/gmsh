@@ -20,7 +20,19 @@ TermCurlCurl<scalar>::TermCurlCurl(const GroupOfJacobian& goj,
   preEvalDummy(goj, quadrature);
 
   // Init //
-  init(goj, basis, quadrature);
+  init(goj, basis, basis, quadrature);
+}
+
+template<typename scalar>
+TermCurlCurl<scalar>::TermCurlCurl(const GroupOfJacobian& goj,
+                                   const Basis& field,
+                                   const Basis& test,
+                                   const Quadrature& quadrature){
+  // Dummy Pre evaluation //
+  preEvalDummy(goj, quadrature);
+
+  // Init //
+  init(goj, field, test, quadrature);
 }
 
 template<typename scalar>
@@ -33,38 +45,60 @@ TermCurlCurl<scalar>::TermCurlCurl(const GroupOfJacobian& goj,
   preEvalT(goj, quadrature, f);
 
   // Init //
-  init(goj, basis, quadrature);
+  init(goj, basis, basis, quadrature);
 }
 
 template<typename scalar>
 void TermCurlCurl<scalar>::init(const GroupOfJacobian& goj,
-                                const Basis& basis,
+                                const Basis& field,
+                                const Basis& test,
                                 const Quadrature& quadrature){
   // Basis Check //
-  BFunction getFunction;
+  BFunction getFunctionField;
+  BFunction getFunctionTest;
 
-  switch(basis.getForm()){
+  switch(field.getForm()){
   case 1:
-    getFunction = &Basis::getPreEvaluatedDerivatives;
+    getFunctionField = &Basis::getPreEvaluatedDerivatives;
     break;
 
   case 2:
-    getFunction = &Basis::getPreEvaluatedFunctions;
+    getFunctionField = &Basis::getPreEvaluatedFunctions;
     break;
 
   default:
     throw Exception
-      ("A Curl Curl Term takes a 2form basis or the curl of a 1form basis");
+      ("A Curl Curl Term takes a 2form basis and / or"
+       "the curl of a 1form basis");
+  }
+
+  switch(test.getForm()){
+  case 1:
+    getFunctionTest = &Basis::getPreEvaluatedDerivatives;
+    break;
+
+  case 2:
+    getFunctionTest = &Basis::getPreEvaluatedFunctions;
+    break;
+
+  default:
+    throw Exception
+      ("A Curl Curl Term takes a 2form basis and / or"
+       "the curl of a 1form basis");
   }
 
   // Type //
-  int eType = basis.getType();
+  int eType = test.getType();
+
+  if((int)(field.getType()) != eType)
+    throw Exception("A Curl Curl Term must use basis functions"
+                    "defined on the same geomtrical type for test and field");
 
   // Orientations & Functions //
   this->orientationStat = &goj.getAllElements().getOrientationStats(eType);
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
-  this->nFunctionField  = basis.getNFunction();
-  this->nFunctionTest   = basis.getNFunction();
+  this->nFunctionField  = field.getNFunction();
+  this->nFunctionTest   =  test.getNFunction();
 
   // Get Integration Data
   //const fullMatrix<double>& gC = quadrature.getPoints();
@@ -74,7 +108,7 @@ void TermCurlCurl<scalar>::init(const GroupOfJacobian& goj,
   fullMatrix<scalar>** cM;
   fullMatrix<scalar>** bM;
 
-  computeC(basis, getFunction, gW, cM);
+  computeC(field, test, getFunctionField, getFunctionTest, gW, cM);
   computeB(goj, gW.size(), bM);
 
   this->allocA(this->nFunctionField * this->nFunctionTest);
@@ -90,8 +124,10 @@ TermCurlCurl<scalar>::~TermCurlCurl(void){
 }
 
 template<typename scalar>
-void TermCurlCurl<scalar>::computeC(const Basis& basis,
-                                    const BFunction& getFunction,
+void TermCurlCurl<scalar>::computeC(const Basis& field,
+                                    const Basis& test,
+                                    const BFunction& getFunctionField,
+                                    const BFunction& getFunctionTest,
                                     const fullVector<double>& gW,
                                     fullMatrix<scalar>**& cM){
   const size_t nG = gW.size();
@@ -108,7 +144,8 @@ void TermCurlCurl<scalar>::computeC(const Basis& basis,
   for(size_t s = 0; s < this->nOrientation; s++){
 
     // Get functions for this Orientation
-    const fullMatrix<double>& phi = (basis.*getFunction)(s);
+    const fullMatrix<double>& phiTest  = ( test.*getFunctionTest)(s);
+    const fullMatrix<double>& phiField = (field.*getFunctionField)(s);
 
     // fullMatrix is in *Column-major* //
     //  --> iterate on column first    //
@@ -124,7 +161,7 @@ void TermCurlCurl<scalar>::computeC(const Basis& basis,
           for(size_t a = 0; a < 3; a++){
             for(size_t b = 0; b < 3; b++){
               (*cM[s])(g * 9 + a * 3 + b, i * this->nFunctionField + j) =
-                gW(g) * phi(i, g * 3 + a) * phi(j, g * 3 + b);
+                gW(g) * phiTest(i, g * 3 + a) * phiField(j, g * 3 + b);
             }
           }
         }
