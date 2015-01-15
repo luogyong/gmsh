@@ -34,7 +34,7 @@ class FormulationOSRCVector: public FormulationCoupled<Complex>{
   DDMContextOSRCVector* context;
 
   // Stuff for updating RHS //
-  const Basis*                basisV;
+  const Basis*                basisR;
   const FunctionSpace*        field;
   const FunctionSpace*        fspaceG;
   Quadrature*                 gauss;
@@ -43,11 +43,17 @@ class FormulationOSRCVector: public FormulationCoupled<Complex>{
 
   // Local Terms //
   TermProjectionGrad<Complex>* RHS;
-  TermGradGrad<double>*        GG;
-  TermGradGrad<double>*        dFG;
-  TermGradGrad<double>*        GdF;
-  TermCurlCurl<double>*        CC;
-  TermFieldField<double>*      FF;
+  TermGradGrad<double>*        RE;
+  TermGradGrad<double>*        ER;
+  TermCurlCurl<double>*        cEcR;
+  TermGradGrad<double>*        RR;
+  TermGradGrad<double>*        PR;
+  TermGradGrad<double>*        RP;
+  TermGradGrad<double>*        PP;
+  TermCurlCurl<double>*        cPcP;
+  TermGradGrad<double>*        dRoP;
+  TermFieldField<double>*      RoRo;
+  TermGradGrad<double>*        PdRo;
 
   // Formulations //
   std::list<const FormulationBlock<Complex>*> fList;

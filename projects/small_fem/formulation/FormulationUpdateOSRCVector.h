@@ -56,7 +56,7 @@ class FormulationUpdateOSRCVector: public FormulationBlock<Complex>{
   TermGradGrad<double>*         lGout;
   TermProjectionGrad<Complex>*  lGin;
   TermProjectionGrad<Complex>*  lR;
-  TermProjectionGrad<Complex>** lPhi;
+  TermProjectionGrad<Complex>* lPhi;
 
  public:
   FormulationUpdateOSRCVector(DDMContextOSRCVector& context);

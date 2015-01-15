@@ -27,7 +27,7 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   const FunctionSpaceVector&                  R = context.getRFunctionSpace();
 
   // Save Field FunctionSpace
-  field   = &context.getFunctionSpace();  // Testing Field and Unknown Field
+  field   = &context.getFunctionSpace();  // Unknown Field
   fspaceG = &context.getFunctionSpaceG(); // DDM Field
 
   // Check GroupOfElement Stats: Uniform Mesh //
@@ -37,18 +37,20 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   if(!uniform.first)
     throw Exception("FormulationOSRCVector needs a uniform mesh");
 
-  // Get Vectorial Basis //
-  basisV = &(field->getBasis(eType)); // Saved for update()
-  const size_t order = basisV->getOrder();
+  // Get Basis for field //
+  const Basis& basisE = field->getBasis(eType);
+  const size_t order  = basisE.getOrder();
 
-  // Get scalar Basis
-  const Basis& basisS = rho[0]->getBasis(eType);
+  // Get auxiliary bases //
+               basisR   = &(    R.getBasis(eType)); // Saved for update
+  const Basis& basisPhi = phi[0]->getBasis(eType);
+  const Basis& basisRho = rho[0]->getBasis(eType);
 
   // k, kEpsilon and NPade //
   double  k     = context.getWavenumber();
   Complex kE    = context.getComplexWavenumber();
   int     NPade = context.getNPade();
-  double theta  = context.getRotation();
+  double  theta = context.getRotation();
 
   Complex         R0;
   vector<Complex> A(NPade);
@@ -70,23 +72,38 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   const fullMatrix<double>& gC = gauss->getPoints();
 
   // Local Terms //
-  basisV->preEvaluateFunctions(gC);
-  basisV->preEvaluateDerivatives(gC);
+  basisE.preEvaluateFunctions(gC);
+  basisE.preEvaluateDerivatives(gC);
 
-  basisS.preEvaluateFunctions(gC);
-  basisS.preEvaluateDerivatives(gC);
+  basisR->preEvaluateFunctions(gC);
+  basisR->preEvaluateDerivatives(gC);
+
+  basisPhi.preEvaluateFunctions(gC);
+  basisPhi.preEvaluateDerivatives(gC);
+
+  basisRho.preEvaluateFunctions(gC);
+  basisRho.preEvaluateDerivatives(gC);
 
   jac = new GroupOfJacobian(dom, gC, "both"); // Saved for update()
 
   // NB: Since the Formulations share the same basis functions,
   //     the local terms will be the same !
   //     It's the Dof numbering imposed by the function spaces that will differ
-  RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *fspaceG, ddm);
-  GG  = new TermGradGrad<double>       (*jac, *basisV,         *gauss);
-  dFG = new TermGradGrad<double>       (*jac,  basisS,*basisV, *gauss);
-  GdF = new TermGradGrad<double>       (*jac, *basisV, basisS, *gauss);
-  CC  = new TermCurlCurl<double>       (*jac, *basisV,         *gauss);
-  FF  = new TermFieldField<double>     (*jac,  basisS,         *gauss);
+  RHS  = new TermProjectionGrad<Complex>(*jac, *basisR  , *gauss, *fspaceG,ddm);
+  RE   = new TermGradGrad<double>       (*jac, *basisR  ,  basisE  , *gauss);
+
+  ER   = new TermGradGrad<double>       (*jac,  basisE  , *basisR  , *gauss);
+  cEcR = new TermCurlCurl<double>       (*jac,  basisE  , *basisR  , *gauss);
+  RR   = new TermGradGrad<double>       (*jac, *basisR  , *basisR  , *gauss);
+  PR   = new TermGradGrad<double>       (*jac,  basisPhi, *basisR  , *gauss);
+
+  RP   = new TermGradGrad<double>       (*jac, *basisR  ,  basisPhi, *gauss);
+  PP   = new TermGradGrad<double>       (*jac,  basisPhi,  basisPhi, *gauss);
+  cPcP = new TermCurlCurl<double>       (*jac,  basisPhi,  basisPhi, *gauss);
+  dRoP = new TermGradGrad<double>       (*jac,  basisRho,  basisPhi, *gauss);
+
+  RoRo = new TermFieldField<double>     (*jac,  basisRho,            *gauss);
+  PdRo = new TermGradGrad<double>       (*jac,  basisPhi,  basisRho, *gauss);
 
   // Formulations //
   // NB: FormulationOSRCVector is a friend
@@ -96,9 +113,9 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
 
   FormulationBlock<Complex>* f[6];
 
-  f[0] = new FormulationOSRCVectorOne  (dom,  R    , *field, k     , *GG);
-  f[1] = new FormulationOSRCVectorTwo  (dom, *field,  R    , kE, R0, *GG, *CC);
-  f[2] = new FormulationOSRCVectorThree(dom,  R    ,  R    ,     R0, *GG, *RHS);
+  f[0]= new FormulationOSRCVectorOne  (dom,  R    , *field, k     , *RE);
+  f[1]= new FormulationOSRCVectorTwo  (dom, *field,  R    , kE, R0, *ER, *cEcR);
+  f[2]= new FormulationOSRCVectorThree(dom,  R    ,  R    ,     R0, *RR, *RHS);
 
   // Save FormulationOSRCVectorThree for update()
   formulationThree = static_cast<FormulationOSRCVectorThree*>(f[2]);
@@ -110,14 +127,14 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
 
   // Loop on Pade terms
   for(int i = 0; i < NPade; i++){
-    f[0] = new FormulationOSRCVectorFour (dom,*phi[i], R     ,R0,A[i],B[i],*GG);
+    f[0]= new FormulationOSRCVectorFour (dom,*phi[i], R     ,R0,A[i],B[i],*PR);
 
-    f[1] = new FormulationOSRCVectorFive (dom, R     ,*phi[i],             *GG);
-    f[2] = new FormulationOSRCVectorSix  (dom,*phi[i],*phi[i],kE,B[i], *GG,*CC);
-    f[3] = new FormulationOSRCVectorSeven(dom,*rho[i],*phi[i],   B[i],    *dFG);
+    f[1]= new FormulationOSRCVectorFive (dom, R     ,*phi[i],            *RP);
+    f[2]= new FormulationOSRCVectorSix  (dom,*phi[i],*phi[i],kE,B[i],*PP,*cPcP);
+    f[3]= new FormulationOSRCVectorSeven(dom,*rho[i],*phi[i],   B[i],    *dRoP);
 
-    f[4] = new FormulationOSRCVectorEight(dom,*rho[i],*rho[i],kE,          *FF);
-    f[5] = new FormulationOSRCVectorNine (dom,*phi[i],*rho[i],            *GdF);
+    f[4]= new FormulationOSRCVectorEight(dom,*rho[i],*rho[i],kE,         *RoRo);
+    f[5]= new FormulationOSRCVectorNine (dom,*phi[i],*rho[i],            *PdRo);
 
     fList.push_back(f[0]);
     fList.push_back(f[1]);
@@ -138,11 +155,17 @@ FormulationOSRCVector::~FormulationOSRCVector(void){
 
   // Delete terms //
   delete RHS;
-  delete GG;
-  delete dFG;
-  delete GdF;
-  delete CC;
-  delete FF;
+  delete RE;
+  delete ER;
+  delete cEcR;
+  delete RR;
+  delete PR;
+  delete RP;
+  delete PP;
+  delete cPcP;
+  delete dRoP;
+  delete RoRo;
+  delete PdRo;
 
   // Delete update stuffs //
   delete jac;
@@ -167,10 +190,10 @@ void FormulationOSRCVector::update(void){
 
   // Pre-evalution
   const fullMatrix<double>& gC = gauss->getPoints();
-  basisV->preEvaluateFunctions(gC);
+  basisR->preEvaluateFunctions(gC);
 
   // New RHS
-  RHS = new TermProjectionGrad<Complex>(*jac, *basisV, *gauss, *fspaceG, ddm);
+  RHS = new TermProjectionGrad<Complex>(*jac, *basisR, *gauss, *fspaceG, ddm);
 
   // Update FormulationOSRCVectorThree (formulationThree):
   //                                             this FormulationBlock holds RHS

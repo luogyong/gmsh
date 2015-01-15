@@ -219,7 +219,7 @@ void compute(const Options& option){
       for(int j = 0; j < NPade; j++)
         OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, orderVol);
 
-    OSRCVectR = new FunctionSpaceVector(ddmBorder, orderVol);
+    OSRCVectR = new FunctionSpaceVector(ddmBorder, orderSur);
   }
 
   // Jin Fa Lee
