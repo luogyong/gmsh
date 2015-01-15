@@ -31,17 +31,20 @@ class FormulationOSRCScalar: public FormulationCoupled<Complex>{
   DDMContextOSRCScalar* context;
 
   // Stuff for updating RHS //
-  const Basis*               basis;
-  const FunctionSpace*       ffspace;
+  const Basis*               basisU;
+  const FunctionSpace*       field;
   const FunctionSpace*       ffspaceG;
   Quadrature*                gaussFF;
   GroupOfJacobian*           jacFF;
   FormulationOSRCScalarOne*  formulationOne;
 
   // Local Terms //
-  TermFieldField<double>*       localFF;
-  TermGradGrad<double>*         localGG;
-  TermProjectionField<Complex>* localPr;
+  TermFieldField<double>*        UU;
+  TermGradGrad<double>*        dPdU;
+  TermFieldField<double>*        PP;
+  TermGradGrad<double>*        dPdP;
+  TermFieldField<double>*        UP;
+  TermProjectionField<Complex>* RHS;
 
   // Formulations //
   std::list<const FormulationBlock<Complex>*> fList;

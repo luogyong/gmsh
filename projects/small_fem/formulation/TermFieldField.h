@@ -23,6 +23,11 @@ class TermFieldField: public Term<scalar>{
                  const Basis& basis,
                  const Quadrature& quadrature);
 
+  TermFieldField(const GroupOfJacobian& goj,
+                 const Basis& field,
+                 const Basis& test,
+                 const Quadrature& quadrature);
+
   TermFieldField(const  GroupOfJacobian& goj,
                  const  Basis& basis,
                  const  Quadrature& quadrature,
@@ -33,11 +38,13 @@ class TermFieldField: public Term<scalar>{
  private:
   // Init
   void init(const GroupOfJacobian& goj,
-            const Basis& basis,
+            const Basis& field,
+            const Basis& test,
             const Quadrature& quadrature);
 
   // Matrices
-  void computeC(const Basis& basis,
+  void computeC(const Basis& field,
+                const Basis& test,
                 const fullVector<double>& gW,
                 fullMatrix<scalar>**& cM);
 
@@ -66,7 +73,18 @@ class TermFieldField: public Term<scalar>{
    @li The given Quadrature is used to compute the Term
    @li The Basis function must be pre-evaluated at the integration points
 
-   @todo Evaluate Basis in Term ?????
+   **
+  @fn TermFieldField::TermFieldField(const GroupOfJacobian& goj,const Basis& field,const Basis& test,const Quadrature& quadrature)
+   @param goj A GroupOfJacobian
+   @param field A Basis for the unknwon field
+   @param test A Basis for the test functions
+   @param quadrature A Quadrature rule
+
+   Instanciates a new Field-Field Term:
+   @li The geomtry and the Jacobians are given by the GroupOfJacobian
+   @li The Basis functions to use are given by the field and test
+   @li The given Quadrature is used to compute the Term
+   @li The Basis functions must be pre-evaluated at the integration points
    **
 
    @fn TermFieldField::TermFieldField(const GroupOfJacobian& goj,const Basis& basis,const  Quadrature& quadrature,scalar (*f)(fullVector<double>& xyz))
@@ -81,8 +99,6 @@ class TermFieldField: public Term<scalar>{
    @li The given Quadrature is used to compute the Term
    @li The Basis function must be pre-evaluated at the integration points
    @li The given function is a multiplicative scalar for the whole Term
-
-   @todo Evaluate Basis in Term ?????
    **
 
    @fn TermFieldField::~TermFieldField

@@ -17,24 +17,27 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   this->context = &context;
 
   // Get Domain and auxiliary FunctionSpaces from DDMContext //
-  const GroupOfElement&                     domain = context.getDomain();
-  const vector<const FunctionSpaceScalar*>& aux    =
+  const GroupOfElement&                     dom = context.getDomain();
+  const vector<const FunctionSpaceScalar*>& aux =
     context.getAuxFunctionSpace();
 
   // Save field FunctionSpace
-  ffspace  = &context.getFunctionSpace();  // Testing Field and Unknown Field
+  field    = &context.getFunctionSpace();  // Unknown Field
   ffspaceG = &context.getFunctionSpaceG(); // DDM Field
 
   // Check GroupOfElement Stats: Uniform Mesh //
-  pair<bool, size_t> uniform = domain.isUniform();
+  pair<bool, size_t> uniform = dom.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
     throw Exception("FormulationOSRCScalar needs a uniform mesh");
 
-  // Get Basis (same for field and auxiliary function spaces) //
-  basis = &ffspace->getBasis(eType); // Saved for update()
-  const size_t order = basis->getOrder();
+  // Get Basis //
+              basisU = &field->getBasis(eType); // Saved for update()
+  const size_t order = basisU->getOrder();
+
+  // Get Auxiliary Basis //
+  const Basis& basisP = aux[0]->getBasis(eType);
 
   // k, keps and NPade //
   double k     = context.getWavenumber();
@@ -61,23 +64,27 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   const fullMatrix<double>& gCFF = gaussFF->getPoints();
   const fullMatrix<double>& gCGG = gaussGG.getPoints();
 
-  // Local Terms //
-  basis->preEvaluateFunctions(gCFF);
-  basis->preEvaluateDerivatives(gCGG);
+  // Pre-evaluate //
+  basisU->preEvaluateFunctions(gCFF);
+  basisU->preEvaluateDerivatives(gCGG);
 
-  jacFF = new GroupOfJacobian(domain, gCFF, "jacobian"); // Saved for update()
-  GroupOfJacobian jacGG(domain, gCGG, "invert");
+  basisP.preEvaluateFunctions(gCFF);
+  basisP.preEvaluateDerivatives(gCGG);
+
+  jacFF = new GroupOfJacobian(dom, gCFF, "jacobian"); // Saved for update()
+  GroupOfJacobian jacGG(dom, gCGG, "invert");
 
   // Get DDM Dofs from DDMContext //
   const map<Dof, Complex>& ddm = context.getDDMDofs();
 
-  // NB: Since the Formulations share the same basis functions,
-  //     the local terms will be the same !
-  //     It's the Dof numbering imposed by the function spaces that will differ
-  localFF = new TermFieldField<double>(*jacFF, *basis, *gaussFF);
-  localGG = new TermGradGrad<double>(jacGG, *basis, gaussGG);
-  localPr =
-    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *ffspaceG, ddm);
+  // Local Terms //
+  UU   = new TermFieldField<double>(*jacFF, *basisU, *basisU, *gaussFF);
+  dPdU = new TermGradGrad<double>  ( jacGG,  basisP, *basisU,  gaussGG);
+  PP   = new TermFieldField<double>(*jacFF,  basisP,  basisP, *gaussFF);
+  dPdP = new TermGradGrad<double>  ( jacGG,  basisP,  basisP,  gaussGG);
+  UP   = new TermFieldField<double>(*jacFF, *basisU,  basisP, *gaussFF);
+  RHS  =
+    new TermProjectionField<Complex>(*jacFF, *basisU, *gaussFF, *ffspaceG, ddm);
 
   // Formulations //
   // NB: FormulationOSRCScalar is a friend
@@ -85,25 +92,21 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
   //     So it can instanciate those classes...
 
   // Save FormulationOSRCScalarOne for update()
-  formulationOne = new FormulationOSRCScalarOne
-    (domain, *ffspace, k, C0, *localFF, *localPr);            // u.u'
+  formulationOne = new FormulationOSRCScalarOne(dom,*field,k,C0,*UU,*RHS);
 
   // Then push it in list
   fList.push_back(formulationOne);
 
   // Loop on phi[j]
+  FormulationBlock<Complex>* f[3];
   for(int j = 0; j < NPade; j++){
-    fList.push_back
-      (new FormulationOSRCScalarTwo
-       (domain, *aux[j], *ffspace, k, keps, A[j], *localGG)); // phi[j].u'
+    f[0]=new FormulationOSRCScalarTwo  (dom,*aux[j],*field,k,keps,A[j],  *dPdU);
+    f[1]=new FormulationOSRCScalarThree(dom,*aux[j],       keps,B[j],*PP,*dPdP);
+    f[2]=new FormulationOSRCScalarFour (dom,*field ,*aux[j],               *UP);
 
-    fList.push_back
-      (new FormulationOSRCScalarThree
-       (domain, *aux[j], keps, B[j], *localFF, *localGG));    // ph[j].ph[j]'
-
-    fList.push_back
-      (new FormulationOSRCScalarFour
-       (domain, *ffspace, *aux[j], *localFF));                // u.phi[j]'
+    fList.push_back(f[0]);
+    fList.push_back(f[1]);
+    fList.push_back(f[2]);
   }
 }
 
@@ -116,9 +119,12 @@ FormulationOSRCScalar::~FormulationOSRCScalar(void){
     delete *it;
 
   // Delete terms //
-  delete localFF;
-  delete localGG;
-  delete localPr;
+  delete   UU;
+  delete dPdU;
+  delete   PP;
+  delete dPdP;
+  delete   UP;
+  delete  RHS;
 
   // Delete update stuffs //
   delete jacFF;
@@ -135,21 +141,20 @@ bool FormulationOSRCScalar::isBlock(void) const{
 }
 
 void FormulationOSRCScalar::update(void){
-  // Delete RHS (localPr)
-  delete localPr;
+  // Delete RHS
+  delete RHS;
 
   // Get DDM Dofs from DDMContext
   const map<Dof, Complex>& ddm = context->getDDMDofs();
 
   // Pre-evalution
   const fullMatrix<double>& gCFF = gaussFF->getPoints();
-  basis->preEvaluateFunctions(gCFF);
+  basisU->preEvaluateFunctions(gCFF);
 
   // New RHS
-  localPr =
-    new TermProjectionField<Complex>(*jacFF, *basis, *gaussFF, *ffspaceG, ddm);
+  RHS = new TermProjectionField<Complex>(*jacFF,*basisU,*gaussFF,*ffspaceG,ddm);
 
   // Update FormulationOSRCScalarOne (formulationOne):
   //                                             this FormulationBlock holds RHS
-  formulationOne->update(*localPr);
+  formulationOne->update(*RHS);
 }

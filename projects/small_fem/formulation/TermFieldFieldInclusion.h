@@ -16,7 +16,19 @@ TermFieldField<scalar>::TermFieldField(const GroupOfJacobian& goj,
   preEvalDummy(goj, quadrature);
 
   // Init //
-  init(goj, basis, quadrature);
+  init(goj, basis, basis, quadrature);
+}
+
+template<typename scalar>
+TermFieldField<scalar>::TermFieldField(const GroupOfJacobian& goj,
+                                       const Basis& field,
+                                       const Basis& test,
+                                       const Quadrature& quadrature){
+  // Dummy Pre evaluation //
+  preEvalDummy(goj, quadrature);
+
+  // Init //
+  init(goj, field, test, quadrature);
 }
 
 template<typename scalar>
@@ -28,25 +40,33 @@ TermFieldField<scalar>::TermFieldField(const GroupOfJacobian& goj,
   preEvalF(goj, quadrature, f);
 
   // Init //
-  init(goj, basis, quadrature);
+  init(goj, basis, basis, quadrature);
 }
 
 template<typename scalar>
 void TermFieldField<scalar>::init(const GroupOfJacobian& goj,
-                                  const Basis& basis,
+                                  const Basis& field,
+                                  const Basis& test,
                                   const Quadrature& quadrature){
   // Basis Check //
-  if(basis.getForm() != 0)
+  if(field.getForm() != 0)
+    throw Exception("A Field Field Term must use a 0form basis");
+
+  if(test.getForm() != 0)
     throw Exception("A Field Field Term must use a 0form basis");
 
   // Type //
-  int eType = basis.getType();
+  int eType = test.getType();
+
+  if((int)(field.getType()) != eType)
+    throw Exception("A Field Field Term must use basis functions"
+                    "defined on the same geomtrical type for test and field");
 
   // Orientations & Functions //
   this->orientationStat = &goj.getAllElements().getOrientationStats(eType);
   this->nOrientation    = ReferenceSpaceManager::getNOrientation(eType);
-  this->nFunctionField  = basis.getNFunction();
-  this->nFunctionTest   = basis.getNFunction();
+  this->nFunctionField  = field.getNFunction();
+  this->nFunctionTest   =  test.getNFunction();
 
   // Get Integration Data
   //const fullMatrix<double>& gC = quadrature.getPoints();
@@ -56,7 +76,7 @@ void TermFieldField<scalar>::init(const GroupOfJacobian& goj,
   fullMatrix<scalar>** cM;
   fullMatrix<scalar>** bM;
 
-  computeC(basis, gW, cM);
+  computeC(field, test, gW, cM);
   computeB(goj, gW.size(), bM);
 
   this->allocA(this->nFunctionField * this->nFunctionTest);
@@ -71,7 +91,8 @@ TermFieldField<scalar>::~TermFieldField(void){
 }
 
 template<typename scalar>
-void TermFieldField<scalar>::computeC(const Basis& basis,
+void TermFieldField<scalar>::computeC(const Basis& field,
+                                      const Basis& test,
                                       const fullVector<double>& gW,
                                       fullMatrix<scalar>**& cM){
   const size_t nG = gW.size();
@@ -93,8 +114,10 @@ void TermFieldField<scalar>::computeC(const Basis& basis,
   for(size_t s = 0; s < this->nOrientation; s++){
     // If there is at least one element with this orientation
     if((*this->orientationStat)[s] != 0){
+
       // Get functions for this Orientation
-      const fullMatrix<double>& phi = basis.getPreEvaluatedFunctions(s);
+      const fullMatrix<double>& phiTest  =  test.getPreEvaluatedFunctions(s);
+      const fullMatrix<double>& phiField = field.getPreEvaluatedFunctions(s);
 
       // Loop on Gauss Points
       for(size_t g = 0; g < nG; g++){
@@ -103,7 +126,7 @@ void TermFieldField<scalar>::computeC(const Basis& basis,
 
         for(size_t i = 0; i < this->nFunctionTest; i++){
           for(size_t j = 0; j < this->nFunctionField; j++){
-            (*cM[s])(g, l) = gW(g) * phi(i, g) * phi(j, g);
+            (*cM[s])(g, l) = gW(g) * phiTest(i, g) * phiField(j, g);
             l++;
           }
         }

@@ -71,7 +71,7 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
   gauss = new Quadrature(eType, order, 2); // Saved for update()
   const fullMatrix<double>& gC = gauss->getPoints();
 
-  // Local Terms //
+  // Pre-evaluate //
   basisE.preEvaluateFunctions(gC);
   basisE.preEvaluateDerivatives(gC);
 
@@ -86,9 +86,7 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
 
   jac = new GroupOfJacobian(dom, gC, "both"); // Saved for update()
 
-  // NB: Since the Formulations share the same basis functions,
-  //     the local terms will be the same !
-  //     It's the Dof numbering imposed by the function spaces that will differ
+  // Local Terms //
   RHS  = new TermProjectionGrad<Complex>(*jac, *basisR  , *gauss, *fspaceG,ddm);
   RE   = new TermGradGrad<double>       (*jac, *basisR  ,  basisE  , *gauss);
 
