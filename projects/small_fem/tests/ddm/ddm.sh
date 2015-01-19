@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ## DATA
-THREADS=6
+THREADS=2
 TYPE='vector'
 DDM='emda'
 DOM=2
-MSH='/home/nicolas/mesh_all.msh'
-REF='/home/nicolas/fine.msh'
+MSH='./mesh_all.msh'
+REF='./fine.msh'
 OR=4
 OV=4
 OB=4
