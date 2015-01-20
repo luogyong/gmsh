@@ -21,6 +21,7 @@ Complex fSourceScal(fullVector<double>& xyz){
   const double kz = 1 * M_PI / 1;
 
   return Complex(sin(ky * xyz(1)) * sin(kz * xyz(2)), 0);
+  //return Complex(1, 0);
 }
 
 Complex fZeroScal(fullVector<double>& xyz){
@@ -42,15 +43,15 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
     beta = Complex(0, -1 * sqrt((kc * kc) - (k * k)));
 
   fullVector<Complex> tmp(3);
-  /*
+
   tmp(0) = Complex(                    sin(ky * xyz(1)) * sin(kz * xyz(2)),0);
   tmp(1) = I * beta * ky / (kc * kc) * cos(ky * xyz(1)) * sin(kz * xyz(2));
   tmp(2) = I * beta * kz / (kc * kc) * cos(kz * xyz(2)) * sin(ky * xyz(1));
-  */
+  /*
   tmp(0) = Complex(0, 0);
   tmp(1) = Complex(1, 0);
   tmp(2) = Complex(0, 0);
-
+  */
   return tmp;
 }
 
