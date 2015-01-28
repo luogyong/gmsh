@@ -281,7 +281,7 @@ void compute(const Options& option){
     feSol.write(name.str());
   }
 
-  // Game over!
+  // Game over! //
   delete Air;
   delete PMLx;
   delete PMLxy;

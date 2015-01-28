@@ -14,54 +14,70 @@
 // Material //
 class Material{
  public:
-  static const double oneOverCSquare;
+  static const double cSquare;
 
   class Air{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 
   class XYZ{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 
   class XZ{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 
   class YZ{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 
   class XY{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 
   class X{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 
   class Y{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 
   class Z{
   public:
     static void Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T);
     static void Nu(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
+    static void OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T);
   };
 };
 

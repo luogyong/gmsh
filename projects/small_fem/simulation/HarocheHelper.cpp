@@ -209,16 +209,15 @@ Complex PML::Z::Lzz(fullVector<double>& xyz){
 // Material //
 
 // Speed of light
-const double Material::oneOverCSquare = 1 / (2.997924580105029e+08 *
-                                             2.997924580105029e+08);
+const double Material::cSquare = 2.997924580105029e+08 * 2.997924580105029e+08;
 
 // Epsilon / (c^2) and Nu
 void Material::Air::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = Complex(1, 0) * oneOverCSquare;
-  T(1, 1) = Complex(1, 0) * oneOverCSquare;
-  T(2, 2) = Complex(1, 0) * oneOverCSquare;
+  T(0, 0) = Complex(1, 0) / cSquare;
+  T(1, 1) = Complex(1, 0) / cSquare;
+  T(2, 2) = Complex(1, 0) / cSquare;
 }
 
 void Material::Air::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -229,13 +228,29 @@ void Material::Air::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(2, 2) = Complex(1, 0);
 }
 
+void Material::Air::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = Complex(1, 0) / cSquare;
+  T(1, 1) = Complex(1, 0) / cSquare;
+  T(2, 2) = Complex(1, 0) / cSquare;
+}
+
+void Material::Air::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare;
+  T(1, 1) = cSquare;
+  T(2, 2) = cSquare;
+}
+
 // XYZ
 void Material::XYZ::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = PML::XYZ::Lxx(xyz) * oneOverCSquare;
-  T(1, 1) = PML::XYZ::Lyy(xyz) * oneOverCSquare;
-  T(2, 2) = PML::XYZ::Lzz(xyz) * oneOverCSquare;
+  T(0, 0) = PML::XYZ::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::XYZ::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::XYZ::Lzz(xyz) / cSquare;
 }
 
 void Material::XYZ::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -246,13 +261,29 @@ void Material::XYZ::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(2, 2) = Complex(1, 0) / PML::XYZ::Lzz(xyz);
 }
 
+void Material::XYZ::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = PML::XYZ::Lxx(xyz) * PML::XYZ::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::XYZ::Lyy(xyz) * PML::XYZ::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::XYZ::Lzz(xyz) * PML::XYZ::Lzz(xyz) / cSquare;
+}
+
+void Material::XYZ::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare / (PML::XYZ::Lxx(xyz) * PML::XYZ::Lxx(xyz));
+  T(1, 1) = cSquare / (PML::XYZ::Lyy(xyz) * PML::XYZ::Lyy(xyz));
+  T(2, 2) = cSquare / (PML::XYZ::Lzz(xyz) * PML::XYZ::Lzz(xyz));
+}
+
 // XZ
 void Material::XZ::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = PML::XZ::Lxx(xyz) * oneOverCSquare;
-  T(1, 1) = PML::XZ::Lyy(xyz) * oneOverCSquare;
-  T(2, 2) = PML::XZ::Lzz(xyz) * oneOverCSquare;
+  T(0, 0) = PML::XZ::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::XZ::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::XZ::Lzz(xyz) / cSquare;
 }
 
 void Material::XZ::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -263,13 +294,29 @@ void Material::XZ::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(2, 2) = Complex(1, 0) / PML::XZ::Lzz(xyz);
 }
 
+void Material::XZ::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = PML::XZ::Lxx(xyz) * PML::XZ::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::XZ::Lyy(xyz) * PML::XZ::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::XZ::Lzz(xyz) * PML::XZ::Lzz(xyz) / cSquare;
+}
+
+void Material::XZ::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare / (PML::XZ::Lxx(xyz) * PML::XZ::Lxx(xyz));
+  T(1, 1) = cSquare / (PML::XZ::Lyy(xyz) * PML::XZ::Lyy(xyz));
+  T(2, 2) = cSquare / (PML::XZ::Lzz(xyz) * PML::XZ::Lzz(xyz));
+}
+
 // YZ
 void Material::YZ::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = PML::YZ::Lxx(xyz) * oneOverCSquare;
-  T(1, 1) = PML::YZ::Lyy(xyz) * oneOverCSquare;
-  T(2, 2) = PML::YZ::Lzz(xyz) * oneOverCSquare;
+  T(0, 0) = PML::YZ::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::YZ::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::YZ::Lzz(xyz) / cSquare;
 }
 
 void Material::YZ::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -280,13 +327,29 @@ void Material::YZ::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(2, 2) = Complex(1, 0) / PML::YZ::Lzz(xyz);
 }
 
+void Material::YZ::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = PML::YZ::Lxx(xyz) * PML::YZ::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::YZ::Lyy(xyz) * PML::YZ::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::YZ::Lzz(xyz) * PML::YZ::Lzz(xyz) / cSquare;
+}
+
+void Material::YZ::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare / (PML::YZ::Lxx(xyz) * PML::YZ::Lxx(xyz));
+  T(1, 1) = cSquare / (PML::YZ::Lyy(xyz) * PML::YZ::Lyy(xyz));
+  T(2, 2) = cSquare / (PML::YZ::Lzz(xyz) * PML::YZ::Lzz(xyz));
+}
+
 // XY
 void Material::XY::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = PML::XY::Lxx(xyz) * oneOverCSquare;
-  T(1, 1) = PML::XY::Lyy(xyz) * oneOverCSquare;
-  T(2, 2) = PML::XY::Lzz(xyz) * oneOverCSquare;
+  T(0, 0) = PML::XY::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::XY::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::XY::Lzz(xyz) / cSquare;
 }
 
 void Material::XY::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -297,13 +360,29 @@ void Material::XY::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(2, 2) = Complex(1, 0) / PML::XY::Lzz(xyz);
 }
 
+void Material::XY::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = PML::XY::Lxx(xyz) * PML::XY::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::XY::Lyy(xyz) * PML::XY::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::XY::Lzz(xyz) * PML::XY::Lzz(xyz) / cSquare;
+}
+
+void Material::XY::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare / (PML::XY::Lxx(xyz) * PML::XY::Lxx(xyz));
+  T(1, 1) = cSquare / (PML::XY::Lyy(xyz) * PML::XY::Lyy(xyz));
+  T(2, 2) = cSquare / (PML::XY::Lzz(xyz) * PML::XY::Lzz(xyz));
+}
+
 // X
 void Material::X::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = PML::X::Lxx(xyz) * oneOverCSquare;
-  T(1, 1) = PML::X::Lyy(xyz) * oneOverCSquare;
-  T(2, 2) = PML::X::Lzz(xyz) * oneOverCSquare;
+  T(0, 0) = PML::X::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::X::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::X::Lzz(xyz) / cSquare;
 }
 
 void Material::X::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -314,13 +393,29 @@ void Material::X::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(2, 2) = Complex(1, 0) / PML::X::Lzz(xyz);
 }
 
+void Material::X::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = PML::X::Lxx(xyz) * PML::X::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::X::Lyy(xyz) * PML::X::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::X::Lzz(xyz) * PML::X::Lzz(xyz) / cSquare;
+}
+
+void Material::X::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare / (PML::X::Lxx(xyz) * PML::X::Lxx(xyz));
+  T(1, 1) = cSquare / (PML::X::Lyy(xyz) * PML::X::Lyy(xyz));
+  T(2, 2) = cSquare / (PML::X::Lzz(xyz) * PML::X::Lzz(xyz));
+}
+
 // Y
 void Material::Y::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = PML::Y::Lxx(xyz) * oneOverCSquare;
-  T(1, 1) = PML::Y::Lyy(xyz) * oneOverCSquare;
-  T(2, 2) = PML::Y::Lzz(xyz) * oneOverCSquare;
+  T(0, 0) = PML::Y::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::Y::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::Y::Lzz(xyz) / cSquare;
 }
 
 void Material::Y::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -331,13 +426,29 @@ void Material::Y::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(2, 2) = Complex(1, 0) / PML::Y::Lzz(xyz);
 }
 
+void Material::Y::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = PML::Y::Lxx(xyz) * PML::Y::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::Y::Lyy(xyz) * PML::Y::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::Y::Lzz(xyz) * PML::Y::Lzz(xyz) / cSquare;
+}
+
+void Material::Y::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare / (PML::Y::Lxx(xyz) * PML::Y::Lxx(xyz));
+  T(1, 1) = cSquare / (PML::Y::Lyy(xyz) * PML::Y::Lyy(xyz));
+  T(2, 2) = cSquare / (PML::Y::Lzz(xyz) * PML::Y::Lzz(xyz));
+}
+
 // Z
 void Material::Z::Epsilon(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T.scale(0);
 
-  T(0, 0) = PML::Z::Lxx(xyz) * oneOverCSquare;
-  T(1, 1) = PML::Z::Lyy(xyz) * oneOverCSquare;
-  T(2, 2) = PML::Z::Lzz(xyz) * oneOverCSquare;
+  T(0, 0) = PML::Z::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::Z::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::Z::Lzz(xyz) / cSquare;
 }
 
 void Material::Z::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
@@ -346,4 +457,20 @@ void Material::Z::Nu(fullVector<double>& xyz, fullMatrix<Complex>& T){
   T(0, 0) = Complex(1, 0) / PML::Z::Lxx(xyz);
   T(1, 1) = Complex(1, 0) / PML::Z::Lyy(xyz);
   T(2, 2) = Complex(1, 0) / PML::Z::Lzz(xyz);
+}
+
+void Material::Z::MuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = PML::Z::Lxx(xyz) * PML::Z::Lxx(xyz) / cSquare;
+  T(1, 1) = PML::Z::Lyy(xyz) * PML::Z::Lyy(xyz) / cSquare;
+  T(2, 2) = PML::Z::Lzz(xyz) * PML::Z::Lzz(xyz) / cSquare;
+}
+
+void Material::Z::OverMuEps(fullVector<double>& xyz, fullMatrix<Complex>& T){
+  T.scale(0);
+
+  T(0, 0) = cSquare / (PML::Z::Lxx(xyz) * PML::Z::Lxx(xyz));
+  T(1, 1) = cSquare / (PML::Z::Lyy(xyz) * PML::Z::Lyy(xyz));
+  T(2, 2) = cSquare / (PML::Z::Lzz(xyz) * PML::Z::Lzz(xyz));
 }
