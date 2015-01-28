@@ -1,0 +1,28 @@
+// Physics
+nm       = 1e-9;
+mm       = 1e-3;
+epsilon0 = 8.854187817e-3 * nm;
+mu0      = 400* Pi * nm;
+
+// User data
+DefineConstant[ F_HAR = {51.099e9, Name "Input/00Haroche/00Frequency"}       ];
+DefineConstant[ S_PML = {1,        Name "Input/01Geometry/00PML size"}       ];
+DefineConstant[ D_PML = {1,        Name "Input/01Geometry/01PML distance"}   ];
+DefineConstant[ MSH_A = {10,       Name "Input/02Mesh/00Size Air"}           ];
+DefineConstant[ MSH_P = {10,       Name "Input/02Mesh/00Size PML"}           ];
+DefineConstant[ MSH_M = {10,       Name "Input/02Mesh/00Size Mirror"}        ];
+DefineConstant[ MSH_M = {10,       Name "Input/02Mesh/00Size Mirror"}        ];
+DefineConstant[ nEig  = {4,        Name "Input/03Eigenproblem/00Eigenvalue"} ];
+
+// Constant
+DefineConstant[ cel            = {1 / (Sqrt[epsilon0 * mu0]),
+                                  Name "Input/00Haroche/01Speed of light",
+                                  ReadOnly 1} ];
+
+DefineConstant[ lambda_haroche = {cel / F_HAR,
+                                  Name "Input/00Haroche/02Wavelength",
+                                  ReadOnly 1} ];
+
+DefineConstant[ target         = { (F_HAR * 2 * Pi)^2,
+                                  Name "Input/03Eigenproblem/01Target",
+                                  ReadOnly 1} ];

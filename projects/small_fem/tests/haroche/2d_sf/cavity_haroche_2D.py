@@ -10,21 +10,27 @@ ol = onelab.client()
 
 ## Gmsh geometry
 ol.openProject('cavity_haroche_2D.geo')
-freq   = float(ol.getNumber(name = 'Input/00Haroche/00Frequency'))
-target = (freq * 2 * numpy.pi) ** 2
+freq = float(ol.getNumber(name = 'Input/00Haroche/00Frequency'))
 
 ## Get SmallFEM data
-femOrder = ol.defineNumber(name = 'Input/03FEM/00Order',        value = 1)
-nEig     = ol.defineNumber(name = 'Input/03FEM/01Eigenvalue',   value = 4)
-sym      = ol.defineNumber(name = 'Input/03FEM/02Symmetry',     choices = {0,1})
-nProc    = ol.defineNumber(name = 'Input/04Solver/00Process',   value = 4)
-tol      = ol.defineNumber(name = 'Input/04Solver/01Tolerance', value = 1e-6)
-maxit    = ol.defineNumber(name = 'Input/04Solver/02Iteration', value = 10000)
-postpro  = ol.defineNumber(name = 'Input/05Post-Pro/00Draw',    choices = {0,1})
+femOrder = ol.defineNumber(name  = 'Input/03FEM/00Order',
+                           value = 2)
+nEig     = ol.defineNumber(name  = 'Input/04Eigenproblem/00Eigenvalue',
+                           value = 4)
+target   = ol.defineNumber(name  = 'Input/04Eigenproblem/01Target',
+                           value = (freq * 2 * numpy.pi) ** 2, readOnly = 1)
+nProc    = ol.defineNumber(name  = 'Input/05Solver/02Process',
+                           value = 1)
+tol      = ol.defineNumber(name  = 'Input/05Solver/03Tolerance',
+                           value = 1e-12)
+maxit    = ol.defineNumber(name  = 'Input/05Solver/04Iteration',
+                           value = 100)
+postpro  = ol.defineNumber(name  = 'Input/06Post-Pro/00Draw',
+                           value = 1, choices = {0,1})
 
 femOrder = int(femOrder)
 nEig     = int(nEig)
-sym      = int(sym)
+target   = float(target)
 nProc    = int(nProc)
 tol      = float(tol)
 maxit    = int(maxit)
@@ -45,7 +51,6 @@ cmd += 'har2d'  + ' ' + \
        '-o'     + ' ' + str(femOrder)           + ' ' + \
        '-n'     + ' ' + str(nEig)               + ' ' + \
        '-shift' + ' ' + str(target)             + ' ' + \
-       '-sym'   + ' ' + str(sym)                + ' ' + \
        '-tol'   + ' ' + str(tol)                + ' ' + \
        '-maxit' + ' ' + str(maxit)              + ' '
 

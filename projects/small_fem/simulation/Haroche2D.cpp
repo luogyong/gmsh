@@ -43,44 +43,56 @@ void compute(const Options& option){
   // MPI std::cout //
   MPIOStream cout(0, std::cout);
   int        myProc;
+  int        nProcs;
+
   MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+  MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
 
   // Get Domains //
   cout << "Reading domain... " << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
-  GroupOfElement Air    = msh.getFromPhysical(4000, myProc + 1);
+  GroupOfElement* Air;
+  GroupOfElement* PMLx;
+  GroupOfElement* PMLxy;
+  GroupOfElement* PMLy;
+  GroupOfElement* Mirror;
+  GroupOfElement* LineOY;
 
-  GroupOfElement PMLx   = msh.getFromPhysical(1000, myProc + 1);
-  GroupOfElement PMLxy  = msh.getFromPhysical(2000, myProc + 1);
-  GroupOfElement PMLy   = msh.getFromPhysical(3000, myProc + 1);
+  if(nProcs != 1){
+    Air    = new GroupOfElement(msh.getFromPhysical(4000, myProc + 1));
+    PMLx   = new GroupOfElement(msh.getFromPhysical(1000, myProc + 1));
+    PMLxy  = new GroupOfElement(msh.getFromPhysical(2000, myProc + 1));
+    PMLy   = new GroupOfElement(msh.getFromPhysical(3000, myProc + 1));
+    Mirror = new GroupOfElement(msh.getFromPhysical( 103, myProc + 1));
+    LineOY = new GroupOfElement(msh.getFromPhysical( 101, myProc + 1));
+  }
 
-  GroupOfElement Mirror = msh.getFromPhysical(103, myProc + 1);
-  GroupOfElement LineOY = msh.getFromPhysical(101, myProc + 1);
-  GroupOfElement LineOX = msh.getFromPhysical(102, myProc + 1);
+  else{
+    Air    = new GroupOfElement(msh.getFromPhysical(4000));
+    PMLx   = new GroupOfElement(msh.getFromPhysical(1000));
+    PMLxy  = new GroupOfElement(msh.getFromPhysical(2000));
+    PMLy   = new GroupOfElement(msh.getFromPhysical(3000));
+    Mirror = new GroupOfElement(msh.getFromPhysical( 103));
+    LineOY = new GroupOfElement(msh.getFromPhysical( 101));
+  }
 
-  /*
-  GroupOfElement Air    = msh.getFromPhysical(4000);
-
-  GroupOfElement PMLx   = msh.getFromPhysical(1000);
-  GroupOfElement PMLxy  = msh.getFromPhysical(2000);
-  GroupOfElement PMLy   = msh.getFromPhysical(3000);
-
-  GroupOfElement Mirror = msh.getFromPhysical(103);
-  GroupOfElement LineOY = msh.getFromPhysical(101);
-  GroupOfElement LineOX = msh.getFromPhysical(102);
-  */
   // Full Domain
-  vector<const GroupOfElement*> All_domains(7);
-  All_domains[0] = &Air;
+  vector<const GroupOfElement*> All_domains(6);
+  All_domains[0] = Air;
 
-  All_domains[1] = &PMLx;
-  All_domains[2] = &PMLxy;
-  All_domains[3] = &PMLy;
+  All_domains[1] = PMLx;
+  All_domains[2] = PMLxy;
+  All_domains[3] = PMLy;
 
-  All_domains[4] = &Mirror;
-  All_domains[5] = &LineOY;
-  All_domains[6] = &LineOX;
+  All_domains[4] = Mirror;
+  All_domains[5] = LineOY;
+
+  // True Domain
+  vector<const GroupOfElement*> True_domains(3);
+  True_domains[0] = Air;
+  True_domains[1] = Mirror;
+  True_domains[2] = LineOY;
 
   // Full Surface
   cout << "Done!" << endl << flush;
@@ -94,24 +106,59 @@ void compute(const Options& option){
 
   // Formulation //
   cout << "Formulations... " << flush;
-
+  /*
   Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
-                                       (Air,    fs, fs, Material::Air::Nu);
+                                       (*Air,   fs, fs, Material::Air::Nu);
   Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
-                                       (PMLxy,  fs, fs, Material::XY::Nu);
+                                       (*PMLxy, fs, fs,  Material::XY::Nu);
   Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
-                                       (PMLx,   fs, fs, Material::X::Nu);
+                                       (*PMLx,  fs, fs,   Material::X::Nu);
   Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
-                                       (PMLy,   fs, fs, Material::Y::Nu);
+                                       (*PMLy,  fs, fs,   Material::Y::Nu);
 
   Formulation<Complex>* massAir = new FormulationMass<Complex>
-                                       (Air,    fs, fs, Material::Air::Epsilon);
+                                       (*Air,   fs, fs, Material::Air::Epsilon);
   Formulation<Complex>* massXY  = new FormulationMass<Complex>
-                                       (PMLxy,  fs, fs, Material::XY::Epsilon);
+                                       (*PMLxy, fs, fs,  Material::XY::Epsilon);
   Formulation<Complex>* massX   = new FormulationMass<Complex>
-                                       (PMLx,   fs, fs, Material::X::Epsilon);
+                                       (*PMLx,  fs, fs,   Material::X::Epsilon);
   Formulation<Complex>* massY   = new FormulationMass<Complex>
-                                       (PMLy,   fs, fs, Material::Y::Epsilon);
+                                       (*PMLy,  fs, fs,   Material::Y::Epsilon);
+  */
+  /*
+  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
+                                       (*Air,   fs, fs);
+  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
+                                       (*PMLxy, fs, fs);
+  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
+                                       (*PMLx,  fs, fs);
+  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
+                                       (*PMLy,  fs, fs);
+
+  Formulation<Complex>* massAir = new FormulationMass<Complex>
+                                       (*Air,   fs, fs, Material::Air::MuEps);
+  Formulation<Complex>* massXY  = new FormulationMass<Complex>
+                                       (*PMLxy, fs, fs,  Material::XY::MuEps);
+  Formulation<Complex>* massX   = new FormulationMass<Complex>
+                                       (*PMLx,  fs, fs,   Material::X::MuEps);
+  Formulation<Complex>* massY   = new FormulationMass<Complex>
+                                       (*PMLy,  fs, fs,   Material::Y::MuEps);
+  */
+
+  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
+                                       (*Air, fs, fs, Material::Air::OverMuEps);
+  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
+                                       (*PMLxy,fs, fs, Material::XY::OverMuEps);
+  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
+                                       (*PMLx, fs, fs,  Material::X::OverMuEps);
+  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
+                                       (*PMLy, fs, fs,  Material::Y::OverMuEps);
+
+  Formulation<Complex>* massAir = new FormulationMass<Complex>(*Air,   fs, fs);
+  Formulation<Complex>* massXY  = new FormulationMass<Complex>(*PMLxy, fs, fs);
+  Formulation<Complex>* massX   = new FormulationMass<Complex>(*PMLx,  fs, fs);
+  Formulation<Complex>* massY   = new FormulationMass<Complex>(*PMLy,  fs, fs);
+
   cout << "Done!" << endl << flush;
 
   // System //
@@ -130,26 +177,9 @@ void compute(const Options& option){
   cout << "Done!" << endl << flush;
 
   // Dirichlet //
-  // Mirror
   cout << "Dirichlet... " << flush;
-  SystemHelper<Complex>::dirichlet(sys, fs, Mirror, fZero);
-
-  // Symmetry
-  try{
-    int sym = atoi(option.getValue("-sym")[1].c_str());
-
-    if(sym == 0)
-      SystemHelper<Complex>::dirichlet(sys, fs, LineOY, fZero);
-
-    else
-      SystemHelper<Complex>::dirichlet(sys, fs, LineOX, fZero);
-  }
-
-  catch(...){
-    // If no symmetry given, use YZ
-    cout << "No symmetry given: defaulting to YZ" << endl;
-    SystemHelper<Complex>::dirichlet(sys, fs, LineOY, fZero);
-  }
+  SystemHelper<Complex>::dirichlet(sys, fs, *Mirror, fZero);
+  SystemHelper<Complex>::dirichlet(sys, fs, *LineOY, fZero);
   cout << "Done!" << endl << flush;
 
   // Assemble //
@@ -209,6 +239,7 @@ void compute(const Options& option){
   }
 
   // Do what you have to do !
+  sys.setProblem("pos_gen_non_hermitian");
   sys.solve();
   cout << "Done!" << endl << flush;
 
@@ -243,16 +274,25 @@ void compute(const Options& option){
   catch(...){
     FEMSolution<Complex> feSol;
     stringstream         name;
+    // sys.getSolution(feSol, fs, True_domains);
     sys.getSolution(feSol, fs, All_domains);
 
     name << "harocheModes" << "_proc" << myProc;
     feSol.write(name.str());
   }
+
+  // Game over!
+  delete Air;
+  delete PMLx;
+  delete PMLxy;
+  delete PMLy;
+  delete Mirror;
+  delete LineOY;
 }
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-shift,-sym,-tol,-maxit,-nopos");
+  SmallFem::Keywords("-msh,-o,-n,-shift,-tol,-maxit,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

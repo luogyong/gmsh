@@ -39,6 +39,7 @@ SystemEigen::SystemEigen(void){
   maxIt          = 100;
   tol            = 1E-6;
   target         = 1;
+  whichProblem   = string("non_hermitian");
   whichEigenpair = string("smallest_magnitude");
 
   // The SystemEigen is not assembled and not solved//
@@ -83,6 +84,9 @@ addFormulationB(const Formulation<Complex>& formulation){
 
   // This EigenSystem is general
   general = true;
+
+  // Use generalized non-hermitian as default problem
+  whichProblem = string("gen_non_hermitian");
 }
 
 void SystemEigen::
@@ -297,11 +301,22 @@ void SystemEigen::solve(void){
   else
     EPSSetOperators(solver, *A, NULL);
 
-  if(general)
+  // Set problem type //
+  if(!whichProblem.compare("gen_non_hermitian"))
     EPSSetProblemType(solver, EPS_GNHEP);
-  else
+
+  else if(!whichProblem.compare("non_hermitian"))
     EPSSetProblemType(solver, EPS_NHEP);
 
+  else if(!whichProblem.compare("pos_gen_non_hermitian"))
+    EPSSetProblemType(solver, EPS_PGNHEP);
+
+  else
+    throw
+      Exception("%s -- %s %s %s", "SystemEigen::solve",
+                                  "set SystemEigen::setProblem()",
+                                  "to a legal value: set to",
+                                  whichProblem.c_str());
   // Set Options //
   EPSSetDimensions(solver, nEigenValues, PETSC_DECIDE, PETSC_DECIDE);
   EPSSetTolerances(solver, tol, maxIt);
@@ -408,6 +423,10 @@ bool SystemEigen::isGeneral(void) const{
 
 void SystemEigen::getEigenValues(fullVector<Complex>& eig) const{
   eig.setAsProxy(*eigenValue, 0, eigenValue->size());
+}
+
+void SystemEigen::setProblem(std::string type){
+  this->whichProblem = type;
 }
 
 void SystemEigen::

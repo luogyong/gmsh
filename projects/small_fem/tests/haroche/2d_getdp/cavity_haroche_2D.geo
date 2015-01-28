@@ -1,28 +1,5 @@
 // Data //
-// User
-DefineConstant[ F_HAR = {51.099e9, Name "Input/00Haroche/00Frequency"}      ];
-DefineConstant[ S_PML = {1,        Name "Input/01Geometry/00PML size"}      ];
-DefineConstant[ D_PML = {1,        Name "Input/01Geometry/01PML distance"}  ];
-DefineConstant[ MSH_A = {10,       Name "Input/02Mesh/00Size Air"}          ];
-DefineConstant[ MSH_P = {10,       Name "Input/02Mesh/00Size PML"}          ];
-DefineConstant[ MSH_M = {10,       Name "Input/02Mesh/00Size Mirror"}       ];
-DefineConstant[ ORDER = {2,        Name "Input/02Mesh/01Order"}             ];
-DefineConstant[ TYPE  = {3,        Name "Input/02Mesh/02Type",
-                                   Choices {3="Triangle", 4="Quadrangle"} } ];
-// Physics
-nm       = 1e-9;
-mm       = 1e-3;
-epsilon0 = 8.854187817e-3 * nm;
-mu0      = 400* Pi * nm;
-
-// Haroche Wavelength
-DefineConstant[ cel            = {1 / (Sqrt[epsilon0 * mu0]),
-                                  Name "Input/00Haroche/01Speed of light",
-                                  ReadOnly 1} ];
-
-DefineConstant[ lambda_haroche = {cel / F_HAR,
-                                  Name "Input/00Haroche/02Wavelength",
-                                  ReadOnly 1} ];
+Include "cavity_haroche_2D.dat";
 
 // Geomtrical Parameters //
 // Mirror
@@ -99,26 +76,18 @@ Line  Loop(23)    = {3, 14, -6, -12};
 Plane Surface(24) = {23};
 
 // Physicals
-Physical Line(101)     = {1, 2, 3};      // Neumann OY
-Physical Line(102)     = {9, 10};        // Neumann OX
-Physical Line(103)     = {16};//, 4, 11};    // Dirichel
-Physical Line(104)     = {7, 8, 14, 15}; // Ext PML
-Physical Surface(1000) = {20};           // PML_X
-Physical Surface(2000) = {22};           // PML_XY
-Physical Surface(3000) = {24};           // PML_Y
-Physical Surface(4000) = {18};           // Air
+Physical Line(101)     = {1, 2, 3};       // Neumann OY
+Physical Line(102)     = {9, 10};         // Neumann OX
+Physical Line(103)     = {16};//, 4, 11}; // Dirichlet
+Physical Line(104)     = {7, 8, 14, 15};  // Ext PML
+Physical Surface(1000) = {20};            // PML_X
+Physical Surface(2000) = {22};            // PML_XY
+Physical Surface(3000) = {24};            // PML_Y
+Physical Surface(4000) = {18};            // Air
+Physical Point(10000)  = {2};             // Print point
 
 // Display
 BoundingBox {0, box_x + pml_x, 0, box_y + pml_y, 0, 0};
 
 // Options
-If(TYPE == 4)
-  Recombine Surface "*";
-EndIf
-
-If(ORDER > 1)
-  Mesh.HighOrderOptimize = 1;
-EndIf
-
-Mesh.Optimize     = 1;
-Mesh.ElementOrder = ORDER;
+Mesh.Optimize = 1;

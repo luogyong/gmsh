@@ -43,6 +43,7 @@ class SystemEigen: public SystemAbstract<Complex>{
   PetscInt    maxIt;
   PetscReal   tol;
   PetscScalar target;
+  std::string whichProblem;
   std::string whichEigenpair;
 
   fullVector<Complex>*               eigenValue;
@@ -68,6 +69,7 @@ class SystemEigen: public SystemAbstract<Complex>{
   bool isGeneral(void) const;
   void getEigenValues(fullVector<Complex>& eig) const;
 
+  void setProblem(std::string type);
   void setNumberOfEigenValues(size_t nEigenValues);
   void setMaxIteration(size_t maxIt);
   void setTolerance(double tol);
@@ -122,6 +124,12 @@ class SystemEigen: public SystemAbstract<Complex>{
    Allocate and populates eig with the eigenvalues of this SystemEigen
    **
 
+   @fn SystemEigen::setProblem(std::string type)
+   @param type A string
+
+   Sets the type of eigen problem
+   **
+
    @fn SystemEigen::setNumberOfEigenValues
    @param nEigenValues A natural number
 
@@ -149,7 +157,7 @@ class SystemEigen: public SystemAbstract<Complex>{
    **
 
   @fn SystemEigen::setWhichEigenpairs(std::string type)
-   @param type A string
+  @param type A string
 
    Sets the type of eigenpairs that SystemEigen::solve() will look for
 */
