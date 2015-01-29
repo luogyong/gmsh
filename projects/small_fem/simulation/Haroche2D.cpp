@@ -273,12 +273,15 @@ void compute(const Options& option){
 
   catch(...){
     FEMSolution<Complex> feSol;
-    stringstream         name;
     // sys.getSolution(feSol, fs, True_domains);
     sys.getSolution(feSol, fs, All_domains);
 
-    name << "harocheModes" << "_proc" << myProc;
-    feSol.write(name.str());
+    //feSol.setSaveMesh(false);
+    feSol.setBinaryFormat(true);
+    if(nProcs != 1)
+      feSol.setParition(myProc + 1);
+
+    feSol.write("harocheModes");
   }
 
   // Game over! //

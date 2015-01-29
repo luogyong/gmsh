@@ -11,7 +11,10 @@
 template<typename scalar>
 FEMSolution<scalar>::FEMSolution(void){
   isModulusPhase = false;
-  pView = new PViewDataGModel(PViewDataGModel::ElementNodeData);
+  saveMesh       = true;
+  binary         = false;
+  partition      = 0;
+  pView          = new PViewDataGModel(PViewDataGModel::ElementNodeData);
 }
 
 template<typename scalar>
@@ -31,6 +34,21 @@ void FEMSolution<scalar>::setRealImaginary(void){
 }
 
 template<typename scalar>
+void FEMSolution<scalar>::setSaveMesh(bool saveMesh){
+  this->saveMesh = saveMesh;
+}
+
+template<typename scalar>
+void FEMSolution<scalar>::setBinaryFormat(bool binary){
+  this->binary = binary;
+}
+
+template<typename scalar>
+void FEMSolution<scalar>::setParition(int partition){
+  this->partition = partition;
+}
+
+template<typename scalar>
 void FEMSolution<scalar>::clear(void){
   pView->destroyData();
 }
@@ -38,7 +56,16 @@ void FEMSolution<scalar>::clear(void){
 template<typename scalar>
 void FEMSolution<scalar>::write(std::string fileName) const{
   pView->setName(fileName);
-  pView->writeMSH(fileName + ".msh");
+
+  std::stringstream stream;
+  stream << fileName;
+
+  if(partition > 0)
+    stream << "_part" << partition;
+
+  stream << ".msh";
+  pView->writeMSH(stream.str(),
+                  2.2, binary, saveMesh, false, partition, true, false);
 }
 
 template<typename scalar>

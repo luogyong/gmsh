@@ -28,6 +28,9 @@ template<typename scalar>
 class FEMSolution{
  private:
   bool             isModulusPhase;
+  bool             saveMesh;
+  bool             binary;
+  int              partition;
   PViewDataGModel* pView;
 
  public:
@@ -36,6 +39,9 @@ class FEMSolution{
 
   void setModulusPhase(void);
   void setRealImaginary(void);
+  void setSaveMesh(bool saveMesh);
+  void setBinaryFormat(bool binary);
+  void setParition(int partition);
 
   void clear(void);
   void addCoefficients(size_t step,
@@ -75,6 +81,37 @@ class FEMSolution{
    @fn FEMSolution::setRealImaginary
    This FEMSolution will use complex number in a real - imaginary part fashion
    (no impact on real FEMSolution)
+   **
+
+   @fn FEMSolution::setSaveMesh(bool saveMesh)
+   @param saveMesh A boolean value
+
+   If saveMesh is set to:
+   @li true, the mesh will be saved in this FEMSolution
+   @li false, the mesh will not be saved in this FEMSolution
+
+   The default behaviour saves the mesh.
+   **
+
+   @fn FEMSolution::setBinaryFormat(bool binary)
+   @param binary A boolean value
+
+   If binary is set to:
+   @li true, this FEMSolution will be saved in binary format
+   @li false, this FEMSolution will be saved in text format
+
+   The default behaviour uses text format.
+   **
+
+   @fn FEMSolution::setParition(int partition)
+   @param partition A positive or null number
+
+   The partition number (strictly positive)
+   of this FEMSolution is set to 'partition'.
+
+   If 'parition' is zero, no partition system is used.
+
+   The default behaviour doesn't use the partition system.
    **
 
    @fn FEMSolution::clear

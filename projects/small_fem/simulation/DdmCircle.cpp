@@ -436,7 +436,11 @@ void compute(const Options& option){
     catch(...){
       FEMSolution<Complex> feSol;
       full.getSolution(feSol, *fs, volume);
-      feSol.write(stream.str());
+
+      feSol.setSaveMesh(false);
+      feSol.setBinaryFormat(true);
+      feSol.setParition(myProc + 1);
+      feSol.write("circle");
     }
   }
 
