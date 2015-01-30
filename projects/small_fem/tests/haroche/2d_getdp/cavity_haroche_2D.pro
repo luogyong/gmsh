@@ -13,32 +13,36 @@ Group{
   // Boundaries
   SurfLineOY    = Region[101];
   SurfDirichlet = Region[103];
-  SurfPmlExt    = Region[104];
 }
 
 Function{
   // PML parameters
-  a_pml         = 1.;
-  b_pml         = 1.;
-  sx[pmlX]      = Complex[a_pml, -b_pml];
-  sx[pmlXY]     = Complex[a_pml, -b_pml];
-  sx[pmlY]      = 1.;
+  // dampingX[] = K_HAR;
+  // dampingY[] = K_HAR;
 
-  sy[pmlX]      = 1.;
-  sy[pmlXY]     = Complex[a_pml, -b_pml];
-  sy[pmlY]      = Complex[a_pml, -b_pml];
+  dampingX[] = 1 / (box_x + pml_x - Fabs[X[]]) - 1 / (pml_x);
+  dampingY[] = 1 / (box_y + pml_y - Fabs[Y[]]) - 1 / (pml_y);
 
-  sz            = 1.;
+  sx[pmlXY]     = Complex[1, -dampingX[] / K_HAR];
+  sy[pmlXY]     = Complex[1, -dampingY[] / K_HAR];
+
+  sx[pmlX]      = Complex[1, -dampingX[] / K_HAR];
+  sy[pmlX]      = Complex[1,  0];
+
+  sx[pmlY]      = Complex[1,  0];
+  sy[pmlY]      = Complex[1, -dampingY[] / K_HAR];
+
+  sz[]          = Complex[1,  0];
 
   epsilonr[air] = TensorDiag[1, 1, 1];
-  epsilonr[pml] = TensorDiag[sz   * sy[] / sx[],
-                             sx[] * sz   / sy[],
-                             sx[] * sy[] / sz];
+  epsilonr[pml] = TensorDiag[sz[] * sy[] / sx[],
+                             sx[] * sz[] / sy[],
+                             sx[] * sy[] / sz[]];
 
   mur[air]      = TensorDiag[1, 1, 1];
-  mur[pml]      = TensorDiag[sz   * sy[] / sx[],
-                             sx[] * sz   / sy[],
-                             sx[] * sy[] / sz];
+  mur[pml]      = TensorDiag[sz[] * sy[] / sx[],
+                             sx[] * sz[] / sy[],
+                             sx[] * sy[] / sz[]];
 }
 
 Constraint{
@@ -99,11 +103,20 @@ Formulation{
       { Name e; Type Local; NameOfSpace Hcurl;}
     }
     Equation{
+
       Galerkin{ [ 1 / mur[] * Dof{Curl e}, {Curl e} ];
         In Omega; Jacobian JVol; Integration Int_1; }
 
       Galerkin{ DtDtDof[ epsilonr[] / cel^2 * Dof{e}, {e} ];
         In Omega; Jacobian JVol; Integration Int_1; }
+
+      /*
+      Galerkin{ [ cel^2 / (mur[] * epsilonr[]) * Dof{Curl e}, {Curl e} ];
+        In Omega; Jacobian JVol; Integration Int_1; }
+
+      Galerkin{ DtDtDof[ Dof{e}, {e} ];
+        In Omega; Jacobian JVol; Integration Int_1; }
+      */
     }
   }
 }

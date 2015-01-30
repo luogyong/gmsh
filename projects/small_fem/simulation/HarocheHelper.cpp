@@ -6,6 +6,39 @@ using namespace std;
 const Complex PML::a   = Complex(1, -1);
 const Complex PML::one = Complex(1,  0);
 
+double PML::Xmax  = 0.0308668948122;
+double PML::Ymax  = 0.0308668948122;
+double PML::Zmax  = 0.0210668948122;
+double PML::SizeX = 0.00586689481224;
+double PML::SizeY = 0.00586689481224;
+double PML::SizeZ = 0.00586689481224;
+
+double PML::kHaroche = 1070.95584773;
+
+Complex PML::dampingX(fullVector<double>& xyz){
+  double     f = Xmax + SizeX - fabs(xyz(0));
+  double overF = 1 / (f) - 1 / (SizeX);
+
+  return Complex(1, -overF / kHaroche);
+  //return a;
+}
+
+Complex PML::dampingY(fullVector<double>& xyz){
+  double     f = Ymax + SizeY - fabs(xyz(1));
+  double overF = 1 / (f) - 1 / (SizeY);
+
+  return Complex(1, -overF / kHaroche);
+  //return a;
+}
+
+Complex PML::dampingZ(fullVector<double>& xyz){
+  double     f = Zmax + SizeZ - fabs(xyz(2));
+  double overF = 1 / (f) - 1 / (SizeZ);
+
+  return Complex(1, -overF / kHaroche);
+  //return a;
+}
+
 // Air
 Complex PML::Air::sx(fullVector<double>& xyz){
   return one;
@@ -33,15 +66,15 @@ Complex PML::Air::Lzz(fullVector<double>& xyz){
 
 // XYZ
 Complex PML::XYZ::sx(fullVector<double>& xyz){
-  return a;
+  return dampingX(xyz);
 }
 
 Complex PML::XYZ::sy(fullVector<double>& xyz){
-  return a;
+  return dampingY(xyz);
 }
 
 Complex PML::XYZ::sz(fullVector<double>& xyz){
-  return a;
+  return dampingZ(xyz);
 }
 
 Complex PML::XYZ::Lxx(fullVector<double>& xyz){
@@ -58,7 +91,7 @@ Complex PML::XYZ::Lzz(fullVector<double>& xyz){
 
 // XZ
 Complex PML::XZ::sx(fullVector<double>& xyz){
-  return a;
+  return dampingX(xyz);
 }
 
 Complex PML::XZ::sy(fullVector<double>& xyz){
@@ -66,7 +99,7 @@ Complex PML::XZ::sy(fullVector<double>& xyz){
 }
 
 Complex PML::XZ::sz(fullVector<double>& xyz){
-  return a;
+  return dampingZ(xyz);
 }
 
 Complex PML::XZ::Lxx(fullVector<double>& xyz){
@@ -87,11 +120,11 @@ Complex PML::YZ::sx(fullVector<double>& xyz){
 }
 
 Complex PML::YZ::sy(fullVector<double>& xyz){
-  return a;
+  return dampingY(xyz);
 }
 
 Complex PML::YZ::sz(fullVector<double>& xyz){
-  return a;
+  return dampingZ(xyz);
 }
 
 Complex PML::YZ::Lxx(fullVector<double>& xyz){
@@ -108,11 +141,11 @@ Complex PML::YZ::Lzz(fullVector<double>& xyz){
 
 // XY
 Complex PML::XY::sx(fullVector<double>& xyz){
-  return a;
+  return dampingX(xyz);
 }
 
 Complex PML::XY::sy(fullVector<double>& xyz){
-  return a;
+  return dampingY(xyz);
 }
 
 Complex PML::XY::sz(fullVector<double>& xyz){
@@ -133,7 +166,7 @@ Complex PML::XY::Lzz(fullVector<double>& xyz){
 
 // X
 Complex PML::X::sx(fullVector<double>& xyz){
-  return a;
+  return dampingX(xyz);
 }
 
 Complex PML::X::sy(fullVector<double>& xyz){
@@ -162,7 +195,7 @@ Complex PML::Y::sx(fullVector<double>& xyz){
 }
 
 Complex PML::Y::sy(fullVector<double>& xyz){
-  return a;
+  return dampingY(xyz);
 }
 
 Complex PML::Y::sz(fullVector<double>& xyz){
@@ -191,7 +224,7 @@ Complex PML::Z::sy(fullVector<double>& xyz){
 }
 
 Complex PML::Z::sz(fullVector<double>& xyz){
-  return a;
+  return dampingZ(xyz);
 }
 
 Complex PML::Z::Lxx(fullVector<double>& xyz){

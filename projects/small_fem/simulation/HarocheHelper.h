@@ -87,6 +87,19 @@ class PML{
   static const Complex a;
   static const Complex one;
 
+  static double Xmax;
+  static double Ymax;
+  static double Zmax;
+  static double SizeX;
+  static double SizeY;
+  static double SizeZ;
+
+  static double kHaroche;
+
+  static Complex dampingX(fullVector<double>& xyz);
+  static Complex dampingY(fullVector<double>& xyz);
+  static Complex dampingZ(fullVector<double>& xyz);
+
  public:
   class Air{
   public:

@@ -106,59 +106,53 @@ void compute(const Options& option){
 
   // Formulation //
   cout << "Formulations... " << flush;
-  /*
-  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
-                                       (*Air,   fs, fs, Material::Air::Nu);
-  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
-                                       (*PMLxy, fs, fs,  Material::XY::Nu);
-  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
-                                       (*PMLx,  fs, fs,   Material::X::Nu);
-  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
-                                       (*PMLy,  fs, fs,   Material::Y::Nu);
 
-  Formulation<Complex>* massAir = new FormulationMass<Complex>
-                                       (*Air,   fs, fs, Material::Air::Epsilon);
-  Formulation<Complex>* massXY  = new FormulationMass<Complex>
-                                       (*PMLxy, fs, fs,  Material::XY::Epsilon);
-  Formulation<Complex>* massX   = new FormulationMass<Complex>
-                                       (*PMLx,  fs, fs,   Material::X::Epsilon);
-  Formulation<Complex>* massY   = new FormulationMass<Complex>
-                                       (*PMLy,  fs, fs,   Material::Y::Epsilon);
+  Formulation<Complex>* stifAir;
+  Formulation<Complex>* stifXY;
+  Formulation<Complex>* stifX;
+  Formulation<Complex>* stifY;
+
+  Formulation<Complex>* massAir;
+  Formulation<Complex>* massXY;
+  Formulation<Complex>* massX;
+  Formulation<Complex>* massY;
+
+  stifAir = new FormulationStiffness<Complex>(*Air,  fs, fs, Material::Air::Nu);
+  stifXY  = new FormulationStiffness<Complex>(*PMLxy,fs, fs,  Material::XY::Nu);
+  stifX   = new FormulationStiffness<Complex>(*PMLx, fs, fs,   Material::X::Nu);
+  stifY   = new FormulationStiffness<Complex>(*PMLy, fs, fs,   Material::Y::Nu);
+
+  massAir = new FormulationMass<Complex>(*Air,  fs, fs, Material::Air::Epsilon);
+  massXY  = new FormulationMass<Complex>(*PMLxy,fs, fs,  Material::XY::Epsilon);
+  massX   = new FormulationMass<Complex>(*PMLx, fs, fs,   Material::X::Epsilon);
+  massY   = new FormulationMass<Complex>(*PMLy, fs, fs,   Material::Y::Epsilon);
+
+  /*
+  stifAir = new FormulationStiffness<Complex>(*Air,   fs, fs);
+  stifXY  = new FormulationStiffness<Complex>(*PMLxy, fs, fs);
+  stifX   = new FormulationStiffness<Complex>(*PMLx,  fs, fs);
+  stifY   = new FormulationStiffness<Complex>(*PMLy,  fs, fs);
+
+  massAir = new FormulationMass<Complex>(*Air,   fs, fs, Material::Air::MuEps);
+  massXY  = new FormulationMass<Complex>(*PMLxy, fs, fs,  Material::XY::MuEps);
+  massX   = new FormulationMass<Complex>(*PMLx,  fs, fs,   Material::X::MuEps);
+  massY   = new FormulationMass<Complex>(*PMLy,  fs, fs,   Material::Y::MuEps);
   */
   /*
-  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
-                                       (*Air,   fs, fs);
-  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
-                                       (*PMLxy, fs, fs);
-  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
-                                       (*PMLx,  fs, fs);
-  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
-                                       (*PMLy,  fs, fs);
+  stifAir = new FormulationStiffness<Complex>
+                                     (*Air,   fs, fs, Material::Air::OverMuEps);
+  stifXY  = new FormulationStiffness<Complex>
+                                     (*PMLxy, fs, fs,  Material::XY::OverMuEps);
+  stifX   = new FormulationStiffness<Complex>
+                                     (*PMLx,  fs, fs,   Material::X::OverMuEps);
+  stifY   = new FormulationStiffness<Complex>
+                                     (*PMLy,  fs, fs,   Material::Y::OverMuEps);
 
-  Formulation<Complex>* massAir = new FormulationMass<Complex>
-                                       (*Air,   fs, fs, Material::Air::MuEps);
-  Formulation<Complex>* massXY  = new FormulationMass<Complex>
-                                       (*PMLxy, fs, fs,  Material::XY::MuEps);
-  Formulation<Complex>* massX   = new FormulationMass<Complex>
-                                       (*PMLx,  fs, fs,   Material::X::MuEps);
-  Formulation<Complex>* massY   = new FormulationMass<Complex>
-                                       (*PMLy,  fs, fs,   Material::Y::MuEps);
+  massAir = new FormulationMass<Complex>(*Air,   fs, fs);
+  massXY  = new FormulationMass<Complex>(*PMLxy, fs, fs);
+  massX   = new FormulationMass<Complex>(*PMLx,  fs, fs);
+  massY   = new FormulationMass<Complex>(*PMLy,  fs, fs);
   */
-
-  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
-                                       (*Air, fs, fs, Material::Air::OverMuEps);
-  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
-                                       (*PMLxy,fs, fs, Material::XY::OverMuEps);
-  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
-                                       (*PMLx, fs, fs,  Material::X::OverMuEps);
-  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
-                                       (*PMLy, fs, fs,  Material::Y::OverMuEps);
-
-  Formulation<Complex>* massAir = new FormulationMass<Complex>(*Air,   fs, fs);
-  Formulation<Complex>* massXY  = new FormulationMass<Complex>(*PMLxy, fs, fs);
-  Formulation<Complex>* massX   = new FormulationMass<Complex>(*PMLx,  fs, fs);
-  Formulation<Complex>* massY   = new FormulationMass<Complex>(*PMLy,  fs, fs);
-
   cout << "Done!" << endl << flush;
 
   // System //
@@ -239,7 +233,8 @@ void compute(const Options& option){
   }
 
   // Do what you have to do !
-  sys.setProblem("pos_gen_non_hermitian");
+  //sys.setProblem("pos_gen_non_hermitian");
+  sys.setProblem("gen_non_hermitian");
   sys.solve();
   cout << "Done!" << endl << flush;
 

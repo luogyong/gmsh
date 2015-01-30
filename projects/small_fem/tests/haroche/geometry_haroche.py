@@ -37,10 +37,18 @@ box_x =                      radius_mirror + dist2PML_xy
 box_y =                      radius_mirror + dist2PML_xy
 box_z = L_cav / 2. + thick_mirror_atcenter + dist2PML_z
 
+print("box_x: " + str(box_x))
+print("box_y: " + str(box_y))
+print("box_z: " + str(box_z))
+
 ## PML
 pml_x = lambda_haroche
 pml_y = lambda_haroche
 pml_z = lambda_haroche
+
+print("pml_x: " + str(pml_x))
+print("pml_y: " + str(pml_y))
+print("pml_z: " + str(pml_z))
 
 
 ## Mesh Parameters ##

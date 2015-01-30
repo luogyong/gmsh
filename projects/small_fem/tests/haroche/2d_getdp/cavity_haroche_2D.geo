@@ -1,31 +1,6 @@
 // Data //
 Include "cavity_haroche_2D.dat";
 
-// Geomtrical Parameters //
-// Mirror
-R_small             = 39.4   * mm;
-R_big               = 40.6   * mm;
-R                   = R_big;
-L_cav               = 27.57  * mm;
-thick_mirror_center =  1.415 * mm;
-radius_mirror       = 25     * mm;
-
-// PML
-dist2PML_x = D_PML * lambda_haroche;
-dist2PML_y = D_PML * lambda_haroche;
-pml_x      = S_PML * lambda_haroche;
-pml_y      = S_PML * lambda_haroche;
-
-// Rest
-box_x = radius_mirror + dist2PML_x;
-box_y = L_cav / 2 + thick_mirror_center + dist2PML_y;
-apert = Sqrt[R^2 - radius_mirror^2] + L_cav / 2 - R;
-
-// Mesh
-paramaille_air  = lambda_haroche / MSH_A;
-paramaille_pml  = lambda_haroche / MSH_P;
-paramaille_mir  = lambda_haroche / MSH_M;
-
 // Geo //
 // Points
 Point(1)  = {0,             L_cav / 2 - R,                   0, paramaille_air};

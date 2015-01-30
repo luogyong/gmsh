@@ -11,6 +11,14 @@ ol = onelab.client()
 ## Gmsh geometry
 ol.openProject('cavity_haroche_2D.geo')
 freq = float(ol.getNumber(name = 'Input/00Haroche/00Frequency'))
+puls = freq * 2 * numpy.pi
+
+c    = 2.997924580105029e+08
+k    = puls / c
+
+print("Fharoche: " + str(freq))
+print("Wharoche: " + str(puls))
+print("Kharoche: " + str(k))
 
 ## Get SmallFEM data
 femOrder = ol.defineNumber(name  = 'Input/03FEM/00Order',
@@ -20,7 +28,7 @@ nEig     = ol.defineNumber(name  = 'Input/04Eigenproblem/00Eigenvalue',
 target   = ol.defineNumber(name  = 'Input/04Eigenproblem/01Target',
                            value = (freq * 2 * numpy.pi) ** 2, readOnly = 1)
 nProc    = ol.defineNumber(name  = 'Input/05Solver/02Process',
-                           value = 1)
+                           value = 4)
 tol      = ol.defineNumber(name  = 'Input/05Solver/03Tolerance',
                            value = 1e-12)
 maxit    = ol.defineNumber(name  = 'Input/05Solver/04Iteration',

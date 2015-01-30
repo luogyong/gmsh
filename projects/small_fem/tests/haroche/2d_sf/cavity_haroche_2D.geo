@@ -44,6 +44,11 @@ box_x = radius_mirror + dist2PML_x;
 box_y = L_cav / 2 + thick_mirror_center + dist2PML_y;
 apert = Sqrt[R^2 - radius_mirror^2] + L_cav / 2 - R;
 
+Printf("pml_x: %.16f", pml_x);
+Printf("pml_y: %.16f", pml_y);
+Printf("box_x: %.16f", box_x);
+Printf("box_y: %.16f", box_y);
+
 // Mesh
 paramaille_air  = lambda_haroche / MSH_A;
 paramaille_pml  = lambda_haroche / MSH_P;
@@ -99,14 +104,12 @@ Line  Loop(23)    = {3, 14, -6, -12};
 Plane Surface(24) = {23};
 
 // Physicals
-Physical Line(101)     = {1, 2, 3};      // Neumann OY
-Physical Line(102)     = {9, 10};        // Neumann OX
+Physical Line(101)     = {1, 2, 3};          // Neumann OY
 Physical Line(103)     = {16};//, 4, 11};    // Dirichel
-Physical Line(104)     = {7, 8, 14, 15}; // Ext PML
-Physical Surface(1000) = {20};           // PML_X
-Physical Surface(2000) = {22};           // PML_XY
-Physical Surface(3000) = {24};           // PML_Y
-Physical Surface(4000) = {18};           // Air
+Physical Surface(1000) = {20};               // PML_X
+Physical Surface(2000) = {22};               // PML_XY
+Physical Surface(3000) = {24};               // PML_Y
+Physical Surface(4000) = {18};               // Air
 
 // Display
 BoundingBox {0, box_x + pml_x, 0, box_y + pml_y, 0, 0};

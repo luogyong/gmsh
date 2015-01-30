@@ -147,7 +147,7 @@ void compute(const Options& option){
 
   // Formulation //
   cout << "Formulations... " << flush;
-
+  /*
   Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
                                       (*Air,    fs, fs, Material::Air::Nu);
   Formulation<Complex>* stifXYZ = new FormulationStiffness<Complex>
@@ -181,8 +181,8 @@ void compute(const Options& option){
                                       (*PMLy,   fs, fs,   Material::Y::Epsilon);
   Formulation<Complex>* massZ   = new FormulationMass<Complex>
                                       (*PMLz,   fs, fs,   Material::Z::Epsilon);
+  */
 
-  /*
   Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
                                     (*Air,    fs, fs, Material::Air::OverMuEps);
   Formulation<Complex>* stifXYZ = new FormulationStiffness<Complex>
@@ -208,7 +208,7 @@ void compute(const Options& option){
   Formulation<Complex>* massX   = new FormulationMass<Complex>(*PMLx,   fs, fs);
   Formulation<Complex>* massY   = new FormulationMass<Complex>(*PMLy,   fs, fs);
   Formulation<Complex>* massZ   = new FormulationMass<Complex>(*PMLz,   fs, fs);
-  */
+
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // System //
@@ -322,7 +322,8 @@ void compute(const Options& option){
   }
 
   // Do what you have to do !
-  sys.setProblem("gen_non_hermitian");
+  sys.setProblem("pos_gen_non_hermitian");
+  //sys.setProblem("gen_non_hermitian");
   sys.solve();
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
