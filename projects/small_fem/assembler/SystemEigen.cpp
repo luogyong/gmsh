@@ -211,17 +211,7 @@ Mat* SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size){
 
   MatAssemblyBegin(*M, MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd  (*M, MAT_FINAL_ASSEMBLY);
-  /*
-  PetscViewer viewer;
 
-  PetscViewerASCIIOpen(PETSC_COMM_WORLD, "B2.m", &viewer);
-  PetscObjectSetName((PetscObject)(*M), "B2");
-  PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
-
-  MatView(*M, viewer);
-
-  PetscViewerDestroy(&viewer);
-  */
   // Free //
   delete[] nonZeroDiag;
   delete[] nonZeroOffDiag;
@@ -280,6 +270,21 @@ void SystemEigen::assemble(void){
 
   // Wait for everything to be ok //
   MPI_Barrier(MPI_COMM_WORLD);
+
+  // View //
+  /*
+  PetscViewer viewer;
+  PetscObjectSetName((PetscObject)(*B), "B");
+
+  PetscViewerBinaryOpen(PETSC_COMM_WORLD, "B.m", FILE_MODE_WRITE, &viewer);
+  PetscViewerSetFormat(viewer, PETSC_VIEWER_NATIVE);
+  //PetscViewerASCIIOpen(PETSC_COMM_WORLD, "B.m", &viewer);
+  //PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+  MatView(*B, viewer);
+
+  PetscViewerDestroy(&viewer);
+  MPI_Barrier(MPI_COMM_WORLD);
+  */
 }
 
 void SystemEigen::solve(void){

@@ -1,0 +1,61 @@
+// Physics //
+nm       = 1e-9;
+mm       = 1e-3;
+epsilon0 = 8.854187817e-3 * nm;
+mu0      = 400* Pi * nm;
+
+// User data //
+//DefineConstant[ F_HAR = {51.099e9, Name "Input/00Haroche/00Frequency"}      ];
+DefineConstant[ F_HAR = {49.9804e9, Name "Input/00Haroche/00Frequency"}      ];
+DefineConstant[ S_PML = {1,        Name "Input/01Geometry/00PML size"}       ];
+DefineConstant[ D_PML = {1,        Name "Input/01Geometry/01PML distance"}   ];
+DefineConstant[ MSH_A = {10,       Name "Input/02Mesh/00Size Air"}           ];
+DefineConstant[ MSH_P = {10,       Name "Input/02Mesh/01Size PML"}           ];
+DefineConstant[ MSH_M = {10,       Name "Input/02Mesh/02Size Mirror"}        ];
+DefineConstant[ ORDER = {2,        Name "Input/02Mesh/04Order"}              ];
+DefineConstant[ TYPE  = {3,        Name "Input/02Mesh/05Type",
+                                   Choices {3="Triangle", 4="Quadrangle"} }  ];
+
+// Constant //
+DefineConstant[ cel            = {1 / (Sqrt[epsilon0 * mu0]),
+                                  Name "Input/00Haroche/01Speed of light",
+                                  ReadOnly 1} ];
+
+DefineConstant[ lambda_haroche = {cel / F_HAR,
+                                  Name "Input/00Haroche/02Wavelength",
+                                  ReadOnly 1} ];
+
+DefineConstant[ K_HAR          = {F_HAR * 2 * Pi / cel,
+                                  Name "Input/00Haroche/03Wavenumber",
+                                  ReadOnly 1} ];
+
+// Geomtrical Parameters //
+// Mirror
+R_small             = 39.4   * mm;
+R_big               = 40.6   * mm;
+R                   = R_big;
+L_cav               = 27.57  * mm;
+thick_mirror_center =  1.415 * mm;
+radius_mirror       = 25     * mm;
+
+// PML
+dist2PML_x = D_PML * lambda_haroche;
+dist2PML_y = D_PML * lambda_haroche;
+pml_x      = S_PML * lambda_haroche;
+pml_y      = S_PML * lambda_haroche;
+
+// Rest
+apert = Sqrt[R^2 - radius_mirror^2] + L_cav / 2 - R;
+box_x = radius_mirror + dist2PML_x;
+box_y = L_cav / 2 + thick_mirror_center + dist2PML_y;
+
+// Mesh
+paramaille_air  = lambda_haroche / MSH_A;
+paramaille_pml  = lambda_haroche / MSH_P;
+paramaille_mir  = lambda_haroche / MSH_M;
+
+// Invisible Onelab parameter to pass to solver //
+DefineConstant[ XMax  = {box_x, Name "PML/XMax" , ReadOnly 1, Visible 0} ];
+DefineConstant[ YMax  = {box_y, Name "PML/YMax" , ReadOnly 1, Visible 0} ];
+DefineConstant[ SizeX = {pml_x, Name "PML/SizeX", ReadOnly 1, Visible 0} ];
+DefineConstant[ SizeY = {pml_y, Name "PML/SizeY", ReadOnly 1, Visible 0} ];

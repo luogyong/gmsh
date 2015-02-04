@@ -1,58 +1,5 @@
 // Data //
-// User
-DefineConstant[ F_HAR = {51.099e9, Name "Input/00Haroche/00Frequency"}      ];
-DefineConstant[ S_PML = {1,        Name "Input/01Geometry/00PML size"}      ];
-DefineConstant[ D_PML = {1,        Name "Input/01Geometry/01PML distance"}  ];
-DefineConstant[ MSH_A = {10,       Name "Input/02Mesh/00Size Air"}          ];
-DefineConstant[ MSH_P = {10,       Name "Input/02Mesh/00Size PML"}          ];
-DefineConstant[ MSH_M = {10,       Name "Input/02Mesh/00Size Mirror"}       ];
-DefineConstant[ ORDER = {2,        Name "Input/02Mesh/01Order"}             ];
-DefineConstant[ TYPE  = {3,        Name "Input/02Mesh/02Type",
-                                   Choices {3="Triangle", 4="Quadrangle"} } ];
-// Physics
-nm       = 1e-9;
-mm       = 1e-3;
-epsilon0 = 8.854187817e-3 * nm;
-mu0      = 400* Pi * nm;
-
-// Haroche Wavelength
-DefineConstant[ cel            = {1 / (Sqrt[epsilon0 * mu0]),
-                                  Name "Input/00Haroche/01Speed of light",
-                                  ReadOnly 1} ];
-
-DefineConstant[ lambda_haroche = {cel / F_HAR,
-                                  Name "Input/00Haroche/02Wavelength",
-                                  ReadOnly 1} ];
-
-// Geomtrical Parameters //
-// Mirror
-R_small             = 39.4   * mm;
-R_big               = 40.6   * mm;
-R                   = R_big;
-L_cav               = 27.57  * mm;
-thick_mirror_center =  1.415 * mm;
-radius_mirror       = 25     * mm;
-
-// PML
-dist2PML_x = D_PML * lambda_haroche;
-dist2PML_y = D_PML * lambda_haroche;
-pml_x      = S_PML * lambda_haroche;
-pml_y      = S_PML * lambda_haroche;
-
-// Rest
-box_x = radius_mirror + dist2PML_x;
-box_y = L_cav / 2 + thick_mirror_center + dist2PML_y;
-apert = Sqrt[R^2 - radius_mirror^2] + L_cav / 2 - R;
-
-Printf("pml_x: %.16f", pml_x);
-Printf("pml_y: %.16f", pml_y);
-Printf("box_x: %.16f", box_x);
-Printf("box_y: %.16f", box_y);
-
-// Mesh
-paramaille_air  = lambda_haroche / MSH_A;
-paramaille_pml  = lambda_haroche / MSH_P;
-paramaille_mir  = lambda_haroche / MSH_M;
+Include "cavity_haroche_2D.dat";
 
 // Geo //
 // Points
@@ -104,8 +51,9 @@ Line  Loop(23)    = {3, 14, -6, -12};
 Plane Surface(24) = {23};
 
 // Physicals
-Physical Line(101)     = {1, 2, 3};          // Neumann OY
+Physical Line(101)     = {1, 2, 3};          // OY
 Physical Line(103)     = {16};//, 4, 11};    // Dirichel
+Physical Line(104)     = {7, 8, 14, 15};     // Outer PML
 Physical Surface(1000) = {20};               // PML_X
 Physical Surface(2000) = {22};               // PML_XY
 Physical Surface(3000) = {24};               // PML_Y

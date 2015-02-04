@@ -1,3 +1,4 @@
+#include <fstream>
 #include "HarocheHelper2D.h"
 
 using namespace std;
@@ -7,29 +8,35 @@ const Complex PML::a   = Complex(1, -1);
 const Complex PML::one = Complex(1,  0);
 const Complex PML::sz  = Complex(1,  0);
 
-double PML::Xmax  = 0.0308668948122371;
-double PML::Ymax  = 0.0210668948122371;
-double PML::SizeX = 0.0058668948122371;
-double PML::SizeY = 0.0058668948122371;
+double PML::Xmax;
+double PML::Ymax;
+double PML::SizeX;
+double PML::SizeY;
+double PML::kHaroche;
 
-//double PML::SizeX = 0.0586689481223709;
-//double PML::SizeY = 0.0586689481223709;
-
-double PML::kHaroche = 1070.95584773;
+void PML::read(string filename){
+  ifstream stream(filename.c_str(), ifstream::in);
+  stream >> SizeX
+         >> SizeY
+         >> Xmax
+         >> Ymax
+         >> kHaroche;
+  stream.close();
+}
 
 Complex PML::dampingX(fullVector<double>& xyz){
   double        f = Xmax + SizeX - fabs(xyz(0));
-  double    overF = 1 / (f) - 1 / (SizeX);
+  double oneOverF = 1 / (f) - 1 / (SizeX);
 
-  return Complex(1, -overF / kHaroche);
+  return Complex(1, -oneOverF / kHaroche);
   //return a;
 }
 
 Complex PML::dampingY(fullVector<double>& xyz){
   double        f = Ymax + SizeY - fabs(xyz(1));
-  double    overF = 1 / (f) - 1 / (SizeY);
+  double oneOverF = 1 / (f) - 1 / (SizeY);
 
-  return Complex(1, -overF / kHaroche);
+  return Complex(1, -oneOverF / kHaroche);
   //return a;
 }
 

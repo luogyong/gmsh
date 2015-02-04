@@ -48,6 +48,11 @@ void compute(const Options& option){
   MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
 
+  // Get PML Data //
+  cout << "Reading PML... " << flush;
+  PML::read(option.getValue("-pml")[1]);
+  cout << "Done!" << endl << flush;
+
   // Get Domains //
   cout << "Reading domain... " << flush;
   Mesh msh(option.getValue("-msh")[1]);
@@ -58,6 +63,7 @@ void compute(const Options& option){
   GroupOfElement* PMLy;
   GroupOfElement* Mirror;
   GroupOfElement* LineOY;
+  GroupOfElement* OutPML;
 
   if(nProcs != 1){
     Air    = new GroupOfElement(msh.getFromPhysical(4000, myProc + 1));
@@ -66,6 +72,7 @@ void compute(const Options& option){
     PMLy   = new GroupOfElement(msh.getFromPhysical(3000, myProc + 1));
     Mirror = new GroupOfElement(msh.getFromPhysical( 103, myProc + 1));
     LineOY = new GroupOfElement(msh.getFromPhysical( 101, myProc + 1));
+    OutPML = new GroupOfElement(msh.getFromPhysical( 104, myProc + 1));
   }
 
   else{
@@ -75,10 +82,11 @@ void compute(const Options& option){
     PMLy   = new GroupOfElement(msh.getFromPhysical(3000));
     Mirror = new GroupOfElement(msh.getFromPhysical( 103));
     LineOY = new GroupOfElement(msh.getFromPhysical( 101));
+    OutPML = new GroupOfElement(msh.getFromPhysical( 104));
   }
 
   // Full Domain
-  vector<const GroupOfElement*> All_domains(6);
+  vector<const GroupOfElement*> All_domains(7);
   All_domains[0] = Air;
 
   All_domains[1] = PMLx;
@@ -87,6 +95,7 @@ void compute(const Options& option){
 
   All_domains[4] = Mirror;
   All_domains[5] = LineOY;
+  All_domains[6] = OutPML;
 
   // True Domain
   vector<const GroupOfElement*> True_domains(3);
@@ -116,7 +125,7 @@ void compute(const Options& option){
   Formulation<Complex>* massXY;
   Formulation<Complex>* massX;
   Formulation<Complex>* massY;
-
+  /*
   stifAir = new FormulationStiffness<Complex>(*Air,  fs, fs, Material::Air::Nu);
   stifXY  = new FormulationStiffness<Complex>(*PMLxy,fs, fs,  Material::XY::Nu);
   stifX   = new FormulationStiffness<Complex>(*PMLx, fs, fs,   Material::X::Nu);
@@ -126,7 +135,7 @@ void compute(const Options& option){
   massXY  = new FormulationMass<Complex>(*PMLxy,fs, fs,  Material::XY::Epsilon);
   massX   = new FormulationMass<Complex>(*PMLx, fs, fs,   Material::X::Epsilon);
   massY   = new FormulationMass<Complex>(*PMLy, fs, fs,   Material::Y::Epsilon);
-
+  */
   /*
   stifAir = new FormulationStiffness<Complex>(*Air,   fs, fs);
   stifXY  = new FormulationStiffness<Complex>(*PMLxy, fs, fs);
@@ -138,7 +147,7 @@ void compute(const Options& option){
   massX   = new FormulationMass<Complex>(*PMLx,  fs, fs,   Material::X::MuEps);
   massY   = new FormulationMass<Complex>(*PMLy,  fs, fs,   Material::Y::MuEps);
   */
-  /*
+
   stifAir = new FormulationStiffness<Complex>
                                      (*Air,   fs, fs, Material::Air::OverMuEps);
   stifXY  = new FormulationStiffness<Complex>
@@ -152,7 +161,7 @@ void compute(const Options& option){
   massXY  = new FormulationMass<Complex>(*PMLxy, fs, fs);
   massX   = new FormulationMass<Complex>(*PMLx,  fs, fs);
   massY   = new FormulationMass<Complex>(*PMLy,  fs, fs);
-  */
+
   cout << "Done!" << endl << flush;
 
   // System //
@@ -174,6 +183,7 @@ void compute(const Options& option){
   cout << "Dirichlet... " << flush;
   SystemHelper<Complex>::dirichlet(sys, fs, *Mirror, fZero);
   SystemHelper<Complex>::dirichlet(sys, fs, *LineOY, fZero);
+  SystemHelper<Complex>::dirichlet(sys, fs, *OutPML, fZero);
   cout << "Done!" << endl << flush;
 
   // Assemble //
@@ -233,8 +243,8 @@ void compute(const Options& option){
   }
 
   // Do what you have to do !
-  //sys.setProblem("pos_gen_non_hermitian");
-  sys.setProblem("gen_non_hermitian");
+  sys.setProblem("pos_gen_non_hermitian");
+  //sys.setProblem("gen_non_hermitian");
   sys.solve();
   cout << "Done!" << endl << flush;
 
@@ -268,6 +278,7 @@ void compute(const Options& option){
 
   catch(...){
     FEMSolution<Complex> feSol;
+    //feSol.setModulusPhase();
     // sys.getSolution(feSol, fs, True_domains);
     sys.getSolution(feSol, fs, All_domains);
 
@@ -290,7 +301,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-shift,-tol,-maxit,-nopos");
+  SmallFem::Keywords("-msh,-pml,-o,-n,-shift,-tol,-maxit,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

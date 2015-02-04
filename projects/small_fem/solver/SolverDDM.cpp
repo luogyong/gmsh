@@ -109,7 +109,7 @@ void SolverDDM::solve(int nStep){
   KSP solver;
 
   KSPCreate(MPI_COMM_WORLD, &solver);
-  KSPSetOperators(solver, A, A, DIFFERENT_NONZERO_PATTERN);
+  KSPSetOperators(solver, A, A);// For PETSc 3.4 add DIFFERENT_NONZERO_PATTERN);
   KSPSetType(solver, "gmres");
 
   KSPSetTolerances(solver, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, nStep);

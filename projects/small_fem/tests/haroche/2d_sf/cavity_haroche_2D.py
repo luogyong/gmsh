@@ -11,14 +11,23 @@ ol = onelab.client()
 ## Gmsh geometry
 ol.openProject('cavity_haroche_2D.geo')
 freq = float(ol.getNumber(name = 'Input/00Haroche/00Frequency'))
-puls = freq * 2 * numpy.pi
 
-c    = 2.997924580105029e+08
-k    = puls / c
+## Get PML data & Dump on disk
+SizeX    = float(ol.getNumber(name = 'PML/SizeX'))
+SizeY    = float(ol.getNumber(name = 'PML/SizeY'))
+XMax     = float(ol.getNumber(name = 'PML/XMax'))
+YMax     = float(ol.getNumber(name = 'PML/YMax'))
+KHaroche = float(ol.getNumber(name = 'Input/00Haroche/03Wavenumber'))
 
-print("Fharoche: " + str(freq))
-print("Wharoche: " + str(puls))
-print("Kharoche: " + str(k))
+pml = open('pml.dat' ,'w')
+pml.write(str(   SizeX) + '\n')
+pml.write(str(   SizeY) + '\n')
+pml.write(str(    XMax) + '\n')
+pml.write(str(    YMax) + '\n')
+pml.write(str(KHaroche) + '\n')
+
+os.fsync(pml)
+pml.close()
 
 ## Get SmallFEM data
 femOrder = ol.defineNumber(name  = 'Input/03FEM/00Order',
@@ -30,7 +39,7 @@ target   = ol.defineNumber(name  = 'Input/04Eigenproblem/01Target',
 nProc    = ol.defineNumber(name  = 'Input/05Solver/02Process',
                            value = 4)
 tol      = ol.defineNumber(name  = 'Input/05Solver/03Tolerance',
-                           value = 1e-12)
+                           value = 1e-15)
 maxit    = ol.defineNumber(name  = 'Input/05Solver/04Iteration',
                            value = 100)
 postpro  = ol.defineNumber(name  = 'Input/06Post-Pro/00Draw',
@@ -56,6 +65,7 @@ ol.mergeFile('cavity_haroche_2D.msh')
 cmd  = 'mpirun -host localhost -np ' + str(nProc) + ' '
 cmd += 'har2d'  + ' ' + \
        '-msh'   + ' ' + 'cavity_haroche_2D.msh' + ' ' + \
+       '-pml'   + ' ' + 'pml.dat'               + ' ' + \
        '-o'     + ' ' + str(femOrder)           + ' ' + \
        '-n'     + ' ' + str(nEig)               + ' ' + \
        '-shift' + ' ' + str(target)             + ' ' + \
