@@ -144,7 +144,7 @@ void compute(const Options& option){
   All_surfaces[0] = SurfYZ;
   All_surfaces[1] = SurfXZ;
   All_surfaces[2] = SurfXY;
-  All_surfaces[2] = OutPML;
+  All_surfaces[3] = OutPML;
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // FunctionSpace //
