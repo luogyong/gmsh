@@ -1,6 +1,7 @@
 #ifndef _HAROCHEHELPER_H_
 #define _HAROCHEHELPER_H_
 
+#include <string>
 #include "SmallFem.h"
 #include "fullMatrix.h"
 
@@ -93,9 +94,12 @@ class PML{
   static double SizeX;
   static double SizeY;
   static double SizeZ;
-
   static double kHaroche;
 
+ public:
+  static void read(std::string filename);
+
+ private:
   static Complex dampingX(fullVector<double>& xyz);
   static Complex dampingY(fullVector<double>& xyz);
   static Complex dampingZ(fullVector<double>& xyz);

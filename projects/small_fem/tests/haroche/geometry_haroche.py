@@ -2,6 +2,7 @@
 from gmshpy import *
 import numpy
 import sys
+import os
 
 
 ## Pyhsics ##
@@ -15,9 +16,10 @@ epsilon0 = 8.854187817e-3 * nm
 mu0      = 400. * numpy.pi * nm
 c        = 1.0 / (numpy.sqrt(epsilon0 * mu0))
 
-## Haroche Frequency & Wavelength
+## Haroche Frequency, Wavelength & Wavenumber
 freq_haroche   = 51.099e9
 lambda_haroche = c / freq_haroche
+k_haroche      = freq_haroche * 2 * numpy.pi / c
 
 
 ## Geomtrical Parameters ##
@@ -37,18 +39,24 @@ box_x =                      radius_mirror + dist2PML_xy
 box_y =                      radius_mirror + dist2PML_xy
 box_z = L_cav / 2. + thick_mirror_atcenter + dist2PML_z
 
-print("box_x: " + str(box_x))
-print("box_y: " + str(box_y))
-print("box_z: " + str(box_z))
-
 ## PML
 pml_x = lambda_haroche
 pml_y = lambda_haroche
 pml_z = lambda_haroche
 
-print("pml_x: " + str(pml_x))
-print("pml_y: " + str(pml_y))
-print("pml_z: " + str(pml_z))
+## Dump PML data on disk
+pml = open('pml.dat' ,'w')
+
+pml.write(str(    pml_x) + '\n')
+pml.write(str(    pml_y) + '\n')
+pml.write(str(    pml_z) + '\n')
+pml.write(str(    box_x) + '\n')
+pml.write(str(    box_y) + '\n')
+pml.write(str(    box_z) + '\n')
+pml.write(str(k_haroche) + '\n')
+
+os.fsync(pml)
+pml.close()
 
 
 ## Mesh Parameters ##
@@ -142,20 +150,33 @@ myModel4.getRegionByTag(3).addPhysicalEntity(145)  # PML XZ
 myModel4.getRegionByTag(5).addPhysicalEntity(144)  # PML YZ
 myModel4.getRegionByTag(7).addPhysicalEntity(143)  # PML XYZ
 
-myModel4.getFaceByTag(1).addPhysicalEntity(146)    # XOZ
+myModel4.getFaceByTag( 1).addPhysicalEntity(146)   # XOZ
 myModel4.getFaceByTag(10).addPhysicalEntity(146)   # XOZ
 myModel4.getFaceByTag(14).addPhysicalEntity(146)   # XOZ
 myModel4.getFaceByTag(35).addPhysicalEntity(146)   # XOZ
 
-myModel4.getFaceByTag(7).addPhysicalEntity(147)    # YOZ
+myModel4.getFaceByTag( 7).addPhysicalEntity(147)   # YOZ
 myModel4.getFaceByTag(20).addPhysicalEntity(147)   # YOZ
 myModel4.getFaceByTag(24).addPhysicalEntity(147)   # YOZ
 myModel4.getFaceByTag(34).addPhysicalEntity(147)   # YOZ
 
-myModel4.getFaceByTag(4).addPhysicalEntity(149)    # XOY
+myModel4.getFaceByTag( 4).addPhysicalEntity(149)   # XOY
 myModel4.getFaceByTag(17).addPhysicalEntity(149)   # XOY
 myModel4.getFaceByTag(28).addPhysicalEntity(149)   # XOY
 myModel4.getFaceByTag(39).addPhysicalEntity(149)   # XOY
+
+myModel4.getFaceByTag( 6).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(12).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(15).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(16).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(22).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(25).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(26).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(29).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(30).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(31).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(32).addPhysicalEntity(150)   # Outer PML
+myModel4.getFaceByTag(33).addPhysicalEntity(150)   # Outer PML
 
 myModel4.getFaceByTag(36).addPhysicalEntity(148)   # Mirror
 #myModel4.getFaceByTag(37).addPhysicalEntity(148)   # Mirror

@@ -1,3 +1,4 @@
+#include <fstream>
 #include "HarocheHelper.h"
 
 using namespace std;
@@ -6,14 +7,25 @@ using namespace std;
 const Complex PML::a   = Complex(1, -1);
 const Complex PML::one = Complex(1,  0);
 
-double PML::Xmax  = 0.0308668948122;
-double PML::Ymax  = 0.0308668948122;
-double PML::Zmax  = 0.0210668948122;
-double PML::SizeX = 0.00586689481224;
-double PML::SizeY = 0.00586689481224;
-double PML::SizeZ = 0.00586689481224;
+double PML::Xmax;
+double PML::Ymax;
+double PML::Zmax;
+double PML::SizeX;
+double PML::SizeY;
+double PML::SizeZ;
+double PML::kHaroche;
 
-double PML::kHaroche = 1070.95584773;
+void PML::read(string filename){
+  ifstream stream(filename.c_str(), ifstream::in);
+  stream >> SizeX
+         >> SizeY
+         >> SizeZ
+         >> Xmax
+         >> Ymax
+         >> Zmax
+         >> kHaroche;
+  stream.close();
+}
 
 Complex PML::dampingX(fullVector<double>& xyz){
   double     f = Xmax + SizeX - fabs(xyz(0));

@@ -5,7 +5,6 @@ epsilon0 = 8.854187817e-3 * nm;
 mu0      = 400* Pi * nm;
 
 // User data //
-//DefineConstant[ F_HAR = {51.099e9, Name "Input/00Haroche/00Frequency"}      ];
 DefineConstant[ F_HAR = {49.9804e9, Name "Input/00Haroche/00Frequency"}      ];
 DefineConstant[ S_PML = {1,        Name "Input/01Geometry/00PML size"}       ];
 DefineConstant[ D_PML = {1,        Name "Input/01Geometry/01PML distance"}   ];

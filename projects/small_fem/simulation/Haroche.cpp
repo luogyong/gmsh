@@ -16,6 +16,9 @@
 
 using namespace std;
 
+typedef FormulationStiffness<Complex> FStif;
+typedef FormulationMass<Complex>      FMass;
+
 void dump(string filename, fullVector<Complex>& eig){
   FILE* file = fopen(filename.c_str(), "w");
   double pi  = 4 * atan(1);
@@ -65,12 +68,16 @@ void compute(const Options& option){
   MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
 
+  // Get PML Data //
+  cout << "Reading PML... " << flush;
+  PML::read(option.getValue("-pml")[1]);
+  cout << "Done!" << endl << flush;
+
   // Get Domains //
   cout << "Reading domain... " << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
   GroupOfElement* Air;
-
   GroupOfElement* PMLx;
   GroupOfElement* PMLxy;
   GroupOfElement* PMLy;
@@ -78,11 +85,11 @@ void compute(const Options& option){
   GroupOfElement* PMLxyz;
   GroupOfElement* PMLxz;
   GroupOfElement* PMLyz;
-
   GroupOfElement* Mirror;
   GroupOfElement* SurfYZ;
   GroupOfElement* SurfXZ;
   GroupOfElement* SurfXY;
+  GroupOfElement* OutPML;
 
   if(nProcs != 1){
     Air    = new GroupOfElement(msh.getFromPhysical(138, myProc + 1));
@@ -97,6 +104,7 @@ void compute(const Options& option){
     SurfYZ = new GroupOfElement(msh.getFromPhysical(147, myProc + 1));
     SurfXZ = new GroupOfElement(msh.getFromPhysical(146, myProc + 1));
     SurfXY = new GroupOfElement(msh.getFromPhysical(149, myProc + 1));
+    OutPML = new GroupOfElement(msh.getFromPhysical(150, myProc + 1));
   }
 
   else{
@@ -112,12 +120,12 @@ void compute(const Options& option){
     SurfYZ = new GroupOfElement(msh.getFromPhysical(147));
     SurfXZ = new GroupOfElement(msh.getFromPhysical(146));
     SurfXY = new GroupOfElement(msh.getFromPhysical(149));
+    OutPML = new GroupOfElement(msh.getFromPhysical(150));
   }
 
   // Full Domain
-  vector<const GroupOfElement*> All_domains(12);
+  vector<const GroupOfElement*> All_domains(13);
   All_domains[0]  = Air;
-
   All_domains[1]  = PMLx;
   All_domains[2]  = PMLxy;
   All_domains[3]  = PMLy;
@@ -125,17 +133,18 @@ void compute(const Options& option){
   All_domains[5]  = PMLxyz;
   All_domains[6]  = PMLxz;
   All_domains[7]  = PMLyz;
-
   All_domains[8]  = Mirror;
   All_domains[9]  = SurfYZ;
   All_domains[10] = SurfXZ;
   All_domains[11] = SurfXY;
+  All_domains[12] = OutPML;
 
   // Full Surface
-  vector<const GroupOfElement*> All_surfaces(3);
+  vector<const GroupOfElement*> All_surfaces(4);
   All_surfaces[0] = SurfYZ;
   All_surfaces[1] = SurfXZ;
   All_surfaces[2] = SurfXY;
+  All_surfaces[2] = OutPML;
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // FunctionSpace //
@@ -147,67 +156,61 @@ void compute(const Options& option){
 
   // Formulation //
   cout << "Formulations... " << flush;
-  /*
-  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
-                                      (*Air,    fs, fs, Material::Air::Nu);
-  Formulation<Complex>* stifXYZ = new FormulationStiffness<Complex>
-                                      (*PMLxyz, fs, fs, Material::XYZ::Nu);
-  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
-                                      (*PMLxy,  fs, fs,  Material::XY::Nu);
-  Formulation<Complex>* stifYZ  = new FormulationStiffness<Complex>
-                                      (*PMLyz,  fs, fs,  Material::YZ::Nu);
-  Formulation<Complex>* stifXZ  = new FormulationStiffness<Complex>
-                                      (*PMLxz,  fs, fs,  Material::XZ::Nu);
-  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
-                                      (*PMLx,   fs, fs,   Material::X::Nu);
-  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
-                                      (*PMLy,   fs, fs,   Material::Y::Nu);
-  Formulation<Complex>* stifZ   = new FormulationStiffness<Complex>
-                                      (*PMLz,   fs, fs,   Material::Z::Nu);
 
-  Formulation<Complex>* massAir = new FormulationMass<Complex>
-                                      (*Air,    fs, fs, Material::Air::Epsilon);
-  Formulation<Complex>* massXYZ = new FormulationMass<Complex>
-                                      (*PMLxyz, fs, fs, Material::XYZ::Epsilon);
-  Formulation<Complex>* massXY  = new FormulationMass<Complex>
-                                      (*PMLxy,  fs, fs,  Material::XY::Epsilon);
-  Formulation<Complex>* massYZ  = new FormulationMass<Complex>
-                                      (*PMLyz,  fs, fs,  Material::YZ::Epsilon);
-  Formulation<Complex>* massXZ  = new FormulationMass<Complex>
-                                      (*PMLxz,  fs, fs,  Material::XZ::Epsilon);
-  Formulation<Complex>* massX   = new FormulationMass<Complex>
-                                      (*PMLx,   fs, fs,   Material::X::Epsilon);
-  Formulation<Complex>* massY   = new FormulationMass<Complex>
-                                      (*PMLy,   fs, fs,   Material::Y::Epsilon);
-  Formulation<Complex>* massZ   = new FormulationMass<Complex>
-                                      (*PMLz,   fs, fs,   Material::Z::Epsilon);
+  Formulation<Complex>* stifAir;
+  Formulation<Complex>* stifXYZ;
+  Formulation<Complex>* stifXY;
+  Formulation<Complex>* stifYZ;
+  Formulation<Complex>* stifXZ;
+  Formulation<Complex>* stifX;
+  Formulation<Complex>* stifY;
+  Formulation<Complex>* stifZ;
+
+  Formulation<Complex>* massAir;
+  Formulation<Complex>* massXYZ;
+  Formulation<Complex>* massXY;
+  Formulation<Complex>* massYZ;
+  Formulation<Complex>* massXZ;
+  Formulation<Complex>* massX;
+  Formulation<Complex>* massY;
+  Formulation<Complex>* massZ;
+  /*
+  stifAir = new FStif(*Air,    fs, fs, Material::Air::Nu);
+  stifXYZ = new FStif(*PMLxyz, fs, fs, Material::XYZ::Nu);
+  stifXY  = new FStif(*PMLxy,  fs, fs,  Material::XY::Nu);
+  stifYZ  = new FStif(*PMLyz,  fs, fs,  Material::YZ::Nu);
+  stifXZ  = new FStif(*PMLxz,  fs, fs,  Material::XZ::Nu);
+  stifX   = new FStif(*PMLx,   fs, fs,   Material::X::Nu);
+  stifY   = new FStif(*PMLy,   fs, fs,   Material::Y::Nu);
+  stifZ   = new FStif(*PMLz,   fs, fs,   Material::Z::Nu);
+
+  massAir = new FMass(*Air,    fs, fs, Material::Air::Epsilon);
+  massXYZ = new FMass(*PMLxyz, fs, fs, Material::XYZ::Epsilon);
+  massXY  = new FMass(*PMLxy,  fs, fs,  Material::XY::Epsilon);
+  massYZ  = new FMass(*PMLyz,  fs, fs,  Material::YZ::Epsilon);
+  massXZ  = new FMass(*PMLxz,  fs, fs,  Material::XZ::Epsilon);
+  massX   = new FMass(*PMLx,   fs, fs,   Material::X::Epsilon);
+  massY   = new FMass(*PMLy,   fs, fs,   Material::Y::Epsilon);
+  massZ   = new FMass(*PMLz,   fs, fs,   Material::Z::Epsilon);
   */
 
-  Formulation<Complex>* stifAir = new FormulationStiffness<Complex>
-                                    (*Air,    fs, fs, Material::Air::OverMuEps);
-  Formulation<Complex>* stifXYZ = new FormulationStiffness<Complex>
-                                    (*PMLxyz, fs, fs, Material::XYZ::OverMuEps);
-  Formulation<Complex>* stifXY  = new FormulationStiffness<Complex>
-                                    (*PMLxy,  fs, fs,  Material::XY::OverMuEps);
-  Formulation<Complex>* stifYZ  = new FormulationStiffness<Complex>
-                                    (*PMLyz,  fs, fs,  Material::YZ::OverMuEps);
-  Formulation<Complex>* stifXZ  = new FormulationStiffness<Complex>
-                                    (*PMLxz,  fs, fs,  Material::XZ::OverMuEps);
-  Formulation<Complex>* stifX   = new FormulationStiffness<Complex>
-                                    (*PMLx,   fs, fs,   Material::X::OverMuEps);
-  Formulation<Complex>* stifY   = new FormulationStiffness<Complex>
-                                    (*PMLy,   fs, fs,   Material::Y::OverMuEps);
-  Formulation<Complex>* stifZ   = new FormulationStiffness<Complex>
-                                    (*PMLz,   fs, fs,   Material::Z::OverMuEps);
+  stifAir = new FStif(*Air,    fs, fs, Material::Air::OverMuEps);
+  stifXYZ = new FStif(*PMLxyz, fs, fs, Material::XYZ::OverMuEps);
+  stifXY  = new FStif(*PMLxy,  fs, fs,  Material::XY::OverMuEps);
+  stifYZ  = new FStif(*PMLyz,  fs, fs,  Material::YZ::OverMuEps);
+  stifXZ  = new FStif(*PMLxz,  fs, fs,  Material::XZ::OverMuEps);
+  stifX   = new FStif(*PMLx,   fs, fs,   Material::X::OverMuEps);
+  stifY   = new FStif(*PMLy,   fs, fs,   Material::Y::OverMuEps);
+  stifZ   = new FStif(*PMLz,   fs, fs,   Material::Z::OverMuEps);
 
-  Formulation<Complex>* massAir = new FormulationMass<Complex>(*Air,    fs, fs);
-  Formulation<Complex>* massXYZ = new FormulationMass<Complex>(*PMLxyz, fs, fs);
-  Formulation<Complex>* massXY  = new FormulationMass<Complex>(*PMLxy,  fs, fs);
-  Formulation<Complex>* massYZ  = new FormulationMass<Complex>(*PMLyz,  fs, fs);
-  Formulation<Complex>* massXZ  = new FormulationMass<Complex>(*PMLxz,  fs, fs);
-  Formulation<Complex>* massX   = new FormulationMass<Complex>(*PMLx,   fs, fs);
-  Formulation<Complex>* massY   = new FormulationMass<Complex>(*PMLy,   fs, fs);
-  Formulation<Complex>* massZ   = new FormulationMass<Complex>(*PMLz,   fs, fs);
+  massAir = new FMass(*Air,    fs, fs);
+  massXYZ = new FMass(*PMLxyz, fs, fs);
+  massXY  = new FMass(*PMLxy,  fs, fs);
+  massYZ  = new FMass(*PMLyz,  fs, fs);
+  massXZ  = new FMass(*PMLxz,  fs, fs);
+  massX   = new FMass(*PMLx,   fs, fs);
+  massY   = new FMass(*PMLy,   fs, fs);
+  massZ   = new FMass(*PMLz,   fs, fs);
 
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
@@ -235,9 +238,10 @@ void compute(const Options& option){
   cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Dirichlet //
-  // Mirror
+  // Mirror & PML
   cout << "Dirichlet... " << flush;
   SystemHelper<Complex>::dirichlet(sys, fs, *Mirror, fZero);
+  SystemHelper<Complex>::dirichlet(sys, fs, *OutPML, fZero);
 
   // Symmetry
   try{
@@ -380,6 +384,7 @@ void compute(const Options& option){
   delete SurfYZ;
   delete SurfXZ;
   delete SurfXY;
+  delete OutPML;
 }
 
 int main(int argc, char** argv){

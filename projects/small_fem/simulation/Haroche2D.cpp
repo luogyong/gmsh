@@ -14,6 +14,9 @@
 
 using namespace std;
 
+typedef FormulationStiffness<Complex> FStif;
+typedef FormulationMass<Complex>      FMass;
+
 void dump(string filename, fullVector<Complex>& eig){
   FILE* file = fopen(filename.c_str(), "w");
   double pi  = 4 * atan(1);
@@ -88,11 +91,9 @@ void compute(const Options& option){
   // Full Domain
   vector<const GroupOfElement*> All_domains(7);
   All_domains[0] = Air;
-
   All_domains[1] = PMLx;
   All_domains[2] = PMLxy;
   All_domains[3] = PMLy;
-
   All_domains[4] = Mirror;
   All_domains[5] = LineOY;
   All_domains[6] = OutPML;
@@ -103,7 +104,6 @@ void compute(const Options& option){
   True_domains[1] = Mirror;
   True_domains[2] = LineOY;
 
-  // Full Surface
   cout << "Done!" << endl << flush;
 
   // FunctionSpace //
@@ -126,41 +126,26 @@ void compute(const Options& option){
   Formulation<Complex>* massX;
   Formulation<Complex>* massY;
   /*
-  stifAir = new FormulationStiffness<Complex>(*Air,  fs, fs, Material::Air::Nu);
-  stifXY  = new FormulationStiffness<Complex>(*PMLxy,fs, fs,  Material::XY::Nu);
-  stifX   = new FormulationStiffness<Complex>(*PMLx, fs, fs,   Material::X::Nu);
-  stifY   = new FormulationStiffness<Complex>(*PMLy, fs, fs,   Material::Y::Nu);
+  stifAir = new FStif(*Air,   fs, fs, Material::Air::Nu);
+  stifXY  = new FStif(*PMLxy, fs, fs,  Material::XY::Nu);
+  stifX   = new FStif(*PMLx,  fs, fs,   Material::X::Nu);
+  stifY   = new FStif(*PMLy,  fs, fs,   Material::Y::Nu);
 
-  massAir = new FormulationMass<Complex>(*Air,  fs, fs, Material::Air::Epsilon);
-  massXY  = new FormulationMass<Complex>(*PMLxy,fs, fs,  Material::XY::Epsilon);
-  massX   = new FormulationMass<Complex>(*PMLx, fs, fs,   Material::X::Epsilon);
-  massY   = new FormulationMass<Complex>(*PMLy, fs, fs,   Material::Y::Epsilon);
-  */
-  /*
-  stifAir = new FormulationStiffness<Complex>(*Air,   fs, fs);
-  stifXY  = new FormulationStiffness<Complex>(*PMLxy, fs, fs);
-  stifX   = new FormulationStiffness<Complex>(*PMLx,  fs, fs);
-  stifY   = new FormulationStiffness<Complex>(*PMLy,  fs, fs);
-
-  massAir = new FormulationMass<Complex>(*Air,   fs, fs, Material::Air::MuEps);
-  massXY  = new FormulationMass<Complex>(*PMLxy, fs, fs,  Material::XY::MuEps);
-  massX   = new FormulationMass<Complex>(*PMLx,  fs, fs,   Material::X::MuEps);
-  massY   = new FormulationMass<Complex>(*PMLy,  fs, fs,   Material::Y::MuEps);
+  massAir = new FMass(*Air,   fs, fs, Material::Air::Epsilon);
+  massXY  = new FMass(*PMLxy, fs, fs,  Material::XY::Epsilon);
+  massX   = new FMass(*PMLx,  fs, fs,   Material::X::Epsilon);
+  massY   = new FMass(*PMLy,  fs, fs,   Material::Y::Epsilon);
   */
 
-  stifAir = new FormulationStiffness<Complex>
-                                     (*Air,   fs, fs, Material::Air::OverMuEps);
-  stifXY  = new FormulationStiffness<Complex>
-                                     (*PMLxy, fs, fs,  Material::XY::OverMuEps);
-  stifX   = new FormulationStiffness<Complex>
-                                     (*PMLx,  fs, fs,   Material::X::OverMuEps);
-  stifY   = new FormulationStiffness<Complex>
-                                     (*PMLy,  fs, fs,   Material::Y::OverMuEps);
+  stifAir = new FStif(*Air,   fs, fs,Material::Air::OverMuEps);
+  stifXY  = new FStif(*PMLxy, fs, fs, Material::XY::OverMuEps);
+  stifX   = new FStif(*PMLx,  fs, fs,  Material::X::OverMuEps);
+  stifY   = new FStif(*PMLy,  fs, fs,  Material::Y::OverMuEps);
 
-  massAir = new FormulationMass<Complex>(*Air,   fs, fs);
-  massXY  = new FormulationMass<Complex>(*PMLxy, fs, fs);
-  massX   = new FormulationMass<Complex>(*PMLx,  fs, fs);
-  massY   = new FormulationMass<Complex>(*PMLy,  fs, fs);
+  massAir = new FMass(*Air,   fs, fs);
+  massXY  = new FMass(*PMLxy, fs, fs);
+  massX   = new FMass(*PMLx,  fs, fs);
+  massY   = new FMass(*PMLy,  fs, fs);
 
   cout << "Done!" << endl << flush;
 
@@ -278,8 +263,6 @@ void compute(const Options& option){
 
   catch(...){
     FEMSolution<Complex> feSol;
-    //feSol.setModulusPhase();
-    // sys.getSolution(feSol, fs, True_domains);
     sys.getSolution(feSol, fs, All_domains);
 
     //feSol.setSaveMesh(false);
@@ -297,6 +280,7 @@ void compute(const Options& option){
   delete PMLy;
   delete Mirror;
   delete LineOY;
+  delete OutPML;
 }
 
 int main(int argc, char** argv){
