@@ -389,7 +389,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-shift,-sym,-tol,-maxit,-nopos");
+  SmallFem::Keywords("-msh,-pml,-o,-n,-shift,-sym,-tol,-maxit,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
