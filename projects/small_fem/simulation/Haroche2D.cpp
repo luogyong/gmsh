@@ -32,6 +32,29 @@ void dump(string filename, fullVector<Complex>& eig){
   fclose(file);
 }
 
+double getPeakMemory(void){
+  // Stream //
+  ifstream stream("/proc/self/status", ifstream::in);
+  char        tmp[1048576];
+  char        tmp2[1048576];
+  double   vmPeak;
+
+  // Is open ? //
+  if(!stream.is_open())
+    throw Exception("Haroche2D: cannot open /proc/self/status for VmPeak");
+
+  // Skip 10 lines //
+  for(int i = 0; i < 10; i++)
+    stream.getline(tmp, 1048576);
+
+  // Read VmPeak //
+  stream >> tmp >> vmPeak >> tmp2;
+
+  // Close & Return //
+  stream.close();
+  return vmPeak / 1024;
+}
+
 fullVector<Complex> fZero(fullVector<double>& xyz){
   fullVector<Complex> f(3);
 
@@ -52,12 +75,11 @@ void compute(const Options& option){
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
 
   // Get PML Data //
-  cout << "Reading PML... " << flush;
+  cout << "Reading PML... " << endl << flush;
   PML::read(option.getValue("-pml")[1]);
-  cout << "Done!" << endl << flush;
 
   // Get Domains //
-  cout << "Reading domain... " << flush;
+  cout << "Reading domain... " << endl << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
   GroupOfElement* Air;
@@ -104,18 +126,13 @@ void compute(const Options& option){
   True_domains[1] = Mirror;
   True_domains[2] = LineOY;
 
-  cout << "Done!" << endl << flush;
-
   // FunctionSpace //
-  cout << "FunctionSpace... " << flush;
+  cout << "FunctionSpace... " << endl << flush;
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   FunctionSpaceVector fs(All_domains, order);
 
-  cout << "Done!" << endl << flush;
-
   // Formulation //
-  cout << "Formulations... " << flush;
-
+  cout << "Formulations... " << endl << flush;
   Formulation<Complex>* stifAir;
   Formulation<Complex>* stifXY;
   Formulation<Complex>* stifX;
@@ -147,10 +164,8 @@ void compute(const Options& option){
   massX   = new FMass(*PMLx,  fs, fs);
   massY   = new FMass(*PMLy,  fs, fs);
 
-  cout << "Done!" << endl << flush;
-
   // System //
-  cout << "System... " << flush;
+  cout << "System... " << endl << flush;
   SystemEigen sys;
 
   sys.addFormulation(*stifAir);
@@ -162,22 +177,18 @@ void compute(const Options& option){
   sys.addFormulationB(*massXY);
   sys.addFormulationB(*massX);
   sys.addFormulationB(*massY);
-  cout << "Done!" << endl << flush;
 
   // Dirichlet //
-  cout << "Dirichlet... " << flush;
+  cout << "Dirichlet... " << endl << flush;
   SystemHelper<Complex>::dirichlet(sys, fs, *Mirror, fZero);
   SystemHelper<Complex>::dirichlet(sys, fs, *LineOY, fZero);
   SystemHelper<Complex>::dirichlet(sys, fs, *OutPML, fZero);
-  cout << "Done!" << endl << flush;
 
   // Assemble //
   cout << "True assembling... " << endl << flush;
   sys.assemble();
-  cout << "Done!" << endl << flush;
 
   // Free formulations //
-  cout << "Clearing..." << endl << flush;
   delete stifAir;
   delete stifXY;
   delete stifX;
@@ -187,11 +198,8 @@ void compute(const Options& option){
   delete massXY;
   delete massX;
   delete massY;
-  cout << "Done!" << endl << flush;
 
   // Solve //
-  cout << "Solving: " << sys.getSize() << endl << flush;
-
   // Set number of eigenvalue (if any, else default)
   try{
     sys.setNumberOfEigenValues(atoi(option.getValue("-n")[1].c_str()));
@@ -230,8 +238,9 @@ void compute(const Options& option){
   // Do what you have to do !
   sys.setProblem("pos_gen_non_hermitian");
   //sys.setProblem("gen_non_hermitian");
+
+  cout << "Solving: " << sys.getSize() << endl << flush;
   sys.solve();
-  cout << "Done!" << endl << flush;
 
   // Post-Pro //
   if(myProc == 0){
@@ -281,6 +290,9 @@ void compute(const Options& option){
   delete Mirror;
   delete LineOY;
   delete OutPML;
+
+  // Give peak virtual memory //
+  cout << "Process " << myProc << " peak VM: " << getPeakMemory() << endl;
 }
 
 int main(int argc, char** argv){

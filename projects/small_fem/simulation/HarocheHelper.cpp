@@ -1,4 +1,5 @@
 #include <fstream>
+#include "Exception.h"
 #include "HarocheHelper.h"
 
 using namespace std;
@@ -17,6 +18,9 @@ double PML::kHaroche;
 
 void PML::read(string filename){
   ifstream stream(filename.c_str(), ifstream::in);
+  if(!stream.is_open())
+    throw Exception("HarocheHelper: cannot open PML file (%s)",
+                    filename.c_str());
   stream >> SizeX
          >> SizeY
          >> SizeZ

@@ -1,5 +1,3 @@
-#include <sys/resource.h>
-#include <unistd.h>
 #include <iostream>
 #include <cstdio>
 
@@ -34,6 +32,29 @@ void dump(string filename, fullVector<Complex>& eig){
   fclose(file);
 }
 
+double getPeakMemory(void){
+  // Stream //
+  ifstream stream("/proc/self/status", ifstream::in);
+  char        tmp[1048576];
+  char        tmp2[1048576];
+  double   vmPeak;
+
+  // Is open ? //
+  if(!stream.is_open())
+    throw Exception("Haroche2D: cannot open /proc/self/status for VmPeak");
+
+  // Skip 10 lines //
+  for(int i = 0; i < 10; i++)
+    stream.getline(tmp, 1048576);
+
+  // Read VmPeak //
+  stream >> tmp >> vmPeak >> tmp2;
+
+  // Close & Return //
+  stream.close();
+  return vmPeak / 1024;
+}
+
 fullVector<Complex> fZero(fullVector<double>& xyz){
   fullVector<Complex> f(3);
 
@@ -42,21 +63,6 @@ fullVector<Complex> fZero(fullVector<double>& xyz){
   f(2) = Complex(0, 0);
 
   return f;
-}
-
-double getMemory(void){
-  long  rss = 0;
-  FILE*  fp = NULL;
-
-  if ((fp = fopen("/proc/self/statm", "r")) == NULL)
-    return 0;
-  if (fscanf(fp, "%*s%ld", &rss) != 1){
-    fclose(fp);
-    return 0;
-  }
-
-  fclose(fp);
-  return (double)((size_t)rss * (size_t)sysconf(_SC_PAGESIZE)) / (double)(1e9);
 }
 
 void compute(const Options& option){
@@ -69,12 +75,11 @@ void compute(const Options& option){
   MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
 
   // Get PML Data //
-  cout << "Reading PML... " << flush;
+  cout << "Reading PML... " << endl << flush;
   PML::read(option.getValue("-pml")[1]);
-  cout << "Done!" << endl << flush;
 
   // Get Domains //
-  cout << "Reading domain... " << flush;
+  cout << "Reading domain... " << endl << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
   GroupOfElement* Air;
@@ -145,18 +150,14 @@ void compute(const Options& option){
   All_surfaces[1] = SurfXZ;
   All_surfaces[2] = SurfXY;
   All_surfaces[3] = OutPML;
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // FunctionSpace //
-  cout << "FunctionSpace... " << flush;
+  cout << "FunctionSpace... " << endl << flush;
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   FunctionSpaceVector fs(All_domains, order);
 
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
-
   // Formulation //
-  cout << "Formulations... " << flush;
-
+  cout << "Formulations... " << endl << flush;
   Formulation<Complex>* stifAir;
   Formulation<Complex>* stifXYZ;
   Formulation<Complex>* stifXY;
@@ -212,10 +213,8 @@ void compute(const Options& option){
   massY   = new FMass(*PMLy,   fs, fs);
   massZ   = new FMass(*PMLz,   fs, fs);
 
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
-
   // System //
-  cout << "System... " << flush;
+  cout << "System... " << endl << flush;
   SystemEigen sys;
 
   sys.addFormulation(*stifAir);
@@ -235,11 +234,10 @@ void compute(const Options& option){
   sys.addFormulationB(*massX);
   sys.addFormulationB(*massY);
   sys.addFormulationB(*massZ);
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Dirichlet //
   // Mirror & PML
-  cout << "Dirichlet... " << flush;
+  cout << "Dirichlet... " << endl << flush;
   SystemHelper<Complex>::dirichlet(sys, fs, *Mirror, fZero);
   SystemHelper<Complex>::dirichlet(sys, fs, *OutPML, fZero);
 
@@ -259,15 +257,12 @@ void compute(const Options& option){
     cout << "No symmetry given: defaulting to YZ" << endl;
     SystemHelper<Complex>::dirichlet(sys, fs, *SurfYZ, fZero);
   }
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Assemble //
   cout << "True assembling... " << endl << flush;
   sys.assemble();
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Free formulations //
-  cout << "Clearing..." << endl << flush;
   delete stifAir;
   delete stifXYZ;
   delete stifXY;
@@ -285,11 +280,8 @@ void compute(const Options& option){
   delete massX;
   delete massY;
   delete massZ;
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Solve //
-  cout << "Solving: " << sys.getSize() << endl << flush;
-
   // Set number of eigenvalue (if any, else default)
   try{
     sys.setNumberOfEigenValues(atoi(option.getValue("-n")[1].c_str()));
@@ -328,8 +320,9 @@ void compute(const Options& option){
   // Do what you have to do !
   sys.setProblem("pos_gen_non_hermitian");
   //sys.setProblem("gen_non_hermitian");
+
+  cout << "Solving: " << sys.getSize() << "..." << endl << flush;
   sys.solve();
-  cout << "Done! (" << getMemory() << " GB)" << endl << flush;
 
   // Post-Pro //
   if(myProc == 0){
@@ -385,6 +378,9 @@ void compute(const Options& option){
   delete SurfXZ;
   delete SurfXY;
   delete OutPML;
+
+  // Give peak virtual memory //
+  cout << "Process " << myProc << " peak VM: " << getPeakMemory() << endl;
 }
 
 int main(int argc, char** argv){
