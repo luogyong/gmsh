@@ -36,19 +36,21 @@ double getPeakMemory(void){
   // Stream //
   ifstream stream("/proc/self/status", ifstream::in);
   char        tmp[1048576];
-  char        tmp2[1048576];
   double   vmPeak;
 
   // Is open ? //
   if(!stream.is_open())
     throw Exception("Haroche2D: cannot open /proc/self/status for VmPeak");
 
-  // Skip 10 lines //
-  for(int i = 0; i < 10; i++)
+  // Look for "VmPeak:" //
+  stream >> tmp;
+  while(strncmp(tmp, "VmPeak:", 1048576) != 0){
     stream.getline(tmp, 1048576);
+    stream >> tmp;
+  }
 
   // Read VmPeak //
-  stream >> tmp >> vmPeak >> tmp2;
+  stream >> vmPeak;
 
   // Close & Return //
   stream.close();
