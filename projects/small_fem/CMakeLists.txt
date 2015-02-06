@@ -142,7 +142,9 @@ include_directories(
 
 ## Compiler Flags ##
 ####################
-add_definitions(-pedantic -Wall -Wno-long-long) # -Wno-long-long for PETSc 3.3
+add_definitions(-pedantic -Wall)
+add_definitions(-Wno-long-long) # For PETSc 3.3
+add_definitions(-DMPICH_IGNORE_CXX_SEEK -DMPICH_SKIP_MPICXX) # For intel MPI
 add_definitions(-O3 -march=native)
 add_definitions(-g)
 

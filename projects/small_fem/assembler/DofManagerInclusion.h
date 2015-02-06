@@ -5,9 +5,9 @@
 // Damn you gcc: we want 'export' !          //
 ///////////////////////////////////////////////
 
-#include <mpi.h>
 #include <sstream>
 
+#include "mpi.h"
 #include "FunctionSpace.h"
 #include "MPIDofMap.h"
 #include "Exception.h"

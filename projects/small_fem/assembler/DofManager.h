@@ -50,7 +50,7 @@ class DofManager{
   size_t last;
 
  public:
-  static const size_t isFixedId(void);
+  static size_t isFixedId(void);
 
  public:
    DofManager(bool isLocal);
@@ -212,7 +212,7 @@ class DofManager{
 //////////////////////
 
 template<typename scalar>
-inline const size_t DofManager<scalar>::isFixedId(void){
+inline size_t DofManager<scalar>::isFixedId(void){
   return isFixed;
 }
 
