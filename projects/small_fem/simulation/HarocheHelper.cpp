@@ -1,6 +1,7 @@
-#include <fstream>
+#include "SmallFem.h"
 #include "Exception.h"
 #include "HarocheHelper.h"
+#include <fstream>
 
 using namespace std;
 

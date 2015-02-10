@@ -1,11 +1,11 @@
 #ifndef _SMALLFEM_H_
 #define _SMALLFEM_H_
 
-#include <complex>
-#include <string>
-
 #include "mpi.h"
 #include "Options.h"
+
+#include <complex>
+#include <string>
 
 /**
    @class SmallFem

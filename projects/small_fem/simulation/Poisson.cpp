@@ -1,13 +1,11 @@
-#include <iostream>
-#include <sstream>
-
+#include "SmallFem.h"
 #include "Mesh.h"
 #include "System.h"
 #include "SystemHelper.h"
-
 #include "FormulationPoisson.h"
 
-#include "SmallFem.h"
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 

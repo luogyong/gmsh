@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "Exception.h"
 #include "FormulationJFLee.h"
 #include "FormulationHelper.h"

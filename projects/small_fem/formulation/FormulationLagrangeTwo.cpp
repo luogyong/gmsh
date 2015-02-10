@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "BasisGenerator.h"
 #include "GroupOfJacobian.h"
 #include "Quadrature.h"

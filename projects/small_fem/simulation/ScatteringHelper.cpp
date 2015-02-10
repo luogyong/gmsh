@@ -1,6 +1,6 @@
-#include <cmath>
-
+#include "SmallFem.h"
 #include "ScatteringHelper.h"
+#include <cmath>
 
 using namespace std;
 

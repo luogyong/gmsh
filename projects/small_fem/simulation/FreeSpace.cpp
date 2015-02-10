@@ -1,7 +1,5 @@
-#include <iostream>
-#include <complex>
-#include <cmath>
-
+#include "SmallFem.h"
+#include "Timer.h"
 #include "Mesh.h"
 #include "System.h"
 #include "SystemHelper.h"
@@ -9,8 +7,9 @@
 #include "FormulationSteadyWave.h"
 #include "FormulationSommerfeld.h"
 
-#include "Timer.h"
-#include "SmallFem.h"
+#include <iostream>
+#include <complex>
+#include <cmath>
 
 using namespace std;
 

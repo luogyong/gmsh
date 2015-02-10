@@ -1,6 +1,6 @@
-#include <iostream>
-#include <cstdio>
-
+#include "SmallFem.h"
+#include "MPIOStream.h"
+#include "HarocheHelper.h"
 #include "Mesh.h"
 #include "SystemEigen.h"
 #include "SystemHelper.h"
@@ -8,9 +8,8 @@
 #include "FormulationStiffness.h"
 #include "FormulationMass.h"
 
-#include "HarocheHelper.h"
-#include "MPIOStream.h"
-#include "SmallFem.h"
+#include <iostream>
+#include <cstdio>
 
 using namespace std;
 

@@ -1,3 +1,6 @@
+#include "SmallFem.h"
+#include "Exception.h"
+
 #include "FunctionSpaceScalar.h"
 #include "FunctionSpaceVector.h"
 
@@ -5,9 +8,6 @@
 #include "fullMatrix.h"
 #include "DofManager.h"
 #include "Mesh.h"
-
-#include "Exception.h"
-#include "SmallFem.h"
 
 using namespace std;
 

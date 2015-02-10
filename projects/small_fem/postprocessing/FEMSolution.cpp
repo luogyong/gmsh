@@ -1,5 +1,6 @@
-#include <complex>
+#include "SmallFem.h"
 #include "FEMSolution.h"
+#include <complex>
 
 using namespace std;
 

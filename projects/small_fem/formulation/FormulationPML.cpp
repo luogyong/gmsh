@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "FormulationPML.h"
 
 #include "GroupOfJacobian.h"

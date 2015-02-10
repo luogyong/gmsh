@@ -1,13 +1,11 @@
-#include <iostream>
-
+#include "SmallFem.h"
+#include "Timer.h"
 #include "Mesh.h"
 #include "System.h"
 #include "SystemHelper.h"
-
 #include "FormulationSteadyWave.h"
 
-#include "Timer.h"
-#include "SmallFem.h"
+#include <iostream>
 
 using namespace std;
 

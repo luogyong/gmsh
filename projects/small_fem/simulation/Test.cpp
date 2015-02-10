@@ -1,9 +1,4 @@
-#include <complex>
-#include <iostream>
-#include <cmath>
-
 #include "SmallFem.h"
-
 #include "Timer.h"
 
 #include "LineReferenceSpace.h"
@@ -42,6 +37,10 @@
 #include "SolverMatrix.h"
 #include "SolverVector.h"
 #include "SolverMUMPS.h"
+
+#include <complex>
+#include <iostream>
+#include <cmath>
 
 using namespace std;
 

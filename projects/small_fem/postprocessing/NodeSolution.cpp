@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "NodeSolution.h"
 #include "Exception.h"
 #include "SmallFem.h"

@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "SolverMUMPS.h"
 #include "Exception.h"
 #include "mpi.h"

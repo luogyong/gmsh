@@ -1,15 +1,14 @@
-#include <iostream>
-
-#include "ScatteringHelper.h"
 #include "SmallFem.h"
+#include "ScatteringHelper.h"
 #include "Timer.h"
 
 #include "GroupOfElement.h"
 #include "FunctionSpaceVector.h"
 #include "FormulationSteadyWave.h"
-
 #include "System.h"
 #include "FEMSolution.h"
+
+#include <iostream>
 
 using namespace std;
 

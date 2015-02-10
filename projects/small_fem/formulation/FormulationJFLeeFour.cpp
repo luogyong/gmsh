@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "FormulationJFLeeFour.h"
 
 using namespace std;

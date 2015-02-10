@@ -1,11 +1,11 @@
+#include "SmallFem.h"
+#include "ElementSolution.h"
+#include "Mesh.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <vector>
-
-#include "ElementSolution.h"
-#include "Mesh.h"
-#include "SmallFem.h"
 
 using namespace std;
 

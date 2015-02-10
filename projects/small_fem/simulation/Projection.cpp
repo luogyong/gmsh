@@ -1,9 +1,4 @@
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <cmath>
-
+#include "SmallFem.h"
 #include "Mesh.h"
 #include "System.h"
 #include "fullMatrix.h"
@@ -13,7 +8,11 @@
 #include "FunctionSpaceVector.h"
 #include "FormulationProjection.h"
 
-#include "SmallFem.h"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <cmath>
 
 using namespace std;
 

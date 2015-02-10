@@ -143,7 +143,6 @@ include_directories(
 ## Compiler Flags ##
 ####################
 add_definitions(-pedantic -Wall)
-add_definitions(-DMPICH_IGNORE_CXX_SEEK -DMPICH_SKIP_MPICXX) # For intel MPI
 add_definitions(-O3 -march=native)
 add_definitions(-g)
 

@@ -1,6 +1,5 @@
-#include <iostream>
-#include <complex>
-
+#include "SmallFem.h"
+#include "MPIOStream.h"
 #include "Mesh.h"
 #include "SystemEigen.h"
 #include "SystemHelper.h"
@@ -8,8 +7,8 @@
 #include "FormulationStiffness.h"
 #include "FormulationMass.h"
 
-#include "MPIOStream.h"
-#include "SmallFem.h"
+#include <iostream>
+#include <complex>
 
 using namespace std;
 

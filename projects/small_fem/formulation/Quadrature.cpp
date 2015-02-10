@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "Quadrature.h"
 #include "GaussIntegration.h"
 #include "GmshDefines.h"

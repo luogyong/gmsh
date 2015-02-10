@@ -1,22 +1,18 @@
-#include <iostream>
-#include <complex>
-#include <cmath>
-
+#include "SmallFem.h"
+#include "Timer.h"
 #include "Mesh.h"
 #include "System.h"
 #include "SystemHelper.h"
-
 #include "FunctionSpaceScalar.h"
 #include "FunctionSpaceVector.h"
-
 #include "FormulationSteadyWave.h"
 #include "FormulationPML.h"
-
 #include "Interpolator.h"
 #include "NodeSolution.h"
 
-#include "Timer.h"
-#include "SmallFem.h"
+#include <iostream>
+#include <complex>
+#include <cmath>
 
 using namespace std;
 

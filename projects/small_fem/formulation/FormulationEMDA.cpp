@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "FormulationEMDA.h"
 
 #include "TermProjectionField.h"

@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include <set>
 #include "Exception.h"
 #include "FormulationHelper.h"

@@ -1,14 +1,12 @@
-#include <iostream>
-
 #include "SmallFem.h"
-
 #include "System.h"
 #include "SystemHelper.h"
 #include "Interpolator.h"
-
 #include "FormulationHelper.h"
 #include "FormulationSommerfeld.h"
 #include "FormulationSteadyWave.h"
+
+#include <iostream>
 
 using namespace std;
 

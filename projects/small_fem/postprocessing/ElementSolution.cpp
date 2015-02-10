@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "ElementSolution.h"
 
 #include "FunctionSpaceScalar.h"

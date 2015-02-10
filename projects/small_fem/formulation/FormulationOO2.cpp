@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include "FormulationOO2.h"
 
 using namespace std;

@@ -1,3 +1,4 @@
+#include "SmallFem.h"
 #include <vector>
 
 #include "TermProjectionField.h"

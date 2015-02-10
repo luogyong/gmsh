@@ -1,4 +1,5 @@
-#include <iostream>
+#include "SmallFem.h"
+#include "Timer.h"
 
 #include "LineReferenceSpace.h"
 #include "TriReferenceSpace.h"
@@ -8,8 +9,7 @@
 #include "PyrReferenceSpace.h"
 #include "PriReferenceSpace.h"
 
-#include "Timer.h"
-#include "SmallFem.h"
+#include <iostream>
 
 using namespace std;
 

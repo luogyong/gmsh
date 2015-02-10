@@ -1,6 +1,3 @@
-#include <cmath>
-#include <iostream>
-
 #include "SmallFem.h"
 #include "SolverDDM.h"
 #include "MPIOStream.h"
@@ -32,6 +29,9 @@
 #include "FormulationUpdateJFLee.h"
 #include "FormulationUpdateOSRCScalar.h"
 #include "FormulationUpdateOSRCVector.h"
+
+#include <cmath>
+#include <iostream>
 
 using namespace std;
 
