@@ -79,6 +79,8 @@ class DofManager{
 
   void count(std::map<Dof, size_t>& dof);
   void retag(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& fix);
+  void refix(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& locFix,
+             std::map<Dof, scalar>& allFix);
   void vectorize(void);
 
   std::pair<bool, size_t> findSafe(const Dof& dof) const;

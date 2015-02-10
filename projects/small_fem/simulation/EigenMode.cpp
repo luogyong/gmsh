@@ -67,10 +67,10 @@ void compute(const Options& option){
   // MPI //
   MPIOStream cout(0, std::cout);
   int        myProc;
-  int         nProc;
+  int        nProcs;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
-  MPI_Comm_size(MPI_COMM_WORLD, &nProc);
+  MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
 
   // Get Domain //
   Mesh msh(option.getValue("-msh")[1]);
@@ -78,7 +78,7 @@ void compute(const Options& option){
   GroupOfElement* volume;
   GroupOfElement* border;
 
-  if(nProc == 1){
+  if(nProcs == 1){
     volume = new GroupOfElement(msh.getFromPhysical(7));
     border = new GroupOfElement(msh.getFromPhysical(5));
   }
@@ -194,11 +194,14 @@ void compute(const Options& option){
   }
   catch(...){
     FEMSolution<Complex> feSol;
-    stringstream         name;
     sys.getSolution(feSol, *fs, *volume);
 
-    name << "eigen_mode_proc" << myProc;
-    feSol.write(name.str());
+    feSol.setSaveMesh(false);
+    feSol.setBinaryFormat(true);
+    if(nProcs != 1)
+      feSol.setParition(myProc + 1);
+
+    feSol.write("eigenModes");
   }
 
   // Clean //
