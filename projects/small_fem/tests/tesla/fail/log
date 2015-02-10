@@ -1,0 +1,35 @@
+Vectorial Eigenvalues problem
+Assembled: 26589
+  1 EPS nconv=7 first unconverged value (error) 0.00232474-9.70417e-08i (1.00299227e-02)
+  2 EPS nconv=7 first unconverged value (error) 4.95918e-11+1.89889e-11i (4.38414727e-06)
+  3 EPS nconv=8 first unconverged value (error) -8.01467e-05-1.90043e-08i (3.55839859e-01)
+  4 EPS nconv=12 first unconverged value (error) 0.00268415-5.08896e-09i (8.81301151e-04)
+Solved
+Number of found Eigenvalues: 12
+
+Number  Eigen Value
+#1      (0.000743695,-1.46047e-21)
+#2      (0.00115406,-1.42949e-20)
+#3      (0.00115439,-2.04189e-19)
+#4      (0.00141423,-5.33793e-18)
+#5      (0.00141448,3.8186e-18)
+#6      (1.77592e-16,-1.19106e-15)
+#7      (1.09396e-16,-5.2273e-18)
+#8      (2.13588e-17,-2.51442e-18)
+#9      (-9.13982e-16,1.65308e-15)
+#10     (0.00232454,-4.54553e-16)
+#11     (0.00232482,1.59e-17)
+#12     (0.0026655,2.32431e-12)
+terminate called after throwing an instance of 'Exception'
+  what():  Dof (5283, 0) not fixed
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   PID 2918 RUNNING AT localhost
+=   EXIT CODE: 6
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+YOUR APPLICATION TERMINATED WITH THE EXIT STRING: Aborted (signal 6)
+This typically refers to a problem with your application.
+Please see the FAQ page for debugging suggestions

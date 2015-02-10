@@ -66,5 +66,9 @@ ol.call('sf', cmd)
 
 ## Draw
 if postpro == 1:
-    for i in range(0, nProc):
-        ol.mergeFile('eigen_mode_proc' + str(i) + '.msh')
+    if(nProc == 1):
+        ol.mergeFile('eigenModes.msh')
+
+    else:
+        for i in range(1, nProc + 1):
+            ol.mergeFile('eigenModes_part' + str(i) + '.msh')
