@@ -144,9 +144,6 @@ void DofManager<scalar>::globalSpace(void){
     it->second = find->second;
   }
 
-  // Refix LOCAL fixed Dofs //
-  refix(globalIdM, fixedDof, allFixedDof);
-
   // Total Number of local (and global) unfixed Dof
   nTotUnfixedLocalDof  =    globalIdM.size() -    fixedDof.size();
   nTotUnfixedGlobalDof = allGlobalIdM.size() - allFixedDof.size();
@@ -184,27 +181,6 @@ retag(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& fix){
     if(fix.count(it->first) == 1)
       // If Dof is fond, tag it as fixed
       it->second = isFixed;
-}
-
-template<typename scalar>
-void DofManager<scalar>::
-refix(std::map<Dof, size_t>& dof, std::map<Dof, scalar>& locFix,
-      std::map<Dof, scalar>& allFix){
-  // GLOBAL fixed Dofs iterators //
-  typename std::map<Dof, scalar>::const_iterator globalIt;
-  typename std::map<Dof, scalar>::const_iterator globalEnd = allFix.end();
-
-  // Iterate on Dofs (LOCAL) //
-  std::map<Dof, size_t>::const_iterator it  = dof.begin();
-  std::map<Dof, size_t>::const_iterator end = dof.end();
-
-  for(; it != end; it++){
-    // Look for Dof it in GLOBAL fixedDof map
-    globalIt = allFix.find(it->first);
-    if(globalIt != globalEnd)
-      // If found, reinstert it in LOCAL fixedDof map
-      locFix.insert(std::pair<Dof, scalar>(globalIt->first, globalIt->second));
-  }
 }
 
 template<typename scalar>
