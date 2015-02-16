@@ -144,6 +144,33 @@ void DofManager<scalar>::globalSpace(void){
     it->second = find->second;
   }
 
+  // Dump globalId Space
+  int nProcs;
+  int myProc;
+
+  MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+
+  it  = globalIdM.begin();
+  end = globalIdM.end();
+
+  for(int i = 0; i < nProcs; i++){
+    if(i == myProc){
+      std::cout << "DofManager for process " << i << std::endl
+                << "###################### "      << std::endl
+                << "  Size: " << globalIdM.size() << std::endl;
+
+      for(; it != end; it++)
+        std::cout << "  " << it->first.toString() << ": " << it->second << std::endl;
+
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+
+    else{
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+  }
+
   // Total Number of local (and global) unfixed Dof
   nTotUnfixedLocalDof  =    globalIdM.size() -    fixedDof.size();
   nTotUnfixedGlobalDof = allGlobalIdM.size() - allFixedDof.size();
