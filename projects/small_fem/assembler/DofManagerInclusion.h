@@ -5,6 +5,7 @@
 // Damn you gcc: we want 'export' !          //
 ///////////////////////////////////////////////
 
+#include <fstream>
 #include <sstream>
 
 #include "mpi.h"
@@ -145,31 +146,38 @@ void DofManager<scalar>::globalSpace(void){
   }
 
   // Dump globalId Space
-  int nProcs;
   int myProc;
+  std::stringstream globalNameStream;
+  std::stringstream  localNameStream;
+  std::ofstream file;
 
-  MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+
+  globalNameStream << "GlobalDofManager_part" << myProc;
+  file.open(globalNameStream.str().c_str(), std::ifstream::out);
+  file << "Global DofManager for process " << myProc << std::endl
+       << "#############################"            << std::endl
+       << "  Global Size: " << allGlobalIdM.size()   << std::endl << std::flush;
+
+  it  = allGlobalIdM.begin();
+  end = allGlobalIdM.end();
+  for(; it != end; it++)
+    file << "  " << it->first.toString() << ": " << it->second
+         << std::endl << std::flush;
+  file.close();
+
+  localNameStream << "LocalDofManager_part" << myProc;
+  file.open(localNameStream.str().c_str(), std::ifstream::out);
+  file << "Local DofManager for process " << myProc << std::endl
+       << "############################"            << std::endl
+       << "  Local  Size: " << globalIdM.size()     << std::endl << std::flush;
 
   it  = globalIdM.begin();
   end = globalIdM.end();
-
-  for(int i = 0; i < nProcs; i++){
-    if(i == myProc){
-      std::cout << "DofManager for process " << i << std::endl
-                << "###################### "      << std::endl
-                << "  Size: " << globalIdM.size() << std::endl;
-
-      for(; it != end; it++)
-        std::cout << "  " << it->first.toString() << ": " << it->second << std::endl;
-
-      MPI_Barrier(MPI_COMM_WORLD);
-    }
-
-    else{
-      MPI_Barrier(MPI_COMM_WORLD);
-    }
-  }
+  for(; it != end; it++)
+    file << "  " << it->first.toString() << ": " << it->second
+         << std::endl << std::flush;
+  file.close();
 
   // Total Number of local (and global) unfixed Dof
   nTotUnfixedLocalDof  =    globalIdM.size() -    fixedDof.size();
