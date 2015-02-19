@@ -45,18 +45,24 @@
 using namespace std;
 
 void compute(const Options& option){
-  Timer timer;
-  timer.start();
-  HexReferenceSpace ref;
-  //cout << ref.toLatex() << endl;
-  timer.stop();
+  Mesh         mesh(option.getValue("-msh")[1]);
+  int          myProc;
+  stringstream name;
+  ofstream     file;
 
-  cout << timer.time() << endl;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+  name << "Mesh_proc" << myProc;
+
+  file.open(name.str().c_str(), ifstream::out);
+  file << "Mesh for process " << myProc << endl
+       << "################ "           << endl
+       << mesh.toString()               << endl << flush;
+  file.close();
 }
 
 int main(int argc, char** argv){
   // SmallFEM //
-  SmallFem::Keywords("");
+  SmallFem::Keywords("-msh");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
