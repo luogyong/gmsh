@@ -35,12 +35,23 @@ class GroupOfElement;
 
 class Mesh{
  private:
+  class EdgeSort{
+    public:
+      bool operator()(const MEdge* a, const MEdge* b) const;
+  };
+
+  class FaceSort{
+    public:
+      bool operator()(const MFace* a, const MFace* b) const;
+  };
+
+ private:
   GModel* model;
 
   std::map<const MElement*, size_t, ElementComparator>* element;
   std::map<const MVertex*, size_t, VertexComparator>*   vertex;
-  std::map<const MEdge*, size_t, EdgeComparator>*       edge;
-  std::map<const MFace*, size_t, FaceComparator>*       face;
+  std::map<const MEdge*, size_t, EdgeSort>*             edge;
+  std::map<const MFace*, size_t, FaceSort>*             face;
 
   std::multimap<int, const MElement*>* physical;
 
@@ -68,6 +79,12 @@ class Mesh{
   std::string toString(void) const;
 
  private:
+  static bool edgeSort(const MEdge* a, const MEdge* b);
+  static bool faceSort(const MFace* a, const MFace* b);
+
+ private:
+  void doEdge(std::set<const MEdge*, EdgeComparator>& edgeSet);
+  void doFace(std::set<const MFace*, FaceComparator>& faceSet);
   void number(void);
 };
 

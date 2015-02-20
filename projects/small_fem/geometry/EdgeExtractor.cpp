@@ -2,13 +2,13 @@
 
 using namespace std;
 
-map<const MEdge*, size_t, EdgeComparator>*
+set<const MEdge*, EdgeComparator>*
 GeoExtractor::extractEdge(const map<const MElement*,
                                     size_t,
-                          ElementComparator>& element){
+                                    ElementComparator>& element){
   // Init //
-  map<const MEdge*, size_t, EdgeComparator>*
-    edge = new map<const MEdge*, size_t, EdgeComparator>;
+  set<const MEdge*, EdgeComparator>*
+    edge = new set<const MEdge*, EdgeComparator>;
 
   // Get Edges //
   const map<const MElement*, size_t, ElementComparator>::const_iterator
@@ -33,9 +33,8 @@ GeoExtractor::extractEdge(const map<const MElement*,
       MEdge* edgeCopy = copy(myEdge);
 
       // Try to Insert
-      pair<map<const MEdge*, size_t, EdgeComparator>::iterator,
-           bool> insert =
-        edge->insert(pair<const MEdge* ,int>(edgeCopy, 0));
+      pair<set<const MEdge*, EdgeComparator>::iterator, bool>
+        insert = edge->insert(edgeCopy);
 
       // If Insertion is not a success,
       // Delete edgeCopy

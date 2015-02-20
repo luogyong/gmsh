@@ -2,13 +2,13 @@
 
 using namespace std;
 
-map<const MFace*, size_t, FaceComparator>*
+set<const MFace*, FaceComparator>*
 GeoExtractor::extractFace(const map<const MElement*,
                                     size_t,
                                     ElementComparator>& element){
   // Init //
-  map<const MFace*, size_t, FaceComparator>*
-    face = new map<const MFace*, size_t, FaceComparator>;
+  set<const MFace*, FaceComparator>*
+    face = new set<const MFace*, FaceComparator>;
 
   // Get Faces //
   const map<const MElement*, size_t, ElementComparator>::const_iterator
@@ -33,14 +33,13 @@ GeoExtractor::extractFace(const map<const MElement*,
       MFace* faceCopy = copy(myFace);
 
       // Try to Insert
-      pair<map<const MFace*, size_t, FaceComparator>::iterator,
-           bool> insert =
-        face->insert(pair<const MFace* ,int>(faceCopy, 0));
+      pair<set<const MFace*, FaceComparator>::iterator, bool>
+        insert = face->insert(faceCopy);
 
       // If Insertion is not a success,
       // Delete faceCopy
       if(!insert.second)
-	delete faceCopy;
+        delete faceCopy;
     }
   }
 

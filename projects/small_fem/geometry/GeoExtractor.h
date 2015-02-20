@@ -40,12 +40,12 @@ class GeoExtractor{
                                  size_t,
                                  ElementComparator>& element);
 
-  static std::map<const MEdge*, size_t, EdgeComparator>*
+  static std::set<const MEdge*, EdgeComparator>*
     extractEdge(const std::map<const MElement*,
                                size_t,
                                ElementComparator>& element);
 
-  static std::map<const MFace*, size_t, FaceComparator>*
+  static std::set<const MFace*, FaceComparator>*
     extractFace(const std::map<const MElement*,
                                size_t,
                                ElementComparator>& element);
@@ -86,14 +86,12 @@ class GeoExtractor{
 
    @fn GeoExtractor::extractEdge
    @param element A map with MElement%s
-   @return Returns a map with the MEdge%s in the given MElement%s
-   (the mapped values are set to zero)
+   @return Returns a set with the MEdge%s in the given MElement%s
    **
 
    @fn GeoExtractor::extractFace
    @param element A map with MElement%s
-   @return Returns a map with the MFace%s in the given MElement%s
-   (the mapped values are set to zero)
+   @return Returns a set with the MFace%s in the given MElement%s
  */
 
 

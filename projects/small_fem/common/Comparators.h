@@ -88,23 +88,6 @@
    @li false, otherwise
  */
 
-/**
-   @class OrientedEdgeComparator
-   @brief A comparator for MEdge%s (with orientation notion)
-
-   This class is able to compare two MEdge%s (with orientation notion).
-
-   With this comparator, two MEdge%s with the same points,
-   but different orientations, are handled as different MEdge%s.
-
-   @fn bool OrientedEdgeComparator::operator()(const MEdge*, const MEdge*)
-   @param a A MEdge pointer
-   @param b A second MEdge pointer
-   @return Returns:
-   @li true, if the MEdge pointed by a is smaller
-   than the MEdge pointed by b
-   @li false, otherwise
- */
 
 class DofComparator{
  public:
@@ -129,11 +112,6 @@ class EdgeComparator{
 class FaceComparator{
  public:
   bool operator()(const MFace *a, const MFace *b) const;
-};
-
-class OrientedEdgeComparator{
- public:
-  bool operator()(const MEdge* a, const MEdge* b) const;
 };
 
 
@@ -163,14 +141,5 @@ operator()(const MEdge *a, const MEdge *b) const{
   if(a->getMaxVertex() < b->getMaxVertex()) return true;
   return false;
 }
-
-inline bool OrientedEdgeComparator::
-operator()(const MEdge* a, const MEdge* b) const{
-  return
-    ( a->getVertex(0)->getNum() <  b->getVertex(0)->getNum()) ||
-    ((a->getVertex(0)->getNum() == b->getVertex(0)->getNum()) &&
-     (a->getVertex(1)->getNum() <  b->getVertex(1)->getNum()));
-}
-
 
 #endif
