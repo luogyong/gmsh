@@ -1,6 +1,7 @@
 #include <vector>
 #include <sstream>
 
+#include "GroupOfElement.h"
 #include "GeoExtractor.h"
 #include "Exception.h"
 #include "Mesh.h"
@@ -8,6 +9,13 @@
 using namespace std;
 
 Mesh::Mesh(const std::string fileName){
+  // Clear Maps //
+  physical.clear();
+  element.clear();
+  vertex.clear();
+  edge.clear();
+  face.clear();
+
   // New Mode //
   model = new GModel("SmallFEM");
 
@@ -19,201 +27,86 @@ Mesh::Mesh(const std::string fileName){
   vector<GEntity*> entity;
   model->getEntities(entity);
 
-  // Extract Element //
-  pair<
-    map<const MElement*, size_t, ElementComparator>*,
-    multimap<int, const MElement*>*
-    >
-    elementsExtracted = GeoExtractor::extractElement(entity);
-
-  element  = elementsExtracted.first;
-  physical = elementsExtracted.second;
-
-  // Extract Nodes //
-  vertex = GeoExtractor::extractVertex(*element);
-
-  // Extract Edges and Faces //
-  // First, get them unsorted but such that they are unique
-  std::set<const MEdge*, EdgeComparator>* edgeSet;
-  std::set<const MFace*, FaceComparator>* faceSet;
-
-  edgeSet = GeoExtractor::extractEdge(*element);
-  faceSet = GeoExtractor::extractFace(*element);
-
-  // Then, sort them
-  doEdge(*edgeSet);
-  doFace(*faceSet);
-
-  // Finaly, clean Sets
-  delete edgeSet;
-  delete faceSet;
+  // Extract Element, Nodes, Edges and Faces //
+  GeoExtractor::elementExtract(entity,  element, physical);
+  GeoExtractor::vertexExtract(element, vertex);
+  GeoExtractor::edgeExtract(element, edge);
+  GeoExtractor::faceExtract(element, face);
 
   // Number Geometry //
-  nextId = 0;
   number();
 }
 
 Mesh::~Mesh(void){
-  // Delete Elements //
-
-  // WARNING
-  // Mesh is *NOT* responsible for
-  // Deleting MElement*
-  delete element;
-  delete physical;
-
-  // Delete Vertices //
-
-  // WARNING
-  // Mesh is *NOT* responsible for
-  // Deleting MVertex*
-  delete vertex;
-
-  // Delete Edges //
-  const map<const MEdge*, size_t, EdgeSort>::iterator
-    endE = edge->end();
-
-  map<const MEdge*, size_t, EdgeSort>::iterator
-    itE = edge->begin();
-
-  for(; itE != endE; itE++)
-    delete itE->first;
-
-  delete edge;
-
-  // Delete Faces //
-  const map<const MFace*, size_t, FaceSort>::iterator
-    endF = face->end();
-
-  map<const MFace*, size_t, FaceSort>::iterator
-    itF = face->begin();
-
-  for(; itF != endF; itF++)
-    delete itF->first;
-
-  delete face;
-
   // Delete Model //
   delete model;
 }
 
 size_t Mesh::getGlobalId(const MElement& element) const{
-  map<const MElement*, size_t, ElementComparator>::iterator
-    it = this->element->find(&element);
+  MapElement::const_iterator it = this->element.find(&element);
 
-  if(it == this->element->end())
+  if(it == this->element.end())
     throw Exception("Mesh::getGlobalId(): element not found");
 
   return it->second;
 }
 
 size_t Mesh::getGlobalId(const MVertex& vertex) const{
-  map<const MVertex*, size_t, VertexComparator>::iterator
-    it = this->vertex->find(&vertex);
+  MapVertex::const_iterator it = this->vertex.find(&vertex);
 
-  if(it == this->vertex->end())
+  if(it == this->vertex.end())
     throw Exception("Mesh::getGlobalId(): vertex not found");
 
   return it->second;
 }
 
 size_t Mesh::getGlobalId(const MEdge& edge) const{
-  // Look for Edge //
-  map<const MEdge*, size_t, EdgeSort>::iterator it = this->edge->find(&edge);
+  // Get Edge Vertices //
+  vector<int> vertex(2);
+  vertex[0] = edge.getVertex(0)->getNum();
+  vertex[1] = edge.getVertex(1)->getNum();
 
-  if(it == this->edge->end())
+  // Look for Edge //
+  MapEntity::const_iterator it = this->edge.find(vertex);
+
+  if(it == this->edge.end())
     throw Exception("Mesh::getGlobalId(): edge not found");
 
   return it->second;
 }
 
 size_t Mesh::getGlobalId(const MFace& face) const{
-  // Look for Face //
-  map<const MFace*, size_t, FaceSort>::iterator it = this->face->find(&face);
+  // Get Face Vertices //
+  const int  nVertex = face.getNumVertices();
+  vector<int> vertex(nVertex);
 
-  if(it == this->face->end())
+  for(int i = 0; i < nVertex; i++)
+    vertex[i] = face.getVertex(i)->getNum();
+
+  // Look for Face //
+  MapEntity::const_iterator it = this->face.find(vertex);
+
+  if(it == this->face.end())
     throw Exception("Mesh::getGlobalId(): face not found");
 
   return it->second;
 }
 
-bool Mesh::EdgeSort::operator()(const MEdge* a, const MEdge* b) const{
-  if(a->getVertex(0)->getNum() == b->getVertex(0)->getNum())
-    return a->getVertex(1)->getNum() < b->getVertex(1)->getNum();
-  else
-    return a->getVertex(0)->getNum() < b->getVertex(0)->getNum();
-}
-
-bool Mesh::FaceSort::operator()(const MFace* a, const MFace* b) const{
-  const int sizeA = a->getNumVertices();
-  const int sizeB = b->getNumVertices();
-
-  // Quad Faces are *bigger* than Tri Face //
-  if(sizeA < sizeB)
-    return true;  // 'a' is a Tri and is smaller than 'b' (a quad)
-
-  if(sizeA > sizeB)
-    return false; // 'a' is a Quad and is bigger than 'b' (a tri)
-
-  // Find first vertex with diffent Ids //
-  const int sizeMinus = sizeA - 1;
-        int         v = 0;
-  while(a->getVertex(v)->getNum() == b->getVertex(v)->getNum() && v < sizeMinus)
-    v++;
-
-  // Compare //
-  return a->getVertex(v)->getNum() < b->getVertex(v)->getNum();
-}
-
-void Mesh::doEdge(set<const MEdge*, EdgeComparator>& edgeSet){
-  // Init //
-  edge = new map<const MEdge*, size_t, EdgeSort>;
-
-  // Insert edges from set in map (with new ordering) //
-  set<const MEdge*, EdgeComparator>::iterator  it = edgeSet.begin();
-  set<const MEdge*, EdgeComparator>::iterator end = edgeSet.end();
-  for(; it != end; it++)
-    edge->insert(pair<const MEdge*, size_t>(*it, 0));
-}
-
-void Mesh::doFace(set<const MFace*, FaceComparator>& faceSet){
-  // Init //
-  face = new map<const MFace*, size_t, FaceSort>;
-
-  // Insert faces from set in map (with new ordering) //
-  set<const MFace*, FaceComparator>::iterator  it = faceSet.begin();
-  set<const MFace*, FaceComparator>::iterator end = faceSet.end();
-  for(; it != end; it++)
-    face->insert(pair<const MFace*, size_t>(*it, 0));
-}
-
 void Mesh::number(void){
   // Get Iterators //
-  const map<const MElement*, size_t, ElementComparator>::iterator
-    endEl = element->end();
+  const MapElement::iterator endEl = element.end();
+  const MapVertex::iterator  endV  = vertex.end();
+  const MapEntity::iterator  endEd = edge.end();
+  const MapEntity::iterator  endF  = face.end();
 
-  const map<const MVertex*, size_t, VertexComparator>::iterator
-    endV = vertex->end();
-
-  const map<const MEdge*, size_t, EdgeSort>::iterator
-    endEd = edge->end();
-
-  const map<const MFace*, size_t, FaceSort>::iterator
-    endF = face->end();
-
-  map<const MElement*, size_t, ElementComparator>::iterator
-    itEl = element->begin();
-
-  map<const MVertex*, size_t, VertexComparator>::iterator
-    itV = vertex->begin();
-
-  map<const MEdge*, size_t, EdgeSort>::iterator
-    itEd = edge->begin();
-
-  map<const MFace*, size_t, FaceSort>::iterator
-    itF = face->begin();
+  MapElement::iterator itEl = element.begin();
+  MapVertex::iterator  itV  = vertex.begin();
+  MapEntity::iterator  itEd = edge.begin();
+  MapEntity::iterator  itF  = face.begin();
 
   // Number Vertices //
+  size_t nextId = 0;
+
   for(; itV != endV; itV++){
     itV->second = nextId;
     nextId++;
@@ -239,9 +132,9 @@ void Mesh::number(void){
 }
 
 GroupOfElement Mesh::getFromPhysical(int physicalId) const{
-  pair<multimap<int, const MElement*>::iterator,
-       multimap<int, const MElement*>::iterator>
-    p = physical->equal_range(physicalId);
+  pair<multimap<int, const MElement*>::const_iterator,
+       multimap<int, const MElement*>::const_iterator>
+    p = physical.equal_range(physicalId);
 
   list<const MElement*> lst;
 
@@ -252,9 +145,9 @@ GroupOfElement Mesh::getFromPhysical(int physicalId) const{
 }
 
 GroupOfElement Mesh::getFromPhysical(int physicalId, int partitionId) const{
-  pair<multimap<int, const MElement*>::iterator,
-       multimap<int, const MElement*>::iterator>
-    p = physical->equal_range(physicalId);
+  pair<multimap<int, const MElement*>::const_iterator,
+       multimap<int, const MElement*>::const_iterator>
+    p = physical.equal_range(physicalId);
 
   list<const MElement*> lst;
 
@@ -267,32 +160,18 @@ GroupOfElement Mesh::getFromPhysical(int physicalId, int partitionId) const{
 
 string Mesh::toString(void) const{
   // Iterators //
-  const map<const MElement*, size_t, ElementComparator>::iterator
-    endEl = element->end();
+  const MapElement::const_iterator endEl = element.end();
+  const MapVertex::const_iterator  endV  = vertex.end();
+  const MapEntity::const_iterator  endEd = edge.end();
+  const MapEntity::const_iterator  endF  = face.end();
 
-  const map<const MVertex*, size_t, VertexComparator>::iterator
-    endV = vertex->end();
+  MapElement::const_iterator itEl = element.begin();
+  MapVertex::const_iterator  itV  = vertex.begin();
+  MapEntity::const_iterator  itEd = edge.begin();
+  MapEntity::const_iterator  itF  = face.begin();
 
-  const map<const MEdge*, size_t, EdgeSort>::iterator
-    endEd = edge->end();
-
-  const map<const MFace*, size_t, FaceSort>::iterator
-    endF = face->end();
-
-  map<const MElement*, size_t, ElementComparator>::iterator
-    itEl = element->begin();
-
-  map<const MVertex*, size_t, VertexComparator>::iterator
-    itV = vertex->begin();
-
-  map<const MEdge*, size_t, EdgeSort>::iterator
-    itEd = edge->begin();
-
-  map<const MFace*, size_t, FaceSort>::iterator
-    itF = face->begin();
-
+  // Stream //
   stringstream stream;
-
 
   // Header //
   stream << "***********************************************"
@@ -336,12 +215,8 @@ string Mesh::toString(void) const{
 
   for(; itEd != endEd; itEd++)
     stream << "*   -- Edge "
-           << getGlobalId(*itEd->first)
-           << ": ["
-           << getGlobalId(*itEd->first->getVertex(0))
-           << ", "
-           << getGlobalId(*itEd->first->getVertex(1))
-           << "]"
+           << itEd->second << ": "
+           << "[" << itEd->first[0] << ", " << itEd->first[1] << "]"
            << endl;
 
   stream << "*                                             *"
@@ -357,20 +232,16 @@ string Mesh::toString(void) const{
 
   for(; itF != endF; itF++){
     stream << "*   -- Face "
-           << getGlobalId(*itF->first)
-           << ": ["
-           << getGlobalId(*itF->first->getVertex(0))
-           << ", "
-           << getGlobalId(*itF->first->getVertex(1))
-           << ", "
-           << getGlobalId(*itF->first->getVertex(2));
+           << itF->second << ": "
+           << "["
+           << itF->first[0] << ", "
+           << itF->first[1] << ", "
+           << itF->first[2];
 
-    if(itF->first->getNumVertices() == 4)
-      stream << ", "
-             << getGlobalId(*itF->first->getVertex(3));
+    if(itF->first.size() == 4)
+      stream << ", " << itF->first[3];
 
-    stream << "]"
-           << endl;
+    stream << "]" << endl;
   }
 
   stream << "*                                             *"

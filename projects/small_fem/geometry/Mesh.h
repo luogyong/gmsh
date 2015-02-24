@@ -4,16 +4,10 @@
 #include <map>
 #include <string>
 
-#include "Comparators.h"
-#include "fullMatrix.h"
-
+#include "MapElement.h"
+#include "MapVertex.h"
+#include "MapEntity.h"
 #include "GModel.h"
-
-#include "GroupOfElement.h"
-#include "MElement.h"
-#include "MVertex.h"
-#include "MEdge.h"
-#include "MFace.h"
 
 /**
    @class Mesh
@@ -35,27 +29,12 @@ class GroupOfElement;
 
 class Mesh{
  private:
-  class EdgeSort{
-    public:
-      bool operator()(const MEdge* a, const MEdge* b) const;
-  };
-
-  class FaceSort{
-    public:
-      bool operator()(const MFace* a, const MFace* b) const;
-  };
-
- private:
-  GModel* model;
-
-  std::map<const MElement*, size_t, ElementComparator>* element;
-  std::map<const MVertex*, size_t, VertexComparator>*   vertex;
-  std::map<const MEdge*, size_t, EdgeSort>*             edge;
-  std::map<const MFace*, size_t, FaceSort>*             face;
-
-  std::multimap<int, const MElement*>* physical;
-
-  size_t nextId;
+  std::multimap<int, const MElement*> physical;
+  MapElement element;
+  MapVertex  vertex;
+  MapEntity  edge;
+  MapEntity  face;
+  GModel*    model;
 
  public:
    Mesh(const std::string fileName);
@@ -79,12 +58,6 @@ class Mesh{
   std::string toString(void) const;
 
  private:
-  static bool edgeSort(const MEdge* a, const MEdge* b);
-  static bool faceSort(const MFace* a, const MFace* b);
-
- private:
-  void doEdge(std::set<const MEdge*, EdgeComparator>& edgeSet);
-  void doFace(std::set<const MFace*, FaceComparator>& faceSet);
   void number(void);
 };
 
@@ -174,19 +147,19 @@ inline GModel& Mesh::getModel(void) const{
 }
 
 inline size_t Mesh::getElementNumber(void) const{
-  return element->size();
+  return element.size();
 }
 
 inline size_t Mesh::getVertexNumber(void) const{
-  return vertex->size();
+  return vertex.size();
 }
 
 inline size_t Mesh::getEdgeNumber(void) const{
-  return edge->size();
+  return edge.size();
 }
 
 inline size_t Mesh::getFaceNumber(void) const{
-  return face->size();
+  return face.size();
 }
 
 #endif

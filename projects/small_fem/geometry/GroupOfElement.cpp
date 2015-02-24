@@ -100,8 +100,7 @@ bool GroupOfElement::isMember(const MElement& element) const{
   return false;
 }
 
-void GroupOfElement::
-getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const{
+void GroupOfElement::getAllVertex(MapVertex& vertex) const{
   const size_t nElement = element.size();
 
   // Loop On element
@@ -116,19 +115,19 @@ getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const{
 
 void GroupOfElement::getAllVertexCoordinate(fullMatrix<double>& coord) const{
   // Get Vertex
-  set<const MVertex*, VertexComparator> vertex;
+  MapVertex vertex;
   getAllVertex(vertex);
 
   // Get Coordinates
-  set<const MVertex*, VertexComparator>::iterator it  = vertex.begin();
-  set<const MVertex*, VertexComparator>::iterator end = vertex.end();
+  MapVertex::iterator it  = vertex.begin();
+  MapVertex::iterator end = vertex.end();
 
   coord.resize(vertex.size(), 3);
 
   for(size_t i = 0; it != end; it++, i++){
-    coord(i, 0) = (*it)->x();
-    coord(i, 1) = (*it)->y();
-    coord(i, 2) = (*it)->z();
+    coord(i, 0) = it->first->x();
+    coord(i, 1) = it->first->y();
+    coord(i, 2) = it->first->z();
   }
 }
 

@@ -123,21 +123,21 @@ interpolate(const GroupOfElement& goe,
             std::map<const MVertex*, std::vector<scalar> >& data){
 
   // Get the Vertices of 'point' //
-  std::set<const MVertex*, VertexComparator> vertex;
+  MapVertex vertex;
   point.getAllVertex(vertex);
 
   // Get those Vertices coordinates //
   const size_t nVertex = vertex.size();
   fullMatrix<double> coordinate(nVertex, 3);
 
-        std::set<const MVertex*, VertexComparator>::iterator it;
-  const std::set<const MVertex*, VertexComparator>::iterator end = vertex.end();
+  MapVertex::iterator it;
+  MapVertex::iterator end = vertex.end();
 
   it = vertex.begin();
   for(size_t i = 0; it != end; it++, i++){
-    coordinate(i, 0) = (*it)->x();
-    coordinate(i, 1) = (*it)->y();
-    coordinate(i, 2) = (*it)->z();
+    coordinate(i, 0) = it->first->x();
+    coordinate(i, 1) = it->first->y();
+    coordinate(i, 2) = it->first->z();
   }
 
   // Interpolate //
@@ -157,7 +157,7 @@ interpolate(const GroupOfElement& goe,
       std::pair<const MVertex*, std::vector<scalar> > pair;
 
       // Vertex
-      pair.first = (*it);
+      pair.first = it->first;
 
       // Value
       pair.second.resize(nDim);

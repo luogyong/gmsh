@@ -50,7 +50,7 @@ class GroupOfElement{
   const std::vector<const MElement*>& getAll(void) const;
   const Mesh& getMesh(void) const;
 
-  void getAllVertex(std::set<const MVertex*, VertexComparator>& vertex) const;
+  void getAllVertex(MapVertex& vertex) const;
   void getAllVertexCoordinate(fullMatrix<double>& coord) const;
 
   const std::vector<size_t>& getOrientationStats(size_t elementType) const;
@@ -126,9 +126,10 @@ class GroupOfElement{
    **
 
    @fn GroupOfElement::getAllVertex
-   @param vertex A set of MVertex
+   @param vertex A MapVertex
 
-   Populates the given set with the MVertex%s of this GroupOfElement
+   Populates the given MapVertex with the MVertex%s of this GroupOfElement
+   (the associated integer is defaulted to zero)
    **
 
    @fn GroupOfElement::getAllVertexCoordinate

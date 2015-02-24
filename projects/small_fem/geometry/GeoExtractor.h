@@ -1,15 +1,10 @@
 #ifndef _GEOEXTRACTOR_H_
 #define _GEOEXTRACTOR_H_
 
-#include <vector>
-#include <map>
-
-#include "Comparators.h"
+#include "MapElement.h"
+#include "MapVertex.h"
+#include "MapEntity.h"
 #include "GEntity.h"
-#include "MElement.h"
-#include "MVertex.h"
-#include "MEdge.h"
-#include "MFace.h"
 
 /**
    @class GeoExtractor
@@ -29,30 +24,13 @@ class GeoExtractor{
    GeoExtractor(void);
   ~GeoExtractor(void);
 
-  static std::pair<
-    std::map<const MElement*, size_t, ElementComparator>*,
-    std::multimap<int, const MElement*>*
-    >
-    extractElement(const std::vector<GEntity*>& entity);
+  static void elementExtract(const std::vector<GEntity*>& entity,
+                             MapElement& element,
+                             std::multimap<int, const MElement*>& physical);
 
-  static std::map<const MVertex*, size_t, VertexComparator>*
-    extractVertex(const std::map<const MElement*,
-                                 size_t,
-                                 ElementComparator>& element);
-
-  static std::set<const MEdge*, EdgeComparator>*
-    extractEdge(const std::map<const MElement*,
-                               size_t,
-                               ElementComparator>& element);
-
-  static std::set<const MFace*, FaceComparator>*
-    extractFace(const std::map<const MElement*,
-                               size_t,
-                               ElementComparator>& element);
-
- private:
-  static MEdge* copy(const MEdge& edge);
-  static MFace* copy(const MFace& face);
+  static void  vertexExtract(const MapElement& element, MapVertex& vertex);
+  static void    edgeExtract(const MapElement& element, MapEntity& edge);
+  static void    faceExtract(const MapElement& element, MapEntity& face);
 };
 
 
@@ -66,32 +44,43 @@ class GeoExtractor{
    Deletes this GeoExtractor
    **
 
-   @fn GeoExtractor::extractElement
+   @fn GeoExtractor::elementExtract
    @param entity A vector of GEntity
-   @return Returns an std::pair with:
-   @li The first field containing a map with the MElement%s in
-   the given entities (the mapped values are set to zero)
-   @li The second field containing a multimap with the MElement%s
-   of the first field, and the physicals of the MElement%s
+   @param element A MapElement
+   @param physical A map linking a MElement to its physical
+
+   Populates the MapElement with the MElement%s in the given GEntity%s
+   (the mappend value is defaulted to 0).
+
+   Populates the physical map with the MElement%s and
+   the physical tags of the given GEntity%s.
 
    @see
    See <a href="http://www.geuz.org/gmsh">gmsh</a> documentation for physcials
    **
 
-   @fn GeoExtractor::extractVertex
-   @param element A map with MElement%s
-   @return Returns a map with the MVertices in the given MElement%s
-   (the mapped values are set to zero)
+   @fn GeoExtractor::vertexExtract
+   @param element A MapElement
+   @param vertex A MapVertex
+
+   Populate the MapVertex with the MVertex of the MElement
+   in the given MapElement (the mapped values are set to zero)
    **
 
-   @fn GeoExtractor::extractEdge
-   @param element A map with MElement%s
-   @return Returns a set with the MEdge%s in the given MElement%s
+   @fn GeoExtractor::edgeExtract
+   @param element A MapElement
+   @param edge A MapEntity
+
+   Populate the MapEntity with the MEdge of the MElement
+   in the given MapElement (the mapped values are set to zero)
    **
 
-   @fn GeoExtractor::extractFace
-   @param element A map with MElement%s
-   @return Returns a set with the MFace%s in the given MElement%s
+   @fn GeoExtractor::faceExtract
+   @param element A MapElement
+   @param face A MapEntity
+
+   Populate the MapEntity with the MFace of the MElement
+   in the given MapElement (the mapped values are set to zero)
  */
 
 

@@ -1,13 +1,12 @@
 set(src
   Mapper.cpp
+  MapEntity.cpp
+  MapVertex.cpp
+  MapElement.cpp
+  GeoExtractor.cpp
+
   Mesh.cpp
   GroupOfElement.cpp
-
-  GeoExtractor.cpp
-  ElementExtractor.cpp
-  VertexExtractor.cpp
-  EdgeExtractor.cpp
-  FaceExtractor.cpp
 
   GroupOfJacobian.cpp
   Jacobian.cpp
