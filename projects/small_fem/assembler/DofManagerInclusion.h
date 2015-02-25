@@ -144,7 +144,7 @@ void DofManager<scalar>::globalSpace(void){
     // Set current Dof value in LOCAL map
     it->second = find->second;
   }
-
+  /*
   // Dump globalId Space
   int myProc;
   std::stringstream globalNameStream;
@@ -178,7 +178,7 @@ void DofManager<scalar>::globalSpace(void){
     file << "  " << it->first.toString() << ": " << it->second
          << std::endl << std::flush;
   file.close();
-
+  */
   // Total Number of local (and global) unfixed Dof
   nTotUnfixedLocalDof  =    globalIdM.size() -    fixedDof.size();
   nTotUnfixedGlobalDof = allGlobalIdM.size() - allFixedDof.size();
