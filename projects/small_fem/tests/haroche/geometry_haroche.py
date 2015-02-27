@@ -61,15 +61,14 @@ pml.close()
 
 ## Mesh Parameters ##
 #####################
-if(len(sys.argv) != 6):
+if(len(sys.argv) != 5):
     raise ValueError('Bad argument: '
-                     'geometry_haroche air pml mir order partition')
+                     'geometry_haroche air pml mir order')
 
 refinement_air = float(sys.argv[1])
 refinement_pml = float(sys.argv[2])
 refinement_mir = float(sys.argv[3])
 order          =   int(sys.argv[4])
-partition      =   int(sys.argv[5])
 
 paramaille_air  = lambda_haroche / refinement_air
 paramaille_pml  = lambda_haroche / refinement_pml
@@ -81,10 +80,11 @@ paramaille_mir  = lambda_haroche / refinement_mir
 # 2D mesh algorithm (1=MeshAdapt, 2=Automatic, 5=Delaunay, 6=Frontal, 7=bamg, 8=delquad)
 # 3D mesh algorithm (1=Delaunay, 4=Frontal, 5=Frontal Delaunay, 6=Frontal Hex, 7=MMG3D)
 
-GmshSetOption('Mesh', 'Algorithm',    1.0)
-GmshSetOption('Mesh', 'Algorithm3D',  1.0)
-GmshSetOption('General', 'Verbosity', 4.0)
-GmshSetOption('Mesh', 'ElementOrder', float(order))
+GmshSetOption('Mesh'   , 'Algorithm'        , 1.0)
+GmshSetOption('Mesh'   , 'Algorithm3D'      , 1.0)
+GmshSetOption('Mesh'   , 'HighOrderOptimize', 1.0)
+GmshSetOption('Mesh'   , 'ElementOrder'     , float(order))
+GmshSetOption('General', 'Verbosity'        , 4.0)
 
 
 ## Geomtrical Model ##
@@ -195,11 +195,6 @@ meshName = 'haroche'                         + \
            '_mir_%d'         %refinement_mir + '.msh'
 
 myModel4.mesh(3)
-
-partitionOpt = meshPartitionOptions()
-partitionOpt.setNumOfPartitions(partition)
-PartitionMesh(myModel4, partitionOpt)
-
 myModel4.save(meshName)
 myModel4.save(brepName)
 
@@ -211,4 +206,15 @@ print('  ** Air      : ' + str(refinement_air))
 print('  ** PML      : ' + str(refinement_pml))
 print('  ** Mirror   : ' + str(refinement_mir))
 print('  ** Order    : ' + str(order))
-print('  ** Partition: ' + str(partition))
+
+## Dump on disk
+log = open('mesh.log' ,'w')
+
+log.write('Data used: \n')
+log.write('  ** Air      : ' + str(refinement_air) + '\n')
+log.write('  ** PML      : ' + str(refinement_pml) + '\n')
+log.write('  ** Mirror   : ' + str(refinement_mir) + '\n')
+log.write('  ** Order    : ' + str(order)          + '\n')
+
+os.fsync(log)
+log.close()
