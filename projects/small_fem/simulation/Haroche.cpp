@@ -376,6 +376,16 @@ void compute(const Options& option){
     cout << " ** Process " << i << ": " << alVmPeak[i] << " MB"
          << endl << flush;
 
+  // Give max peak VMem accross all processes //
+  int maxIdx = 0;
+  for(int i = 1; i < nProcs; i++)
+    if(alVmPeak[maxIdx] < alVmPeak[i])
+      maxIdx = i;
+
+  cout << "Maximum Peak VM accross MPI processes:" << endl
+       << " ** Process " << maxIdx << ": " << alVmPeak[maxIdx] << " MB"
+       << endl << flush;
+
   // Game over! //
   delete   Air;
   delete   PMLx;
