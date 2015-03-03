@@ -365,23 +365,32 @@ void compute(const Options& option){
     feSol.write("harocheModes");
   }
 
-  // Game over! //
-  delete Air;
-  delete PMLx;
-  delete PMLxy;
-  delete PMLy;
-  delete PMLz;
-  delete PMLxyz;
-  delete PMLxz;
-  delete PMLyz;
-  delete Mirror;
-  delete SurfYZ;
-  delete SurfXZ;
-  delete SurfXY;
-  delete OutPML;
-
   // Give peak virtual memory //
-  cout << "Process " << myProc << " peak VM: " << getPeakMemory() << endl;
+  double  myVmPeak = getPeakMemory();
+  double* alVmPeak = new double[nProcs];
+
+  MPI_Allgather(&myVmPeak,1,MPI_DOUBLE, alVmPeak,1,MPI_DOUBLE, MPI_COMM_WORLD);
+
+  cout << "Peak VM:" << endl << flush;
+  for(int i = 0; i < nProcs; i++)
+    cout << " ** Process " << i << ": " << alVmPeak[i] << " MB"
+         << endl << flush;
+
+  // Game over! //
+  delete   Air;
+  delete   PMLx;
+  delete   PMLxy;
+  delete   PMLy;
+  delete   PMLz;
+  delete   PMLxyz;
+  delete   PMLxz;
+  delete   PMLyz;
+  delete   Mirror;
+  delete   SurfYZ;
+  delete   SurfXZ;
+  delete   SurfXY;
+  delete   OutPML;
+  delete[] alVmPeak;
 }
 
 int main(int argc, char** argv){

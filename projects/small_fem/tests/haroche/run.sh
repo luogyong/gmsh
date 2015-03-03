@@ -1,4 +1,4 @@
-MESH="haroche_geoorder_2_air_5_pml_5_mir_5.msh"
+MESH="haroche_geoorder_2_air_5_pml_5_mir_5_part_4.msh"
 PROCS="4"
 ORDER="2"
 NEIG="4"
