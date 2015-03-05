@@ -357,14 +357,26 @@ void SystemEigen::solve(void){
   EPSSetType(solver, "krylovschur");
 
   EPSGetST(solver, &st);
-  STSetType(st, STSINVERT);
+  STSetType(st, "sinvert");
   STGetKSP(st, &ksp);
+
+  STSetMatMode(st, ST_MATMODE_INPLACE);
+  PetscOptionsSetValue("-mat_mumps_icntl_28", "2"); // MUMPS Parallel analysis
+  PetscOptionsSetValue("-mat_mumps_icntl_7",  "5"); // METIS: no meaning since 2
+  PetscOptionsSetValue("-mat_mumps_icntl_29", "2"); // ParMETIS
 
   KSPSetType(ksp, "preonly");
   KSPGetPC(ksp, &pc);
   PCSetType(pc, "lu");
   PCFactorSetMatSolverPackage(pc, "mumps");
-
+  /*
+  KSPSetType(ksp, "fgmres");
+  //KSPGMRESSetRestart(ksp, 300);
+  KSPSetTolerances(ksp, 1e-3, PETSC_DEFAULT, PETSC_DEFAULT, 1000);
+  KSPMonitorSet(ksp, KSPMonitorTrueResidualNorm, NULL, NULL);
+  KSPGetPC(ksp, &pc);
+  PCSetType(pc, "jacobi");
+  */
   // Override with PETSc Database //
   EPSSetFromOptions(solver);
   STSetFromOptions(st);
