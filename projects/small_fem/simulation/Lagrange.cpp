@@ -3,7 +3,7 @@
 #include "Mesh.h"
 #include "System.h"
 
-#include "FormulationSommerfeld.h"
+#include "FormulationSilverMuller.h"
 #include "FormulationSteadyWave.h"
 #include "FormulationLagrange.h"
 
@@ -47,13 +47,13 @@ void compute(const Options& option){
   FunctionSpaceScalar lfs(domain, order);
 
   FormulationSteadyWave<complex<double> > wave(volume, fs, k);
-  FormulationSommerfeld          sommerfeld(freeSpace, fs, k);
+  FormulationSilverMuller         silverMuller(freeSpace, fs, k);
   FormulationLagrange  lagrange(source, fs, lfs, fSourceReal);
 
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
-  sys.addFormulation(sommerfeld);
+  sys.addFormulation(silverMuller);
   sys.addFormulation(lagrange);
 
   cout << "Free Space Lagrange contrainted (Order: "  << order

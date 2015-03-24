@@ -2,7 +2,7 @@ set(src
   FormulationHelper.cpp
 
   FormulationPoisson.cpp
-  FormulationSommerfeld.cpp
+  FormulationSilverMuller.cpp
   FormulationSteadySlow.cpp
   FormulationPML.cpp
 

@@ -9,20 +9,20 @@
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
 
-#include "FormulationSommerfeld.h"
+#include "FormulationSilverMuller.h"
 
 using namespace std;
 
 
-FormulationSommerfeld::FormulationSommerfeld(const GroupOfElement& domain,
-                                             const FunctionSpace& fs,
-                                             double k){
+FormulationSilverMuller::FormulationSilverMuller(const GroupOfElement& domain,
+                                                 const FunctionSpace& fs,
+                                                 double k){
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
 
   if(!uniform.first)
-    throw Exception("FormulationSommerfeld needs a uniform mesh");
+    throw Exception("FormulationSilverMuller needs a uniform mesh");
 
   // Save Domain //
   goe = &domain;
@@ -53,31 +53,31 @@ FormulationSommerfeld::FormulationSommerfeld(const GroupOfElement& domain,
   }
 }
 
-FormulationSommerfeld::~FormulationSommerfeld(void){
+FormulationSilverMuller::~FormulationSilverMuller(void){
   delete localTerms;
 }
 
-Complex FormulationSommerfeld::
+Complex FormulationSilverMuller::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
   return Complex(0, -1 * k * localTerms->getTerm(dofI, dofJ, elementId));
 }
 
-Complex FormulationSommerfeld::rhs(size_t equationI, size_t elementId) const{
+Complex FormulationSilverMuller::rhs(size_t equationI, size_t elementId) const{
   return Complex(0, 0);
 }
 
-const FunctionSpace& FormulationSommerfeld::field(void) const{
+const FunctionSpace& FormulationSilverMuller::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationSommerfeld::test(void) const{
+const FunctionSpace& FormulationSilverMuller::test(void) const{
   return *fspace;
 }
 
-const GroupOfElement& FormulationSommerfeld::domain(void) const{
+const GroupOfElement& FormulationSilverMuller::domain(void) const{
   return *goe;
 }
 
-bool FormulationSommerfeld::isBlock(void) const{
+bool FormulationSilverMuller::isBlock(void) const{
   return true;
 }

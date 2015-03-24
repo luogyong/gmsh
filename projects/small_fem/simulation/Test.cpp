@@ -20,7 +20,7 @@
 #include "System.h"
 #include "SystemHelper.h"
 
-#include "FormulationSommerfeld.h"
+#include "FormulationSilverMuller.h"
 #include "FormulationEMDA.h"
 #include "FormulationProjection.h"
 

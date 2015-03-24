@@ -21,7 +21,7 @@
 #include "FormulationOSRCVector.h"
 
 #include "FormulationDummy.h"
-#include "FormulationSommerfeld.h"
+#include "FormulationSilverMuller.h"
 #include "FormulationSteadyWave.h"
 
 #include "FormulationUpdateEMDA.h"
@@ -237,12 +237,12 @@ void compute(const Options& option){
 
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, *fs, k);
-  Formulation<Complex>*          sommerfeld;
+  Formulation<Complex>*          silverMuller;
 
   if(myProc == nProcs - 1)
-    sommerfeld = new FormulationSommerfeld(infinity, *fs, k);
+    silverMuller = new FormulationSilverMuller(infinity, *fs, k);
   else
-    sommerfeld = new FormulationDummy<Complex>;
+    silverMuller = new FormulationDummy<Complex>;
 
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
@@ -313,7 +313,7 @@ void compute(const Options& option){
 
   System<Complex>* nonHomogenous = new System<Complex>;
   nonHomogenous->addFormulation(wave);
-  nonHomogenous->addFormulation(*sommerfeld);
+  nonHomogenous->addFormulation(*silverMuller);
   nonHomogenous->addFormulation(*ddm);
 
   // Constraint
@@ -347,7 +347,7 @@ void compute(const Options& option){
   cout << "Solving DDM problem" << endl << flush;
 
   SolverDDM* solver =
-    new SolverDDM(wave, *sommerfeld, *context, *ddm, *upDdm, rhsG);
+    new SolverDDM(wave, *silverMuller, *context, *ddm, *upDdm, rhsG);
 
   try{
     // Construct iteration operator
@@ -377,7 +377,7 @@ void compute(const Options& option){
 
   System<Complex> full;
   full.addFormulation(wave);
-  full.addFormulation(*sommerfeld);
+  full.addFormulation(*silverMuller);
   full.addFormulation(*ddm);
 
   // Constraint
@@ -476,7 +476,7 @@ void compute(const Options& option){
   delete ddm;
   delete upDdm;
   delete context;
-  delete sommerfeld;
+  delete silverMuller;
   delete fs;
   delete fG;
 

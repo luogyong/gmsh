@@ -3,7 +3,7 @@
 #include "SystemHelper.h"
 #include "Interpolator.h"
 #include "FormulationHelper.h"
-#include "FormulationSommerfeld.h"
+#include "FormulationSilverMuller.h"
 #include "FormulationSteadyWave.h"
 
 #include <iostream>
@@ -27,29 +27,49 @@ Complex fZeroScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  const Complex I = Complex(0, 1);
+  const Complex I  = Complex(0, 1);
+  const double  Pi = M_PI;
+  const double  x = xyz(0);
+  const double  y = xyz(1);
+  const double  z = xyz(2);
 
-  const double ky = 1 * M_PI / 1;
-  const double kz = 1 * M_PI / 1;
-  const double kc = sqrt((ky * ky) + (kz * kz));
+  const Complex E0 = Complex(1, 0);
+  const double  a  = 1;
+  const double  b  = 1;
+  const int     m  = 1;
+  const int     n  = 3;
 
-  Complex beta;
-  if((k * k) - (kc * kc) >= 0)
-    beta = Complex(sqrt((k * k) - (kc * kc)), 0);
-
-  else
-    beta = Complex(0, -1 * sqrt((kc * kc) - (k * k)));
-
-  fullVector<Complex> tmp(3);
-
-  tmp(0) = Complex(                    sin(ky * xyz(1)) * sin(kz * xyz(2)),0);
-  tmp(1) = I * beta * ky / (kc * kc) * cos(ky * xyz(1)) * sin(kz * xyz(2));
-  tmp(2) = I * beta * kz / (kc * kc) * cos(kz * xyz(2)) * sin(ky * xyz(1));
+  const Complex ky = Complex(m * Pi / a, 0);
+  const Complex kz = Complex(n * Pi / b, 0);
+  const Complex kx_2d = sqrt(Complex(k * k, 0) - (ky * ky));
+  const Complex kx_3d = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
   /*
+  // TEM 2D
+  fullVector<Complex> tmp(3);
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0);
+  tmp(1) = E0;
   tmp(2) = Complex(0, 0);
   */
+  /*
+  // TMm 2D
+  fullVector<Complex> tmp(3);
+  tmp(0) = E0 * I * ky    / k * sin(ky * y);
+  tmp(1) = E0 *     kx_2d / k * cos(ky * y);
+  tmp(2) = Complex(0, 0);
+  */
+  /*
+  // TEm0 3D
+  fullVector<Complex> tmp(3);
+  tmp(0) = Complex(0, 0);
+  tmp(1) = Complex(0, 0);
+  tmp(2) = E0 * sin(ky * y);
+  */
+  // TEmn 3D
+  fullVector<Complex> tmp(3);
+  tmp(0) = Complex(0, 0);
+  tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
+  tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
+
   return tmp;
 }
 
@@ -117,13 +137,13 @@ void compute(const Options& option){
     fs = new FunctionSpaceVector(domain, order);
 
   // Steady Wave Formulation //
-  FormulationSteadyWave<Complex> wave(volume,   *fs, k);
-  FormulationSommerfeld    sommerfeld(infinity, *fs, k);
+  FormulationSteadyWave<Complex>  wave(volume,   *fs, k);
+  FormulationSilverMuller silverMuller(infinity, *fs, k);
 
   // Solve //
   System<Complex> system;
   system.addFormulation(wave);
-  system.addFormulation(sommerfeld);
+  system.addFormulation(silverMuller);
 
   // Constraint
   if(fs->isScalar()){

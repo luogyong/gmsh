@@ -4,7 +4,7 @@
 #include "Interpolator.h"
 
 #include "FormulationHelper.h"
-#include "FormulationSommerfeld.h"
+#include "FormulationSilverMuller.h"
 #include "FormulationSteadyWave.h"
 
 #include <iostream>
@@ -100,12 +100,12 @@ void compute(const Options& option){
 
   // Steady Wave Formulation //
   FormulationSteadyWave<Complex> wave(volume, *fs, k);
-  FormulationSommerfeld  sommerfeld(infinity, *fs, k);
+  FormulationSilverMuller silverMuller(infinity, *fs, k);
 
   // Solve //
   System<Complex> system;
   system.addFormulation(wave);
-  system.addFormulation(sommerfeld);
+  system.addFormulation(silverMuller);
 
   // Constraint
   if(fs->isScalar())

@@ -5,7 +5,7 @@
 #include "SystemHelper.h"
 
 #include "FormulationSteadyWave.h"
-#include "FormulationSommerfeld.h"
+#include "FormulationSilverMuller.h"
 
 #include <iostream>
 #include <complex>
@@ -104,12 +104,12 @@ void compute(const Options& option){
 
   // Formulation //
   FormulationSteadyWave<complex<double> > wave(volume, *fs, k);
-  FormulationSommerfeld                   sommerfeld(freeSpace, *fs, k);
+  FormulationSilverMuller                 silverMuller(freeSpace, *fs, k);
 
   // System //
   System<complex<double> > sys;
   sys.addFormulation(wave);
-  sys.addFormulation(sommerfeld);
+  sys.addFormulation(silverMuller);
 
   // Dirichlet //
   if(type == scal)

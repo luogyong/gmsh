@@ -1,5 +1,5 @@
-#ifndef _FORMULATIONSOMMERFELD_H_
-#define _FORMULATIONSOMMERFELD_H_
+#ifndef _FORMULATIONSILVERMULLER_H_
+#define _FORMULATIONSILVERMULLER_H_
 
 #include "SmallFem.h"
 #include "Term.h"
@@ -7,13 +7,13 @@
 #include "FormulationBlock.h"
 
 /**
-   @class FormulationSommerfeld
-   @brief Sommerfeld radiation formulation
+   @class FormulationSilverMuller
+   @brief Silver-Muller radiation formulation
 
-   Weak formulation for the Sommerfeld radiation condition
+   Weak formulation for the Silver-Muller radiation condition
  */
 
-class FormulationSommerfeld: public FormulationBlock<Complex>{
+class FormulationSilverMuller: public FormulationBlock<Complex>{
  private:
   // Wavenumber //
   double k;
@@ -26,11 +26,11 @@ class FormulationSommerfeld: public FormulationBlock<Complex>{
   Term<double>* localTerms;
 
  public:
-  FormulationSommerfeld(const GroupOfElement& domain,
-                        const FunctionSpace& fs,
-                        double k);
+  FormulationSilverMuller(const GroupOfElement& domain,
+                          const FunctionSpace& fs,
+                          double k);
 
-  virtual ~FormulationSommerfeld(void);
+  virtual ~FormulationSilverMuller(void);
 
   virtual Complex weak(size_t dofI, size_t dofJ, size_t elementId) const;
   virtual Complex rhs(size_t equationI, size_t elementId)          const;
@@ -43,16 +43,16 @@ class FormulationSommerfeld: public FormulationBlock<Complex>{
 };
 
 /**
-   @fn FormulationSommerfeld::FormulationSommerfeld
+   @fn FormulationSilverMuller::FormulationSilverMuller
    @param domain A GroupOfElement for the domain
    @param fs A FunctionSpace for both the unknown and test field
    @param k A real number
 
-   Instantiates a new FormulationSommerfeld with wavenumber k
+   Instantiates a new FormulationSilverMuller with wavenumber k
    **
 
-   @fn FormulationSommerfeld::~FormulationSommerfeld
-   Deletes this FormulationSommerfeld
+   @fn FormulationSilverMuller::~FormulationSilverMuller
+   Deletes this FormulationSilverMuller
 */
 
 #endif
