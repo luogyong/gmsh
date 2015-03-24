@@ -3,6 +3,7 @@
 #include "SystemHelper.h"
 #include "Interpolator.h"
 #include "FormulationHelper.h"
+#include "FormulationImpedance.h"
 #include "FormulationSilverMuller.h"
 #include "FormulationSteadyWave.h"
 
@@ -37,7 +38,7 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   const double  a  = 1;
   const double  b  = 1;
   const int     m  = 1;
-  const int     n  = 3;
+  const int     n  = 1;
 
   const Complex ky = Complex(m * Pi / a, 0);
   const Complex kz = Complex(n * Pi / b, 0);
@@ -103,6 +104,7 @@ void compute(const Options& option){
   const size_t nDom  = atoi(option.getValue("-n")[1].c_str());
   k                  = atof(option.getValue("-k")[1].c_str());
   const size_t order = atoi(option.getValue("-o")[1].c_str());
+  const double sigma = atof(option.getValue("-sigma")[1].c_str());
 
   cout << "Wavenumber: " << k     << endl
        << "Order:      " << order << endl
@@ -137,13 +139,17 @@ void compute(const Options& option){
     fs = new FunctionSpaceVector(domain, order);
 
   // Steady Wave Formulation //
+  const double    Z0 = 119.9169832 * M_PI;
+  const Complex epsr(1, 1 / k * Z0 * sigma);
+  const Complex  mur(1, 0);
+
   FormulationSteadyWave<Complex>  wave(volume,   *fs, k);
-  FormulationSilverMuller silverMuller(infinity, *fs, k);
+  FormulationImpedance       impedance(infinity, *fs, k, epsr, mur);
 
   // Solve //
   System<Complex> system;
   system.addFormulation(wave);
-  system.addFormulation(silverMuller);
+  system.addFormulation(impedance);
 
   // Constraint
   if(fs->isScalar()){
@@ -222,7 +228,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-n,-type,-interp,-name,-nopos,");
+  SmallFem::Keywords("-msh,-o,-k,-n,-sigma,-type,-interp,-name,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

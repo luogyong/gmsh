@@ -2,6 +2,7 @@ set(src
   FormulationHelper.cpp
 
   FormulationPoisson.cpp
+  FormulationImpedance.cpp
   FormulationSilverMuller.cpp
   FormulationSteadySlow.cpp
   FormulationPML.cpp
