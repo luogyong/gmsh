@@ -64,7 +64,8 @@ class PML{
   static double kHaroche;
 
  public:
-  static void read(std::string filename);
+  static void   read(std::string filename);
+  static double getK(void);
 
  private:
   static Complex dampingX(fullVector<double>& xyz);

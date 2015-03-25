@@ -17,16 +17,16 @@ typedef FormulationStiffness<Complex> FStif;
 typedef FormulationMass<Complex>      FMass;
 
 void dump(string filename, fullVector<Complex>& eig){
-  FILE* file = fopen(filename.c_str(), "w");
-  double pi  = 4 * atan(1);
+  const double Pi = 4 * atan(1);
+  FILE*      file = fopen(filename.c_str(), "w");
 
   fprintf(file, "Eig\tReal(Omega^2)\tImag(Omega^2)\tf[MHz]\tt[ms]\n");
   for(int i = 0; i < eig.size(); i++)
     fprintf(file, "%d:\t%.16e\t%.16e\t%.16e\t%.16e\n",
             i,
             eig(i).real(), eig(i).imag(),
-            sqrt(eig(i)).real()  / (2 * pi) * 1e-9,
-            1.0 / (sqrt(eig(i)).imag() / (2 * pi)) * 1e3);
+            sqrt(eig(i)).real()  / (2 * Pi) * 1e-9,
+            1.0 / (sqrt(eig(i)).imag() / (2 * Pi)) * 1e3);
 
   fclose(file);
 }
@@ -66,6 +66,19 @@ fullVector<Complex> fZero(fullVector<double>& xyz){
   return f;
 }
 
+void fImpedance(fullVector<double>& xyz, fullMatrix<Complex>& a){
+  const double       Pi = 4 * atan(1);      // Pi
+  const double       Z0 = 119.9169832 * Pi; // Air impedance
+  const double    sigma = 5.96e7;           // Copper conductivity (S/m)
+  const double        k = PML::getK();      // Harcohe wavenumber
+  const Complex       I = Complex(0, 1);    // Imaginary number
+  const Complex     imp = -I/k * std::sqrt(Complex(1, 0) + I/k * Z0 * sigma);
+
+  a(0, 0) = imp; a(0, 1) = 0;   a(0, 2) = 0;
+  a(1, 0) = 0;   a(1, 1) = imp; a(1, 2) = 0;
+  a(2, 0) = 0;   a(2, 1) = 0;   a(2, 2) = imp;
+}
+
 void compute(const Options& option){
   // MPI std::cout //
   MPIOStream cout(0, std::cout);
@@ -88,6 +101,7 @@ void compute(const Options& option){
   GroupOfElement* PMLxy;
   GroupOfElement* PMLy;
   GroupOfElement* Mirror;
+  GroupOfElement* Frame;
   GroupOfElement* LineOY;
   GroupOfElement* OutPML;
 
@@ -97,6 +111,7 @@ void compute(const Options& option){
     PMLxy  = new GroupOfElement(msh.getFromPhysical(2000, myProc + 1));
     PMLy   = new GroupOfElement(msh.getFromPhysical(3000, myProc + 1));
     Mirror = new GroupOfElement(msh.getFromPhysical( 103, myProc + 1));
+    Frame  = new GroupOfElement(msh.getFromPhysical( 105, myProc + 1));
     LineOY = new GroupOfElement(msh.getFromPhysical( 101, myProc + 1));
     OutPML = new GroupOfElement(msh.getFromPhysical( 104, myProc + 1));
   }
@@ -107,32 +122,29 @@ void compute(const Options& option){
     PMLxy  = new GroupOfElement(msh.getFromPhysical(2000));
     PMLy   = new GroupOfElement(msh.getFromPhysical(3000));
     Mirror = new GroupOfElement(msh.getFromPhysical( 103));
+    Frame  = new GroupOfElement(msh.getFromPhysical( 105));
     LineOY = new GroupOfElement(msh.getFromPhysical( 101));
     OutPML = new GroupOfElement(msh.getFromPhysical( 104));
   }
 
   // Full Domain
-  vector<const GroupOfElement*> All_domains(7);
+  vector<const GroupOfElement*> All_domains(8);
   All_domains[0] = Air;
   All_domains[1] = PMLx;
   All_domains[2] = PMLxy;
   All_domains[3] = PMLy;
   All_domains[4] = Mirror;
-  All_domains[5] = LineOY;
-  All_domains[6] = OutPML;
-
-  // True Domain
-  vector<const GroupOfElement*> True_domains(3);
-  True_domains[0] = Air;
-  True_domains[1] = Mirror;
-  True_domains[2] = LineOY;
+  All_domains[5] = Frame;
+  All_domains[6] = LineOY;
+  All_domains[7] = OutPML;
 
   // FunctionSpace //
   cout << "FunctionSpace... " << endl << flush;
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   FunctionSpaceVector fs(All_domains, order);
 
-  // Formulation //
+  // Formulations //
+  // Volume
   cout << "Formulations... " << endl << flush;
   Formulation<Complex>* stifAir;
   Formulation<Complex>* stifXY;
@@ -165,6 +177,9 @@ void compute(const Options& option){
   massX   = new FMass(*PMLx,  fs, fs);
   massY   = new FMass(*PMLy,  fs, fs);
 
+  // Impedance boundary condition
+  Formulation<Complex>* impedance = new FMass(*Frame, fs, fs, fImpedance);
+
   // System //
   cout << "System... " << endl << flush;
   SystemEigen sys;
@@ -179,9 +194,12 @@ void compute(const Options& option){
   sys.addFormulationB(*massX);
   sys.addFormulationB(*massY);
 
+  sys.addFormulationB(*impedance);
+
   // Dirichlet //
   cout << "Dirichlet... " << endl << flush;
   SystemHelper<Complex>::dirichlet(sys, fs, *Mirror, fZero);
+  //SystemHelper<Complex>::dirichlet(sys, fs, *Frame , fZero);
   SystemHelper<Complex>::dirichlet(sys, fs, *LineOY, fZero);
   SystemHelper<Complex>::dirichlet(sys, fs, *OutPML, fZero);
 
@@ -199,6 +217,8 @@ void compute(const Options& option){
   delete massXY;
   delete massX;
   delete massY;
+
+  delete impedance;
 
   // Solve //
   // Set number of eigenvalue (if any, else default)
@@ -237,8 +257,8 @@ void compute(const Options& option){
   }
 
   // Do what you have to do !
-  sys.setProblem("pos_gen_non_hermitian");
-  //sys.setProblem("gen_non_hermitian");
+  //sys.setProblem("pos_gen_non_hermitian");
+  sys.setProblem("gen_non_hermitian");
 
   cout << "Solving: " << sys.getSize() << "..." << endl << flush;
   sys.solve();
@@ -289,6 +309,7 @@ void compute(const Options& option){
   delete PMLxy;
   delete PMLy;
   delete Mirror;
+  delete Frame;
   delete LineOY;
   delete OutPML;
 

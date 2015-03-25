@@ -29,6 +29,10 @@ void PML::read(string filename){
   stream.close();
 }
 
+double PML::getK(void){
+  return kHaroche;
+}
+
 Complex PML::dampingX(fullVector<double>& xyz){
   double        f = Xmax + SizeX - fabs(xyz(0));
   double oneOverF = 1 / (f) - 1 / (SizeX);

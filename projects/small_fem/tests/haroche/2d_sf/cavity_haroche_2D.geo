@@ -51,13 +51,14 @@ Line  Loop(23)    = {3, 14, -6, -12};
 Plane Surface(24) = {23};
 
 // Physicals
-Physical Line(101)     = {1, 2, 3};          // OY
-Physical Line(103)     = {16};//, 4, 11};    // Dirichel
-Physical Line(104)     = {7, 8, 14, 15};     // Outer PML
-Physical Surface(1000) = {20};               // PML_X
-Physical Surface(2000) = {22};               // PML_XY
-Physical Surface(3000) = {24};               // PML_Y
-Physical Surface(4000) = {18};               // Air
+Physical Line(101)     = {1, 2, 3};       // OY
+Physical Line(103)     = {16};            // Mirror
+Physical Line(104)     = {7, 8, 14, 15};  // Outer PML
+Physical Line(105)     = {4, 11};         // Frame
+Physical Surface(1000) = {20};            // PML_X
+Physical Surface(2000) = {22};            // PML_XY
+Physical Surface(3000) = {24};            // PML_Y
+Physical Surface(4000) = {18};            // Air
 
 // Display
 BoundingBox {0, box_x + pml_x, 0, box_y + pml_y, 0, 0};
