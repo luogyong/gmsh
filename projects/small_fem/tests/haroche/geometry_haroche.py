@@ -12,7 +12,7 @@ mm = 1.e-3
 nm = 1.e-9
 
 ## Speed of light
-epsilon0 = 8.854187817e-3 * nm
+epsilon0 = 8.854187817e-3  * nm
 mu0      = 400. * numpy.pi * nm
 c        = 1.0 / (numpy.sqrt(epsilon0 * mu0))
 
@@ -179,8 +179,8 @@ myModel4.getFaceByTag(32).addPhysicalEntity(150)   # Outer PML
 myModel4.getFaceByTag(33).addPhysicalEntity(150)   # Outer PML
 
 myModel4.getFaceByTag(36).addPhysicalEntity(148)   # Mirror
-#myModel4.getFaceByTag(37).addPhysicalEntity(148)   # Mirror
-#myModel4.getFaceByTag(38).addPhysicalEntity(148)   # Mirror
+myModel4.getFaceByTag(37).addPhysicalEntity(151)   # Frame
+myModel4.getFaceByTag(38).addPhysicalEntity(151)   # Frame
 
 myModel4.getVertexByTag(1).addPhysicalEntity(1000000) # Dummy point for GetDP
 

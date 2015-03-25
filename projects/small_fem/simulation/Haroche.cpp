@@ -17,16 +17,16 @@ typedef FormulationStiffness<Complex> FStif;
 typedef FormulationMass<Complex>      FMass;
 
 void dump(string filename, fullVector<Complex>& eig){
-  FILE* file = fopen(filename.c_str(), "w");
-  double pi  = 4 * atan(1);
+  const double Pi = 4 * atan(1);
+  FILE*      file = fopen(filename.c_str(), "w");
 
   fprintf(file, "Eig\tReal(Omega^2)\tImag(Omega^2)\tf[MHz]\tt[ms]\n");
   for(int i = 0; i < eig.size(); i++)
     fprintf(file, "%d:\t%.16e\t%.16e\t%.16e\t%.16e\n",
             i,
             eig(i).real(), eig(i).imag(),
-            sqrt(eig(i)).real()  / (2 * pi) * 1e-9,
-            1.0 / (sqrt(eig(i)).imag() / (2 * pi)) * 1e3);
+            sqrt(eig(i)).real()  / (2 * Pi) * 1e-9,
+            1.0 / (sqrt(eig(i)).imag() / (2 * Pi)) * 1e3);
 
   fclose(file);
 }
@@ -39,7 +39,7 @@ double getPeakMemory(void){
 
   // Is open ? //
   if(!stream.is_open())
-    throw Exception("Haroche2D: cannot open /proc/self/status for VmPeak");
+    throw Exception("Haroche: cannot open /proc/self/status for VmPeak");
 
   // Look for "VmPeak:" //
   stream >> tmp;
@@ -64,6 +64,19 @@ fullVector<Complex> fZero(fullVector<double>& xyz){
   f(2) = Complex(0, 0);
 
   return f;
+}
+
+void fImpedance(fullVector<double>& xyz, fullMatrix<Complex>& a){
+  const double       Pi = 4 * atan(1);      // Pi
+  const double       Z0 = 119.9169832 * Pi; // Air impedance
+  const double    sigma = 5.96e7;           // Copper conductivity (S/m)
+  const double        k = PML::getK();      // Harcohe wavenumber
+  const Complex       I = Complex(0, 1);    // Imaginary number
+  const Complex     imp = -I/k * std::sqrt(Complex(1, 0) + I/k * Z0 * sigma);
+
+  a(0, 0) = imp; a(0, 1) = 0;   a(0, 2) = 0;
+  a(1, 0) = 0;   a(1, 1) = imp; a(1, 2) = 0;
+  a(2, 0) = 0;   a(2, 1) = 0;   a(2, 2) = imp;
 }
 
 void compute(const Options& option){
@@ -92,6 +105,7 @@ void compute(const Options& option){
   GroupOfElement* PMLxz;
   GroupOfElement* PMLyz;
   GroupOfElement* Mirror;
+  GroupOfElement* Frame;
   GroupOfElement* SurfYZ;
   GroupOfElement* SurfXZ;
   GroupOfElement* SurfXY;
@@ -107,6 +121,7 @@ void compute(const Options& option){
     PMLxz  = new GroupOfElement(msh.getFromPhysical(144, myProc + 1));
     PMLyz  = new GroupOfElement(msh.getFromPhysical(145, myProc + 1));
     Mirror = new GroupOfElement(msh.getFromPhysical(148, myProc + 1));
+    Frame  = new GroupOfElement(msh.getFromPhysical(151, myProc + 1));
     SurfYZ = new GroupOfElement(msh.getFromPhysical(147, myProc + 1));
     SurfXZ = new GroupOfElement(msh.getFromPhysical(146, myProc + 1));
     SurfXY = new GroupOfElement(msh.getFromPhysical(149, myProc + 1));
@@ -123,6 +138,7 @@ void compute(const Options& option){
     PMLxz  = new GroupOfElement(msh.getFromPhysical(144));
     PMLyz  = new GroupOfElement(msh.getFromPhysical(145));
     Mirror = new GroupOfElement(msh.getFromPhysical(148));
+    Frame  = new GroupOfElement(msh.getFromPhysical(151));
     SurfYZ = new GroupOfElement(msh.getFromPhysical(147));
     SurfXZ = new GroupOfElement(msh.getFromPhysical(146));
     SurfXY = new GroupOfElement(msh.getFromPhysical(149));
@@ -130,7 +146,7 @@ void compute(const Options& option){
   }
 
   // Full Domain
-  vector<const GroupOfElement*> All_domains(13);
+  vector<const GroupOfElement*> All_domains(14);
   All_domains[0]  = Air;
   All_domains[1]  = PMLx;
   All_domains[2]  = PMLxy;
@@ -140,10 +156,11 @@ void compute(const Options& option){
   All_domains[6]  = PMLxz;
   All_domains[7]  = PMLyz;
   All_domains[8]  = Mirror;
-  All_domains[9]  = SurfYZ;
-  All_domains[10] = SurfXZ;
-  All_domains[11] = SurfXY;
-  All_domains[12] = OutPML;
+  All_domains[9]  = Frame;
+  All_domains[10] = SurfYZ;
+  All_domains[11] = SurfXZ;
+  All_domains[12] = SurfXY;
+  All_domains[13] = OutPML;
 
   // Full Surface
   vector<const GroupOfElement*> All_surfaces(4);
@@ -157,7 +174,8 @@ void compute(const Options& option){
   const size_t order = atoi(option.getValue("-o")[1].c_str());
   FunctionSpaceVector fs(All_domains, order);
 
-  // Formulation //
+  // Formulations //
+  // Volume
   cout << "Formulations... " << endl << flush;
   Formulation<Complex>* stifAir;
   Formulation<Complex>* stifXYZ;
@@ -214,6 +232,9 @@ void compute(const Options& option){
   massY   = new FMass(*PMLy,   fs, fs);
   massZ   = new FMass(*PMLz,   fs, fs);
 
+  // Impedance boundary condition
+  Formulation<Complex>* impedance = new FMass(*Frame, fs, fs, fImpedance);
+
   // System //
   cout << "System... " << endl << flush;
   SystemEigen sys;
@@ -236,10 +257,13 @@ void compute(const Options& option){
   sys.addFormulationB(*massY);
   sys.addFormulationB(*massZ);
 
+  sys.addFormulationB(*impedance);
+
   // Dirichlet //
   // Mirror & PML
   cout << "Dirichlet... " << endl << flush;
   SystemHelper<Complex>::dirichlet(sys, fs, *Mirror, fZero);
+  //SystemHelper<Complex>::dirichlet(sys, fs, *Frame , fZero);
   SystemHelper<Complex>::dirichlet(sys, fs, *OutPML, fZero);
 
   // Symmetry
@@ -282,6 +306,8 @@ void compute(const Options& option){
   delete massY;
   delete massZ;
 
+  delete impedance;
+
   // Solve //
   // Set number of eigenvalue (if any, else default)
   try{
@@ -319,8 +345,8 @@ void compute(const Options& option){
   }
 
   // Do what you have to do !
-  sys.setProblem("pos_gen_non_hermitian");
-  //sys.setProblem("gen_non_hermitian");
+  //sys.setProblem("pos_gen_non_hermitian");
+  sys.setProblem("gen_non_hermitian");
 
   cout << "Solving: " << sys.getSize() << "..." << endl << flush;
   sys.solve();
@@ -396,6 +422,7 @@ void compute(const Options& option){
   delete   PMLxz;
   delete   PMLyz;
   delete   Mirror;
+  delete   Frame;
   delete   SurfYZ;
   delete   SurfXZ;
   delete   SurfXY;
