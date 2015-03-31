@@ -138,7 +138,7 @@ void SolverDDM::solve(int nStep){
   KSPDestroy(&solver);
 }
 
-void SolverDDM::constructIterationMatrix(string name, string filename){
+void SolverDDM::constructIterationMatrix(Mat* I){
   // Tell //
   MPIOStream cout(0, std::cout);
   cout << "  " << "SolverDDM::constructIterationMatrix" << endl
@@ -193,21 +193,19 @@ void SolverDDM::constructIterationMatrix(string name, string filename){
   // |     pn     |                                                        //
   // +--+--+---+--+                                                        //
   ///////////////////////////////////////////////////////////////////////////
-
-  Mat I;
-  MatCreateDense(PETSC_COMM_WORLD, sizeLoc, sizeLoc, size, size, NULL, &I);
   /*
-  MatCreate(PETSC_COMM_WORLD, &I);
-  MatSetType(I, "mpiaij");
-  MatSetSizes(I, sizeLoc, sizeLoc, size, size);
-  MatSetUp(I);
-  MatMPIAIJSetPreallocation(I, sizeLoc, PETSC_NULL, size - sizeLoc, PETSC_NULL);
+  MatCreateDense(PETSC_COMM_WORLD, sizeLoc, sizeLoc, size, size, NULL, I);
   */
+  MatCreate(PETSC_COMM_WORLD, I);
+  MatSetType(*I, "mpiaij");
+  MatSetSizes(*I, sizeLoc, sizeLoc, size, size);
+  MatSetUp(*I);
+  MatMPIAIJSetPreallocation(*I, sizeLoc, PETSC_NULL, size - sizeLoc,PETSC_NULL);
 
   // Sanity //
   PetscInt sanityMatRowStart;
   PetscInt sanityMatRowStop;
-  MatGetOwnershipRange(I, &sanityMatRowStart, &sanityMatRowStop);
+  MatGetOwnershipRange(*I, &sanityMatRowStart, &sanityMatRowStop);
 
   if(start != sanityMatRowStart || stop != sanityMatRowStop)
     throw Exception("SolverDDM::constructIterationMatrix(): "
@@ -239,13 +237,23 @@ void SolverDDM::constructIterationMatrix(string name, string filename){
 
     // Store in I
     VecGetArray(w, &tmp);
-    MatSetValues(I, sizeLoc, idx.data(), 1, &i, tmp, INSERT_VALUES);
+    MatSetValues(*I, sizeLoc, idx.data(), 1, &i, tmp, INSERT_VALUES);
     VecRestoreArray(w, &tmp);
   }
 
   // Assemble I //
-  MatAssemblyBegin(I, MAT_FINAL_ASSEMBLY);
-  MatAssemblyEnd(I, MAT_FINAL_ASSEMBLY);
+  MatAssemblyBegin(*I, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(*I, MAT_FINAL_ASSEMBLY);
+
+  // Clear //
+  VecDestroy(&v);
+  VecDestroy(&w);
+}
+
+void SolverDDM::constructIterationMatrix(string name, string filename){
+  // Create Iteration Matrix //
+  Mat I;
+  constructIterationMatrix(&I);
 
   // Dump I //
   //////////////////////////////////////////////////////////////
@@ -260,7 +268,6 @@ void SolverDDM::constructIterationMatrix(string name, string filename){
   // For complex arithmetic:                                  //
   // A = PetscBinaryRead(filename , 'complex', true);         //
   //////////////////////////////////////////////////////////////
-
   PetscViewer viewer;
   PetscObjectSetName((PetscObject)(I), name.c_str());
 
@@ -270,12 +277,9 @@ void SolverDDM::constructIterationMatrix(string name, string filename){
   PetscViewerBinaryOpen(PETSC_COMM_WORLD, filename.c_str(),
                         FILE_MODE_WRITE, &viewer);
   PetscViewerSetFormat(viewer, PETSC_VIEWER_NATIVE);
-
   MatView(I, viewer);
 
   // Clear //
-  VecDestroy(&v);
-  VecDestroy(&w);
   MatDestroy(&I);
   PetscViewerDestroy(&viewer);
 }

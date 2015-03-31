@@ -3,6 +3,8 @@ set(src
   SolverMUMPSReal.cpp
   SolverMUMPSComplex.cpp
   SolverDDM.cpp
+
+  SolverEigen.cpp
 )
 
 add_sources(solver "${src}")

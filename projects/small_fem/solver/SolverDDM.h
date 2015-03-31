@@ -82,6 +82,7 @@ class SolverDDM{
   ~SolverDDM(void);
 
   void solve(int nStep);
+  void constructIterationMatrix(Mat* I);
   void constructIterationMatrix(std::string name, std::string filename);
 
   void getSolution(std::map<Dof, Complex>& ddm);

@@ -172,6 +172,7 @@ add_executable(har2d simulation/Haroche2D.cpp simulation/HarocheHelper2D.cpp)
 
 add_executable(ddm   simulation/Ddm.cpp)
 add_executable(cir   simulation/DdmCircle.cpp)
+add_executable(cirsp simulation/DdmCircleSpectrum.cpp)
 add_executable(disc  simulation/DiscScattering.cpp)
 add_executable(waveg simulation/Waveguide.cpp)
 
@@ -197,6 +198,7 @@ target_link_libraries(har2d sf)
 
 target_link_libraries(ddm   sf)
 target_link_libraries(cir   sf)
+target_link_libraries(cirsp sf)
 target_link_libraries(disc  sf)
 target_link_libraries(waveg sf)
 

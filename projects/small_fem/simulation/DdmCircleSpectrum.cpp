@@ -1,6 +1,8 @@
 #include "SmallFem.h"
-#include "SolverDDM.h"
 #include "MPIOStream.h"
+
+#include "SolverDDM.h"
+#include "SolverEigen.h"
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
@@ -38,22 +40,15 @@ using namespace std;
 static const int scal = 0;
 static const int vect = 1;
 
-static double k; // Need to be more sexy !
-static double theta = 0;
-
-Complex fSourceScal(fullVector<double>& xyz){
-  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
-
-  return Complex (1, 0) * Complex(cos(k * p), sin(k * p));
+Complex fZeroScal(fullVector<double>& xyz){
+  return Complex (0, 0);
 }
 
-fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  double p = xyz(0) * cos(theta) + xyz(1) * sin(theta);
-
+fullVector<Complex> fZeroVect(fullVector<double>& xyz){
   fullVector<Complex> tmp(3);
 
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0) * Complex(cos(k * p), sin(k * p));
+  tmp(1) = Complex(0, 0);
   tmp(2) = Complex(0, 0);
 
   return tmp;
@@ -81,10 +76,9 @@ void compute(const Options& option){
 
   // Get Parameters //
   const string ddmType  = option.getValue("-ddm")[1];
-               k        = atof(option.getValue("-k")[1].c_str());
+  const double        k = atof(option.getValue("-k")[1].c_str());
   const size_t orderVol = atoi(option.getValue("-ov")[1].c_str());
   const size_t orderSur = atoi(option.getValue("-ob")[1].c_str());
-  const size_t maxIt    = atoi(option.getValue("-max")[1].c_str());
 
   // DDM Formulations //
   const string emdaType("emda");
@@ -308,163 +302,114 @@ void compute(const Options& option){
   else
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
-  // Solve Non homogenous problem //
-  cout << "Solving non homogenous problem" << endl << flush;
-
-  System<Complex>* nonHomogenous = new System<Complex>;
-  nonHomogenous->addFormulation(wave);
-  nonHomogenous->addFormulation(*silverMuller);
-  nonHomogenous->addFormulation(*ddm);
-
-  // Constraint
-  if(fs->isScalar())
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceScal);
-  else
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceVect);
-
-  // Assemble & Solve
-  nonHomogenous->assemble();
-  nonHomogenous->solve();
-
-  // Solve Non homogenous DDM problem //
-  cout << "Computing right hand side" << endl << flush;
-
-  context->setSystem(*nonHomogenous);
-  upDdm->update(); // update volume solution (at DDM border)
-
-  System<Complex>* nonHomogenousDDM = new System<Complex>;
-  nonHomogenousDDM->addFormulation(*upDdm);
-
-  nonHomogenousDDM->assemble();
-  nonHomogenousDDM->solve();
-  nonHomogenousDDM->getSolution(rhsG, 0);
-
-  // Clear Systems //
-  delete nonHomogenous;
-  delete nonHomogenousDDM;
-
-  // DDM Solver //
-  cout << "Solving DDM problem" << endl << flush;
-
+  // Construct iteration operator //
   SolverDDM* solver =
     new SolverDDM(wave, *silverMuller, *context, *ddm, *upDdm, rhsG);
 
-  // Solve
-  solver->solve(maxIt);
+  string name     = option.getValue("-name")[1];
+  string filename = name + ".csv";
 
-  // Get Solution
-  solver->getSolution(ddmG);
-  context->setDDMDofs(ddmG);
+  Mat I;
+  int size;
+  solver->constructIterationMatrix(&I);
+  MatGetSize(I, &size, NULL);
 
-  // Get history
-  vector<double> history;
-  solver->getHistory(history);
+  // Get iteration operator spectrum //
+  SolverEigen eigen;
+  eigen.setMatrixA(I);
+  eigen.setProblem("non_hermitian");
+  eigen.setNumberOfEigenValues(size);
+  eigen.setMaxIteration(size * 10);
+  eigen.setTolerance(1e-9);
+  eigen.solve();
 
-  // Clear DDM //
-  delete solver;
+  // Dump eigenvalues //
+  int                nEig = eigen.getNComputedSolution();
+  fullVector<Complex> eig;
+  eigen.getEigenValues(eig);
 
-  // Full Problem //
-  cout << "Solving full problem" << endl << flush;
-  ddm->update();
+  if(myProc == 0){
+    ofstream stream(filename.c_str(), ofstream::out);
+    for(int i = 0; i < nEig; i++){
+      stream << std::scientific << real(eig(i));
+      if(imag(eig(i)) >= 0)
+        stream << "+";
+      else
+        stream << "-";
+      stream << std::scientific << abs(imag(eig(i))) << "j" << endl;
+    }
+  }
 
-  System<Complex> full;
-  full.addFormulation(wave);
-  full.addFormulation(*silverMuller);
-  full.addFormulation(*ddm);
-
-  // Constraint
-  if(fs->isScalar())
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceScal);
-  else
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceVect);
-
-  full.assemble();
-  full.solve();
-
-  // Draw Solution //
+  // Iterate on eigenvectors //
   try{
     option.getValue("-nopos");
   }
   catch(...){
-    cout << "Writing full problem" << endl << flush;
+    fullVector<Complex>  vec;
+    FEMSolution<Complex> feSol;
 
-    stringstream stream;
-    try{
-      vector<string> name = option.getValue("-name");
-      stream << name[1] << myProc;
-    }
-    catch(...){
-      stream << "circle" << myProc;
-    }
+    for(int i = 0; i < nEig; i++){
+      // Get vector 'i'
+      eigen.getEigenVector(vec, i);
 
-    try{
-      // Get Visu Mesh //
-      vector<string> visuStr = option.getValue("-interp");
-      Mesh           visuMsh(visuStr[1]);
-      GroupOfElement visuGoe(visuMsh.getFromPhysical(100 + myProc));
+      // Sanity
+      if((size_t)(vec.size()) != ddmG.size() * nProcs)
+        throw Exception("Vec and ddmG don't have the same size!");
 
-      // Solution //
-      map<Dof, Complex> sol;
+      // Copy vector into ddmG
+      map<Dof, Complex>::iterator  it = ddmG.begin();
+      map<Dof, Complex>::iterator end = ddmG.end();
 
-      FormulationHelper::initDofMap(*fs, volume, sol);
-      full.getSolution(sol, 0);
+      for(int j = myProc * ddmG.size(); it != end; it++, j++)
+        it->second = vec(j);
 
-      // Vertex, Value Map //
-      map<const MVertex*, vector<Complex> > map;
-      Interpolator<Complex>::interpolate(volume, visuGoe, *fs, sol, map);
+      // Set solution in DDM context
+      context->setDDMDofs(ddmG);
 
-      // Print //
-      stringstream name;
-      name << stream.str() << ".dat";
+      // Full Problem for eigenvector 'i'
+      cout << "Solving full problem for eigenvector " << i << endl << flush;
+      ddm->update();
 
-      Interpolator<Complex>::write(name.str(), map);
-      /*
-      NodeSolution<Complex> nodeSol;
-      nodeSol.addNodeValue(0, 0, visuMsh, map);
-      nodeSol.write(stream.str());
-      */
-    }
+      System<Complex> full;
+      full.addFormulation(wave);
+      full.addFormulation(*silverMuller);
+      full.addFormulation(*ddm);
 
-    catch(...){
-      FEMSolution<Complex> feSol;
-      full.getSolution(feSol, *fs, volume);
+      // Constraint
+      if(fs->isScalar())
+        SystemHelper<Complex>::dirichlet(full, *fs, source, fZeroScal);
+      else
+        SystemHelper<Complex>::dirichlet(full, *fs, source, fZeroVect);
 
-      feSol.setSaveMesh(false);
-      feSol.setBinaryFormat(true);
-      feSol.setParition(myProc + 1);
-      feSol.write("circle");
-    }
-  }
+      full.assemble();
+      full.solve();
 
-  // Dump history //
-  if(myProc == 0){
-    try{
-      const size_t nHist      = history.size();
-      vector<string> dumpName = option.getValue("-hist");
+      // Draw Solution 'i'
+      map<Dof, Complex> coef;
+      {
+        set<Dof> dof;
+        fs->getKeys(volume, dof);
 
-      // If no name given, dumb on cout
-      if(dumpName.size() == 1){
-        for(size_t i = 0; i < nHist; i++)
-          cout << std::scientific << i << ": " << history[i] << endl;
+        set<Dof>::iterator end = dof.end();
+        set<Dof>::iterator it  = dof.begin();
+
+        for(; it != end; it++)
+          coef.insert(pair<Dof, Complex>(*it, 0));
       }
+      full.getSolution(coef, 0);
 
-      else{
-        ofstream file;
-        file.open(dumpName[1].c_str(), ofstream::out | ofstream::trunc);
-
-        for(size_t i = 0; i < nHist; i++)
-          file << std::scientific << std::setprecision(16)
-               << history[i] << endl;
-
-        file.close();
-      }
-
+      feSol.addCoefficients(i, 0, volume, *fs, coef);
     }
-    catch(...){
-    }
+
+    stringstream partName;
+    partName << "circleEigenVector" << "_part" << myProc + 1;
+    feSol.write(partName.str());
   }
 
   // Clean //
+  MatDestroy(&I);
+  delete solver;
+
   delete ddm;
   delete upDdm;
   delete context;
@@ -496,8 +441,8 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
-                     "-interp,-hist,-name,-nopos");
+  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-ddm,-chi,-lc,-ck,-pade,"
+                     "-nopos,-name");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
