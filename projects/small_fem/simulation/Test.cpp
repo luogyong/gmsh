@@ -38,6 +38,8 @@
 #include "SolverVector.h"
 #include "SolverMUMPS.h"
 
+#include "TextSolution.h"
+
 #include <complex>
 #include <iostream>
 #include <cmath>
@@ -45,19 +47,11 @@
 using namespace std;
 
 void compute(const Options& option){
-  Mesh         mesh(option.getValue("-msh")[1]);
-  int          myProc;
-  stringstream name;
-  ofstream     file;
+  TextSolution sol;
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
-  name << "Mesh_proc" << myProc;
-
-  file.open(name.str().c_str(), ifstream::out);
-  file << "Mesh for process " << myProc << endl
-       << "################ "           << endl
-       << mesh.toString()               << endl << flush;
-  file.close();
+  sol.addValues(4, "4");
+  sol.addValues(0, "canard");
+  sol.write("test");
 }
 
 int main(int argc, char** argv){

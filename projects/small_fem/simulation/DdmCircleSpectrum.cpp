@@ -348,6 +348,10 @@ void compute(const Options& option){
     fullVector<Complex>  vec;
     FEMSolution<Complex> feSol;
 
+    feSol.setSaveMesh(false);
+    feSol.setBinaryFormat(true);
+    feSol.setParition(myProc + 1);
+
     for(int i = 0; i < nEig; i++){
       // Get vector 'i'
       eigen.getEigenVector(vec, i);
@@ -402,7 +406,7 @@ void compute(const Options& option){
     }
 
     stringstream partName;
-    partName << "circleEigenVector" << "_part" << myProc + 1;
+    partName << "circleEigenVector";// << "_part" << myProc + 1;
     feSol.write(partName.str());
   }
 

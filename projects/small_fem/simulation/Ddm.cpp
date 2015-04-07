@@ -392,16 +392,8 @@ void compute(const Options& option){
   SolverDDM* solver =
     new SolverDDM(*wave,*silverMuller, *context, *ddm, *upDdm, rhsG);
 
-  try{
-    // Construct iteration operator
-    string name = option.getValue("-I")[1];
-    string filename = name + ".bin";
-    solver->constructIterationMatrix(name.c_str(), filename.c_str());
-  }
-  catch(...){
-    // Solve
-    solver->solve(maxIt);
-  }
+  // Solve
+  solver->solve(maxIt);
 
   // Get Solution
   solver->getSolution(ddmG);
@@ -553,7 +545,7 @@ void compute(const Options& option){
 int main(int argc, char** argv){
   // Init SmallFem //
   SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
-                     "-interp,-hist,-name,-nopos,-I");
+                     "-interp,-hist,-name,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

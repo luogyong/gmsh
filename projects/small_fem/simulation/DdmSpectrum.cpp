@@ -1,6 +1,8 @@
 #include "SmallFem.h"
-#include "SolverDDM.h"
 #include "MPIOStream.h"
+
+#include "SolverDDM.h"
+#include "SolverEigen.h"
 
 #include "DDMContextEMDA.h"
 #include "DDMContextOO2.h"
@@ -12,6 +14,7 @@
 #include "SystemHelper.h"
 #include "Interpolator.h"
 #include "NodeSolution.h"
+#include "TextSolution.h"
 #include "FormulationHelper.h"
 
 #include "FormulationOO2.h"
@@ -35,19 +38,18 @@
 
 using namespace std;
 
-static const int    scal  = 0;
-static const int    vect  = 1;
-static       double k;
+static const int scal = 0;
+static const int vect = 1;
 
-Complex fSourceScal(fullVector<double>& xyz){
-  return Complex(1, 0) * Complex(cos(k * xyz(0)), sin(k * xyz(0)));
+Complex fZeroScal(fullVector<double>& xyz){
+  return Complex(0, 0);
 }
 
-fullVector<Complex> fSourceVect(fullVector<double>& xyz){
+fullVector<Complex> fZeroVect(fullVector<double>& xyz){
   fullVector<Complex> tmp(3);
 
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0) * Complex(cos(k * xyz(0)), sin(k * xyz(0)));
+  tmp(1) = Complex(0, 0);
   tmp(2) = Complex(0, 0);
 
   return tmp;
@@ -62,7 +64,7 @@ void compute(const Options& option){
   MPI_Comm_size(MPI_COMM_WORLD,&nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
 
- // Get Type //
+  // Get Type //
   int type;
   if(option.getValue("-type")[1].compare("scalar") == 0)
     type = scal;
@@ -75,10 +77,9 @@ void compute(const Options& option){
 
   // Get Parameters //
   const string ddmType  = option.getValue("-ddm")[1];
-               k        = atof(option.getValue("-k")[1].c_str());
+  const double        k = atof(option.getValue("-k")[1].c_str());
   const size_t orderVol = atoi(option.getValue("-ov")[1].c_str());
   const size_t orderSur = atoi(option.getValue("-ob")[1].c_str());
-  const size_t maxIt    = atoi(option.getValue("-max")[1].c_str());
 
   // DDM Formulations //
   const string emdaType("emda");
@@ -105,7 +106,7 @@ void compute(const Options& option){
 
     double ooXsiMin = 0;
     double ooXsiMax = Pi / lc;
-    double ooDeltaK = Pi / .06;
+    double ooDeltaK = Pi;// / .06;
 
     double tmp0 =
       (k * k - ooXsiMin * ooXsiMin) * (k * k - (k - ooDeltaK) * (k - ooDeltaK));
@@ -134,56 +135,64 @@ void compute(const Options& option){
 
   // Unknown Stuff
   else
-    throw Exception("DDM Circle: Formulation %s is not known", ddmType.c_str());
+    throw Exception("DDM: Formulation %s is not known", ddmType.c_str());
 
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
   GroupOfElement volume(msh);
   GroupOfElement source(msh);
+  GroupOfElement zero(msh);
   GroupOfElement infinity(msh);
   GroupOfElement ddmBorder(msh);
 
-  // Source
-  if(myProc == 0)
-    source.add(msh.getFromPhysical(1000));
+  volume.add(msh.getFromPhysical(myProc + 1));
 
-  // Infinity
-  if(myProc == nProcs - 1)
-    infinity.add(msh.getFromPhysical(2000 + nProcs - 1));
+  if(myProc == 0){
+       source.add(msh.getFromPhysical(nProcs + 1));
+    ddmBorder.add(msh.getFromPhysical(nProcs + 2));
+  }
 
-  // Volume
-  volume.add(msh.getFromPhysical(100 + myProc));
+  else if(myProc == nProcs - 1){
+    ddmBorder.add(msh.getFromPhysical(myProc + nProcs + 1));
+     infinity.add(msh.getFromPhysical(myProc + nProcs + 2));
+  }
 
-  // DDM border
-  if(myProc > 0)
-    ddmBorder.add(msh.getFromPhysical(4000 + myProc - 1));
+  else{
+    ddmBorder.add(msh.getFromPhysical(myProc + nProcs + 1));
+    ddmBorder.add(msh.getFromPhysical(myProc + nProcs + 2));
+  }
 
-  if(myProc < nProcs - 1)
-    ddmBorder.add(msh.getFromPhysical(4000 + myProc));
+  zero.add(msh.getFromPhysical(2 * nProcs + 2));
 
   // Full Domain //
-  vector<const GroupOfElement*> domain(4);
+  vector<const GroupOfElement*> domain(5);
   domain[0] = &volume;
   domain[1] = &source;
-  domain[2] = &infinity;
-  domain[3] = &ddmBorder;
+  domain[2] = &zero;
+  domain[3] = &infinity;
+  domain[4] = &ddmBorder;
+
+  // DDM Border container //
+  vector<const GroupOfElement*> ddmBorderTmp(1);
+  ddmBorderTmp[0] = &ddmBorder;
 
   // Dirichlet Border //
-  vector<const GroupOfElement*> dirichlet(1);
+  vector<const GroupOfElement*> dirichlet(2);
   dirichlet[0] = &source;
+  dirichlet[1] = &zero;
 
   // Function Space //
   FunctionSpace* fs = NULL;
   FunctionSpace* fG = NULL;
 
   if(type == scal){
-    fs = new FunctionSpaceScalar(domain,    orderVol);
-    fG = new FunctionSpaceScalar(ddmBorder, orderSur);
+    fs = new FunctionSpaceScalar(domain,                  orderVol);
+    fG = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderSur);
   }
 
   else{
-    fs = new FunctionSpaceVector(domain,    orderVol);
-    fG = new FunctionSpaceVector(ddmBorder, orderSur);
+    fs = new FunctionSpaceVector(domain,                  orderVol);
+    fG = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
   }
 
   // OSRC
@@ -196,7 +205,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorder, orderVol);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,orderVol);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -204,16 +213,17 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorder, orderVol);
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp,dirichlet,orderVol);
 
     if(orderVol == 0)
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, 1);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,1);
     else
       for(int j = 0; j < NPade; j++)
-        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, orderVol);
+        OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,
+                                                 dirichlet, orderVol);
 
-    OSRCVectR = new FunctionSpaceVector(ddmBorder, orderSur);
+    OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
   }
 
   // Jin Fa Lee
@@ -221,18 +231,19 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(ddmBorder, orderSur);
+    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
 
     if(orderVol == 0)
-      JFRho = new FunctionSpaceScalar(ddmBorder, 1);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
     else
-      JFRho = new FunctionSpaceScalar(ddmBorder, orderVol);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderVol);
   }
 
   // Steady Wave Formulation //
-  FormulationSteadyWave<Complex> wave(volume, *fs, k);
-  Formulation<Complex>*          silverMuller;
+  Formulation<Complex>* wave;
+  Formulation<Complex>* silverMuller;
 
+  wave = new FormulationSteadyWave<Complex>(volume, *fs, k);
   if(myProc == nProcs - 1)
     silverMuller = new FormulationSilverMuller(infinity, *fs, k);
   else
@@ -253,16 +264,16 @@ void compute(const Options& option){
     context = new DDMContextEMDA(ddmBorder, dirichlet, *fs, *fG, k, chi);
     context->setDDMDofs(ddmG);
 
-    ddm     = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
-    upDdm   = new FormulationUpdateEMDA(static_cast<DDMContextEMDA&>(*context));
+    ddm   = new FormulationEMDA(static_cast<DDMContextEMDA&>(*context));
+    upDdm = new FormulationUpdateEMDA(static_cast<DDMContextEMDA&>(*context));
   }
 
   else if(ddmType == oo2Type){
     context = new DDMContextOO2(ddmBorder, dirichlet, *fs, *fG, ooA, ooB);
     context->setDDMDofs(ddmG);
 
-    ddm     = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
-    upDdm   = new FormulationUpdateOO2(static_cast<DDMContextOO2&>(*context));
+    ddm   = new FormulationOO2(static_cast<DDMContextOO2&>(*context));
+    upDdm = new FormulationUpdateOO2(static_cast<DDMContextOO2&>(*context));
   }
 
   else if(ddmType == osrcType && type == scal){
@@ -271,9 +282,9 @@ void compute(const Options& option){
                                    OSRCScalPhi, k, keps, NPade, M_PI / 4.);
     context->setDDMDofs(ddmG);
 
-    ddm     = new FormulationOSRCScalar
+    ddm   = new FormulationOSRCScalar
                                  (static_cast<DDMContextOSRCScalar&>(*context));
-    upDdm   = new FormulationUpdateOSRCScalar
+    upDdm = new FormulationUpdateOSRCScalar
                                  (static_cast<DDMContextOSRCScalar&>(*context));
   }
 
@@ -302,167 +313,152 @@ void compute(const Options& option){
   else
     throw Exception("Unknown %s DDM border term", ddmType.c_str());
 
-  // Solve Non homogenous problem //
-  cout << "Solving non homogenous problem" << endl << flush;
-
-  System<Complex>* nonHomogenous = new System<Complex>;
-  nonHomogenous->addFormulation(wave);
-  nonHomogenous->addFormulation(*silverMuller);
-  nonHomogenous->addFormulation(*ddm);
-
-  // Constraint
-  if(fs->isScalar())
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceScal);
-  else
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceVect);
-
-  // Assemble & Solve
-  nonHomogenous->assemble();
-  nonHomogenous->solve();
-
-  // Solve Non homogenous DDM problem //
-  cout << "Computing right hand side" << endl << flush;
-
-  context->setSystem(*nonHomogenous);
-  upDdm->update(); // update volume solution (at DDM border)
-
-  System<Complex>* nonHomogenousDDM = new System<Complex>;
-  nonHomogenousDDM->addFormulation(*upDdm);
-
-  nonHomogenousDDM->assemble();
-  nonHomogenousDDM->solve();
-  nonHomogenousDDM->getSolution(rhsG, 0);
-
-  // Clear Systems //
-  delete nonHomogenous;
-  delete nonHomogenousDDM;
-
   // DDM Solver //
   cout << "Solving DDM problem" << endl << flush;
 
+  // Construct iteration operator //
   SolverDDM* solver =
-    new SolverDDM(wave, *silverMuller, *context, *ddm, *upDdm, rhsG);
+    new SolverDDM(*wave, *silverMuller, *context, *ddm, *upDdm, rhsG);
 
-  // Solve
-  solver->solve(maxIt);
+  string name     = option.getValue("-name")[1];
+  string filename = name + ".csv";
 
-  // Get Solution
-  solver->getSolution(ddmG);
-  context->setDDMDofs(ddmG);
+  Mat I;
+  int size;
+  solver->constructIterationMatrix(&I);
+  MatGetSize(I, &size, NULL);
 
-  // Get history
-  vector<double> history;
-  solver->getHistory(history);
+  // Get iteration operator spectrum //
+  SolverEigen eigen;
+  eigen.setMatrixA(I);
+  eigen.setProblem("non_hermitian");
+  eigen.setNumberOfEigenValues(size);
+  eigen.setMaxIteration(size * 10);
+  eigen.setTolerance(1e-9);
+  eigen.solve();
 
-  // Clear DDM //
-  delete solver;
+  // Dump eigenvalues //
+  int                nEig = eigen.getNComputedSolution();
+  fullVector<Complex> eig;
+  eigen.getEigenValues(eig);
 
-  // Full Problem //
-  cout << "Solving full problem" << endl << flush;
-  ddm->update();
+  if(myProc == 0){
+    ofstream stream(filename.c_str(), ofstream::out);
+    for(int i = 0; i < nEig; i++){
+      stream << std::scientific << real(eig(i));
+      if(imag(eig(i)) >= 0)
+        stream << "+";
+      else
+        stream << "-";
+      stream << std::scientific << abs(imag(eig(i))) << "j" << endl;
+    }
+  }
 
-  System<Complex> full;
-  full.addFormulation(wave);
-  full.addFormulation(*silverMuller);
-  full.addFormulation(*ddm);
-
-  // Constraint
-  if(fs->isScalar())
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceScal);
-  else
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceVect);
-
-  full.assemble();
-  full.solve();
-
-  // Draw Solution //
+  // Iterate on eigenvectors //
   try{
     option.getValue("-nopos");
   }
   catch(...){
-    cout << "Writing full problem" << endl << flush;
+    fullVector<Complex>  vec;
+    FEMSolution<Complex> feSol;
+    TextSolution         txSol;
 
-    stringstream stream;
-    try{
-      vector<string> name = option.getValue("-name");
-      stream << name[1] << myProc;
-    }
-    catch(...){
-      stream << "circle" << myProc;
-    }
+    feSol.setSaveMesh(false);
+    feSol.setBinaryFormat(true);
+    feSol.setParition(myProc + 1);
 
-    try{
-      // Get Visu Mesh //
-      vector<string> visuStr = option.getValue("-interp");
-      Mesh           visuMsh(visuStr[1]);
-      GroupOfElement visuGoe(visuMsh.getFromPhysical(100 + myProc));
+    for(int i = 0; i < nEig; i++){
+      // Get vector 'i'
+      eigen.getEigenVector(vec, i);
 
-      // Solution //
-      map<Dof, Complex> sol;
+      // Sanity
+      if((size_t)(vec.size()) != ddmG.size() * nProcs)
+        throw Exception("Vec and ddmG don't have the same size!");
 
-      FormulationHelper::initDofMap(*fs, volume, sol);
-      full.getSolution(sol, 0);
+      // Copy vector into ddmG
+      map<Dof, Complex>::iterator  it = ddmG.begin();
+      map<Dof, Complex>::iterator end = ddmG.end();
 
-      // Vertex, Value Map //
-      map<const MVertex*, vector<Complex> > map;
-      Interpolator<Complex>::interpolate(volume, visuGoe, *fs, sol, map);
+      for(int j = myProc * ddmG.size(); it != end; it++, j++)
+        it->second = vec(j);
 
-      // Print //
-      stringstream name;
-      name << stream.str() << ".dat";
+      // Set solution in DDM context
+      context->setDDMDofs(ddmG);
 
-      Interpolator<Complex>::write(name.str(), map);
-      /*
-      NodeSolution<Complex> nodeSol;
-      nodeSol.addNodeValue(0, 0, visuMsh, map);
-      nodeSol.write(stream.str());
-      */
-    }
+      // Full Problem for eigenvector 'i'
+      cout << "Solving full problem for eigenvector " << i << endl << flush;
+      ddm->update();
 
-    catch(...){
-      FEMSolution<Complex> feSol;
-      full.getSolution(feSol, *fs, volume);
+      System<Complex> full;
+      full.addFormulation(*wave);
+      full.addFormulation(*silverMuller);
+      full.addFormulation(*ddm);
 
-      feSol.setSaveMesh(false);
-      feSol.setBinaryFormat(true);
-      feSol.setParition(myProc + 1);
-      feSol.write("circle");
-    }
-  }
-
-  // Dump history //
-  if(myProc == 0){
-    try{
-      const size_t nHist      = history.size();
-      vector<string> dumpName = option.getValue("-hist");
-
-      // If no name given, dumb on cout
-      if(dumpName.size() == 1){
-        for(size_t i = 0; i < nHist; i++)
-          cout << std::scientific << i << ": " << history[i] << endl;
+      // Constraint
+      if(fs->isScalar()){
+        SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroScal);
+        SystemHelper<Complex>::dirichlet(full, *fs, source, fZeroScal);
       }
-
       else{
-        ofstream file;
-        file.open(dumpName[1].c_str(), ofstream::out | ofstream::trunc);
-
-        for(size_t i = 0; i < nHist; i++)
-          file << std::scientific << std::setprecision(16)
-               << history[i] << endl;
-
-        file.close();
+        SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroVect);
+        SystemHelper<Complex>::dirichlet(full, *fs, source, fZeroVect);
       }
 
+      full.assemble();
+      full.solve();
+
+      // Draw Solution 'i'
+      map<Dof, Complex> coef;
+      {
+        set<Dof> dof;
+        fs->getKeys(volume, dof);
+
+        set<Dof>::iterator end = dof.end();
+        set<Dof>::iterator it  = dof.begin();
+
+        for(; it != end; it++)
+          coef.insert(pair<Dof, Complex>(*it, 0));
+      }
+      full.getSolution(coef, 0);
+
+      feSol.addCoefficients(i, 0, volume, *fs, coef);
+
+      // Add text comment for solution 'i'
+      stringstream comment;
+      stringstream commentReal;
+      stringstream commentImag;
+
+      comment << "Eigenvector " << i << ": " << std::scientific << real(eig(i));
+      if(imag(eig(i)) >= 0)
+        comment << " + ";
+      else
+        comment << " - ";
+      comment << std::scientific << "j" << abs(imag(eig(i)));
+
+      commentReal << comment.str() << " (Real)";
+      commentImag << comment.str() << " (Imag)";
+
+      txSol.addValues(i * 2 + 0, commentReal.str());
+      txSol.addValues(i * 2 + 1, commentImag.str());
     }
-    catch(...){
-    }
+
+    stringstream partName;
+    partName << "ddmEigenVector";// << "_part" << myProc + 1;
+    feSol.write(partName.str());
+
+    if(myProc == 0)
+      txSol.write("ddmEigenVector_comment");
   }
 
   // Clean //
+  MatDestroy(&I);
+  delete solver;
+
   delete ddm;
   delete upDdm;
-  delete context;
+  delete wave;
   delete silverMuller;
+  delete context;
   delete fs;
   delete fG;
 
@@ -490,8 +486,8 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
-                     "-interp,-hist,-name,-nopos");
+  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-ddm,-chi,-lc,-ck,-pade,"
+                     "-nopos,-name");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
