@@ -40,11 +40,20 @@ static const int    vect = 1;
 static       double k;
 
 Complex fSourceScal(fullVector<double>& xyz){
-  const double ky = 1 * M_PI / 1;
-  const double kz = 1 * M_PI / 1;
+  const double  Pi = M_PI;
+  const double  y  = xyz(1);
+  const double  z  = xyz(2);
 
-  return Complex(sin(ky * xyz(1)) * sin(kz * xyz(2)), 0);
-  //return Complex(1, 0);
+  const Complex E0 = Complex(1, 0);
+  const double  a  = 2.29e-2;
+  const double  b  = 1.02e-2;
+  const int     m  = 1;
+  const int     n  = 0;
+
+  const double ky = m * Pi / a;
+  const double kz = n * Pi / b;
+
+  return E0 * Complex(sin(ky * y) * sin(kz * z), 0);
 }
 
 Complex fZeroScal(fullVector<double>& xyz){
@@ -52,29 +61,55 @@ Complex fZeroScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  const Complex I = Complex(0, 1);
+  const Complex I  = Complex(0, 1);
+  const double  Pi = M_PI;
+  const double  x  = xyz(0);
+  const double  y  = xyz(1);
+  const double  z  = xyz(2);
 
-  const double ky = 1 * M_PI / 1;
-  const double kz = 1 * M_PI / 1;
-  const double kc = sqrt((ky * ky) + (kz * kz));
+  const Complex E0 = Complex(1, 0);
+  const double  a  = 1;
+  const double  b  = 1;
+  const int     m  = 1;
+  const int     n  = 1;
 
-  Complex beta;
-  if((k * k) - (kc * kc) >= 0)
-    beta = Complex(sqrt((k * k) - (kc * kc)), 0);
-
-  else
-    beta = Complex(0, -1 * sqrt((kc * kc) - (k * k)));
-
-  fullVector<Complex> tmp(3);
-
-  tmp(0) = Complex(                    sin(ky * xyz(1)) * sin(kz * xyz(2)),0);
-  tmp(1) = I * beta * ky / (kc * kc) * cos(ky * xyz(1)) * sin(kz * xyz(2));
-  tmp(2) = I * beta * kz / (kc * kc) * cos(kz * xyz(2)) * sin(ky * xyz(1));
+  const Complex ky = Complex(m * Pi / a, 0);
+  const Complex kz = Complex(n * Pi / b, 0);
+  const Complex kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
   /*
+  // TEM 2D
+  fullVector<Complex> tmp(3);
   tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(1, 0);
+  tmp(1) = E0;
   tmp(2) = Complex(0, 0);
   */
+  /*
+  // TMm 2D
+  fullVector<Complex> tmp(3);
+  tmp(0) = E0 * I * ky / k * sin(ky * y);
+  tmp(1) = E0 *     kx / k * cos(ky * y);
+  tmp(2) = Complex(0, 0);
+  */
+  /*
+  // TEm0 3D
+  fullVector<Complex> tmp(3);
+  tmp(0) = Complex(0, 0);
+  tmp(1) = Complex(0, 0);
+  tmp(2) = E0 * sin(ky * y);
+  */
+  /*
+  // TEmn 3D
+  fullVector<Complex> tmp(3);
+  tmp(0) = Complex(0, 0);
+  tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
+  tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
+  */
+  // TMmn 3D
+  fullVector<Complex> tmp(3);
+  tmp(0) = E0                                  * sin(ky * y) * sin(kz * z);
+  tmp(1) = E0 * (-I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
+  tmp(2) = E0 * (-I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);
+
   return tmp;
 }
 
