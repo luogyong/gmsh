@@ -1,30 +1,31 @@
 #!/bin/bash
 
 ## Binaries
-BINREF='waveg'
-BINDDM='ddm'
+ROOT='/home/nicolas/bin/'
+BINREF=$ROOT'waveg'
+BINDDM=$ROOT'ddm'
 
 ## Data
-THREADS=2
+THREADS=12
 TYPE='vector'
 NDOM=2
 DDM='osrc'
 NMSH=3
 MSH='./guide3d_'
-REF='./guide3d_16.msh'
-OR=3
-OV=3
-OB=3
-K=10
+REF='./guide3d_8.msh'
+INTERP='./guide3d_32.msh'
+OR=4
+OV=4
+OB=4
+K=20
 
 ## Useful
 NDOMMinus=$(bc <<< $NDOM'-1')
 
 ## Reference Solution
 echo '#### Reference ####'
-MYMESH=$MSH$(bc <<< 2^$NMSH)'.msh'
-$BINREF -msh $MYMESH -k $K -n $NDOM -type $TYPE -o $OR -sigma 0 \
-        -interp $REF -name 'ref'
+$BINREF -msh $REF -k $K -n $NDOM -type $TYPE -o $OR -sigma 0 \
+        -interp $INTERP -name 'ref'
 
 ## DDM
 for m in $(seq 1 $NMSH)
@@ -32,17 +33,21 @@ do
     MYMESH=$MSH$(bc <<< 2^$m)'.msh'
     for v in $(seq 1 $OV)
     do
-        for b in $(seq 1 $OB)
+        for b in $(seq 1 $v)
         do
             NAME=$TYPE'_'$DDM'_'$m'_'$v'_'$b
             echo '#### '$NAME' ####'
 
             OMP_NUM_THREADS=$THREADS
-            mpirun -np $NDOM $BINDDM -msh $MYMESH -k $K \
+            mpirun -bind-to none -machinefile machine $BINDDM -msh $MYMESH -k $K \
                    -max 250 -ddm $DDM \
                    -pade 4 -ck 0 -chi 0 -lc 0.06 -type $TYPE -ov $v -ob $b \
-                   -name $NAME -interp $REF -hist $NAME'.hist' \
+                   -name $NAME -interp $INTERP -hist $NAME'.hist' \
                    -solver -ksp_rtol 1e-9
+
+            ## Synching nodes
+            # rsync -avPH ace43:ddm/ .
+            # ssh -x ace43 "rm -fv ~/ddm/*.dat(N)"
 
             ## L2 Error
             for d in $(seq 0 $NDOMMinus)
@@ -77,7 +82,7 @@ for m in $(seq 1 $NMSH)
 do
     for v in $(seq 1 $OV)
     do
-        for b in $(seq 1 $OB)
+        for b in $(seq 1 $v)
         do
             for d in $(seq 0 $NDOMMinus)
             do

@@ -22,8 +22,12 @@ for m = 1:nMsh
 
       % Iterate on domains
       for d = 0:(nDom - 1)
-        name = sprintf('%s_%s_%d_%d_%d_%d.tmp', type, ddm, m, v, b, d);
-        domSum(d + 1) = dlmread(name);
+        try
+          name = sprintf('%s_%s_%d_%d_%d_%d.tmp', type, ddm, m, v, b, d);
+          domSum(d + 1) = dlmread(name);
+        catch
+          domSum = domSum * 0;
+        end_try_catch
       end
 
       % Sum domains contribution and store in data
