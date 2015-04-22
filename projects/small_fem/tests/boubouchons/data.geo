@@ -1,24 +1,47 @@
 // User Data //
 ///////////////
-lambda = 0.1;
 
-MeshAir = lambda / 5;
-MeshRod = lambda / 10;
-MeshSrc = lambda / 20;
+// Physical constants //
+////////////////////////
+C0   = 299792458;            // [m/s]
+Mu0  = 4 * Pi * 1e-7;        // [H/m]
+Eps0 = 1. / (C0 * C0 * Mu0); // [F/m]
 
-RodR = 0.005;
-RodL = 0.03;
-RodN = 3;
-RodP = 0.015;
 
-PmlSize = 0.1 * lambda;
-PmlDist = 0.1 * lambda;
+// Rods //
+//////////
+RodN = 10;    // [-]
+RodR = 0.005; // [m]
+RodP = 0.015; // [m]
+RodL = 0.03;  // [m]
 
-AirX = RodP;
-AirY = RodP + 0.1 * lambda;
-AirZ = RodL + 0.2 * lambda;
 
-SrcR = 0.0005;
-SrcX = -RodP + RodR;
-SrcL = 0.005;
-IsSrcParallel = 0;
+// Source //
+////////////
+Freq   = 6e9;        // [Hz]
+Lambda = C0 / Freq;  // [m]
+
+SrcR = 0.0005;       // [m]
+SrcL = 0.005;        // [m]
+SrcX = -RodP + RodR; // [m]
+
+IsSrcParallel = 0;   // [bool]
+
+
+// Air //
+/////////
+AirX = RodP;            // [m]
+AirY = RodR * 9;        // [m]
+AirZ = RodR * 6 + RodL; // [m]
+
+
+// Pml //
+/////////
+PmlSize = 0.8 * Lambda; // [m]
+
+
+// Mesh //
+//////////
+MeshAir = Lambda / 7;
+MeshRod = Lambda / 10;
+MeshSrc = Lambda / 50;

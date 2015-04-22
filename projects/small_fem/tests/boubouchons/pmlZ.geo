@@ -7,8 +7,8 @@ EndFor
 
 // EndSurf~{0}[0:5] = [End(X+), End(X-), End(Z-), End(Y-), End(Z+), End(Y+)]
 // EndSurf~{1}[0:5] = [End(X-), End(X+), End(Z-), End(Y+), End(Z+), End(Y-)]
-EndSurf~{0} = Boundary{ Volume{End~{0}}; };
-EndSurf~{1} = Boundary{ Volume{End~{1}}; };
+EndSurf~{0} = Boundary{ Volume{End~{0}[0]}; };
+EndSurf~{1} = Boundary{ Volume{End~{0}[1]}; };
 
 // PML Z //
 ///////////

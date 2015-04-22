@@ -8,10 +8,10 @@ Point(0) = {0, 0, 0};
 
 // 2D Cell //
 /////////////
-Point(1) = {-AirX / 2, -AirY / 2, -AirZ / 2, MeshAir};
-Point(2) = {+AirX / 2, -AirY / 2, -AirZ / 2, MeshAir};
-Point(3) = {+AirX / 2, +AirY / 2, -AirZ / 2, MeshAir};
-Point(4) = {-AirX / 2, +AirY / 2, -AirZ / 2, MeshAir};
+Point(1) = {-RodP / 2, -AirY / 2, -AirZ / 2, MeshAir};
+Point(2) = {+RodP / 2, -AirY / 2, -AirZ / 2, MeshAir};
+Point(3) = {+RodP / 2, +AirY / 2, -AirZ / 2, MeshAir};
+Point(4) = {-RodP / 2, +AirY / 2, -AirZ / 2, MeshAir};
 
 Line(1)  = {1, 2};
 Line(2)  = {2, 3};

@@ -7,6 +7,9 @@ For i In {0:RodN - 1}
   Rod[i] = Vol~{i + 1}[0];
 EndFor
 
+Air[RodN + 0] = End~{0}[0];
+Air[RodN + 1] = End~{0}[1];
+
 // Physicals
 Physical Volume(1000) = Pml~{6}[]; // Pml XYZ
 Physical Volume(1001) = Pml~{5}[]; // Pml XZ
