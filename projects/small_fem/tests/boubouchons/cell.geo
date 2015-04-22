@@ -51,10 +51,9 @@ Extrude{0, 0, RodL}{ Surface{RodSf}; }
 /////////////
 BndRod = Boundary{ Volume{1}; };
 
-AirSl  = newsl; Surface Loop(AirSl) = {BndAir[0], BndAir[1], BndAir[2],
-                                       BndAir[3], BndAir[4], BndAir[5]};
-RodSl  = newsl; Surface Loop(RodSl) = {BndRod[0], BndRod[1], BndRod[2],
-                                       BndRod[3], BndRod[4], BndRod[5]};
+AirSl  = newsl; Surface Loop(AirSl) = {BndAir[]};
+RodSl  = newsl; Surface Loop(RodSl) = {BndRod[]};
+
 Volume(2) = {AirSl, RodSl};
 
 // Save Volumes //
