@@ -32,17 +32,17 @@ If(IsSrcParallel == 1)
   Rotate{{1, 0, 0}, {0, 0, 0}, Pi / 2}{ Volume{Src~{0}}; }
 EndIf
 
-// Insert in End~{0} //
-///////////////////////
-BndEnd = Boundary{ Volume{End~{0}}; };
-BndSrc = Boundary{ Volume{Src~{0}}; };
+// Insert in End~{0}[0] //
+//////////////////////////
+BndEnd = Boundary{ Volume{End~{0}[0]}; };
+BndSrc = Boundary{ Volume{Src~{0}};    };
 
-Delete{ Volume{End~{0}}; }
+Delete{ Volume{End~{0}[0]}; }
 
 EndSl = newsl; Surface Loop(EndSl) = {BndEnd[]};
 SrcSl = newsl; Surface Loop(SrcSl) = {BndSrc[]};
 
-Volume(End~{0}) = {EndSl, SrcSl};
+Volume(End~{0}[0]) = {EndSl, SrcSl};
 
 // Clear //
 ///////////

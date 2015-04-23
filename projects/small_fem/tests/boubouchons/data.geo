@@ -30,7 +30,7 @@ IsSrcParallel = 0;   // [bool]
 
 // Air //
 /////////
-AirX = RodP;            // [m]
+AirX = RodR * 9;        // [m]
 AirY = RodR * 9;        // [m]
 AirZ = RodR * 6 + RodL; // [m]
 
