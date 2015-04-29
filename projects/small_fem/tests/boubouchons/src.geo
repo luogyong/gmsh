@@ -28,7 +28,7 @@ Src~{1} = Fabs(Tmp~{1}[3]);                // The line
 
 // Rotate //
 ////////////
-If(IsSrcParallel == 1)
+If(IsSrcParallel == 0)
   Rotate{{1, 0, 0}, {0, 0, 0}, Pi / 2}{ Volume{Src~{0}}; }
 EndIf
 

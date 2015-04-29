@@ -7,7 +7,7 @@ VolSurf~{1}    = Boundary{ Volume{Vol~{1}[1]};    };
 VolSurf~{RodN} = Boundary{ Volume{Vol~{RodN}[1]}; };
 
 // Number of extrusion //
-EndN = Ceil(AirX / RodP);
+EndN = Ceil(AirX / RodP / 2); // '2' because one left - one right
 
 // There is at least on extrusion //
 If(EndN == 0)
