@@ -57,16 +57,16 @@ Function {
   Lyy[] = sz[] * sx[] / sy[];
   Lzz[] = sx[] * sy[] / sz[];
 
-  EpsilonAir[] = Complex[EpsRAirRe, EpsRAirIm];
-  EpsilonRod[] = Complex[EpsRRodRe, EpsRRodIm];
+  EpsilonRAir[] = Complex[EpsRAirRe, EpsRAirIm];
+  EpsilonRRod[] = Complex[EpsRRodRe, EpsRRodIm];
 
-  Epsilon[Rod]    = EpsilonRod[] * TensorDiag[1.0,   1.0,   1.0];
-  Epsilon[AirSrc] = EpsilonAir[] * TensorDiag[1.0,   1.0,   1.0];
-  Epsilon[Pml]    = EpsilonAir[] * TensorDiag[Lxx[], Lyy[], Lzz[]];
+  EpsilonR[Rod]    = EpsilonRRod[] * TensorDiag[1.0,   1.0,   1.0];
+  EpsilonR[AirSrc] = EpsilonRAir[] * TensorDiag[1.0,   1.0,   1.0];
+  EpsilonR[Pml]    =                 TensorDiag[Lxx[], Lyy[], Lzz[]];
 
-  Nu[Rod]    = TensorDiag[1.0,         1.0,         1.0];
-  Nu[AirSrc] = TensorDiag[1.0,         1.0,         1.0];
-  Nu[Pml]    = TensorDiag[1.0 / Lxx[], 1.0 / Lyy[], 1.0 / Lzz[]];
+  NuR[Rod]    = TensorDiag[1.0,         1.0,         1.0];
+  NuR[AirSrc] = TensorDiag[1.0,         1.0,         1.0];
+  NuR[Pml]    = TensorDiag[1.0 / Lxx[], 1.0 / Lyy[], 1.0 / Lzz[]];
 
   If(IsSrcParallel == 1)
     source[] = Complex[0, 1] * Vector[0, 0, Omega0*Mu0*Cos[Pi*Z[]/SrcL]];
@@ -151,10 +151,10 @@ Formulation {
       { Name u; Type Local; NameOfSpace HCurl0; }
     }
     Equation {
-      Galerkin { [-Nu[] * Dof{Curl u}, {Curl u}];
-        In Omega;Jacobian Vol; Integration I2; }
-      Galerkin { [(Omega0/C0)^2 * Epsilon[] * Dof{u}, {u}];
-        In Omega;Jacobian Vol; Integration I2; }
+      Galerkin { [-NuR[] * Dof{Curl u}, {Curl u}];
+        In Omega; Jacobian Vol; Integration I2; }
+      Galerkin { [(Omega0/C0)^2 * EpsilonR[] * Dof{u}, {u}];
+        In Omega; Jacobian Vol; Integration I2; }
     }
   }
 }

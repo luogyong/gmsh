@@ -176,12 +176,16 @@ add_executable(cir   simulation/DdmCircle.cpp)
 add_executable(cirsp simulation/DdmCircleSpectrum.cpp)
 add_executable(disc  simulation/DiscScattering.cpp)
 add_executable(waveg simulation/Waveguide.cpp)
+add_executable(wavea simulation/WaveguideAnalytic.cpp)
 
 add_executable(proj   simulation/Projection.cpp)
 add_executable(mesh   simulation/Mesh.cpp)
 add_executable(fs     simulation/ShowFunctionSpace.cpp)
 add_executable(ref    simulation/RefSpace.cpp)
 add_executable(tester simulation/Test.cpp)
+
+add_executable(bouchon simulation/Boubouchons.cpp
+                       simulation/BoubouchonsHelper.cpp)
 
 ## Link ##
 ##########
@@ -203,9 +207,12 @@ target_link_libraries(cir   sf)
 target_link_libraries(cirsp sf)
 target_link_libraries(disc  sf)
 target_link_libraries(waveg sf)
+target_link_libraries(wavea sf)
 
 target_link_libraries(proj   sf)
 target_link_libraries(mesh   sf)
 target_link_libraries(fs     sf)
 target_link_libraries(ref    sf)
 target_link_libraries(tester sf)
+
+target_link_libraries(bouchon sf)
