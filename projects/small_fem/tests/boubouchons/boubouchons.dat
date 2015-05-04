@@ -68,3 +68,10 @@ DefineConstant[
 MeshAir = Lambda / MeshAirF;
 MeshRod = Lambda / MeshRodF;
 MeshSrc = Lambda / MeshSrcF;
+
+
+// DDM //
+/////////
+DefineConstant[
+  UseDDM = {1,  Name "Input/05DDM/00Use DDM", Choices {0, 1}}
+];

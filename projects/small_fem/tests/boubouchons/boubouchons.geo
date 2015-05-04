@@ -14,6 +14,17 @@ Include  "pml.geo";
 ////////////////////
 Include "center.geo";
 
+// Surfaces for DDM //
+//////////////////////
+If(UseDDM == 1)
+  Include "ddm.geo";
+EndIf
+
 // Physicals //
 ///////////////
-Include "physicalNoDdm.geo";
+If(UseDDM == 1)
+  Include "physicalDdm.geo";
+EndIf
+If(UseDDM == 0)
+  Include "physicalNoDdm.geo";
+EndIf
