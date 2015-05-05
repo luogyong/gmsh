@@ -25,7 +25,7 @@ DefineConstant[
 // Source //
 ////////////
 DefineConstant[
-  Freq   = {6e9,       Name "Input/01Source/00Frequancy [Hz]"},
+  Freq   = {6e9,       Name "Input/01Source/00Frequency [Hz]"},
   Lambda = {C0 / Freq, Name "Input/01Source/01Wavelength [m]", ReadOnly 1},
 
   SrcR = {0.0005,       Name "Input/01Source/02Radius [m]"},
