@@ -112,20 +112,11 @@ void SolverEigen::setTarget(Complex target){
 }
 
 void SolverEigen::setNumberOfEigenValues(int nEigenValues){
-  int size;
-  MatGetSize(A, &size, NULL);
-
   if(nEigenValues <= 0)
     throw Exception("SolverEigen::setNumberOfEigenValues(): "
                     "I cannot compute less than zero eigenvalues");
 
-  if(nEigenValues > size)
-    throw Exception("SolverEigen::setNumberOfEigenValues(): "
-                    "I cannot compute more eigenvalues (%d) ",
-                    "than the number of unknowns (%d)",
-                    nEigenValues, size);
-  else
-    this->nEigenValues = nEigenValues;
+  this->nEigenValues = nEigenValues;
 }
 
 void SolverEigen::setMaxIteration(int maxIt){
@@ -144,7 +135,7 @@ void SolverEigen::setTolerance(double tol){
 void SolverEigen::solve(void){
   // Checks //
   // nEigenValues
-  if(!nEigenValues)
+  if(nEigenValues == 0)
     throw
       Exception("SolverEigen: the number of eigenvalues to compute is zero");
 
@@ -164,6 +155,13 @@ void SolverEigen::solve(void){
       throw Exception("SolverEigen: cannot solve generalized problem "
                       "with matrices with different sizes");
   }
+
+  // Asking for too much eigenvalues ?
+  int size;
+  MatGetSize(A, &size, NULL);
+
+  if(nEigenValues > size)
+    nEigenValues = size;
 
   // Set up problem //
   EPS solver;
@@ -220,9 +218,6 @@ void SolverEigen::solve(void){
   MPI_Barrier(MPI_COMM_WORLD);
 
   // Get Solution //
-  int size;
-  MatGetSize(A, &size, NULL);
-
   VecScatter   scat;
   PetscScalar  lambda;
   PetscScalar* x;

@@ -13,10 +13,8 @@ SystemEigen::SystemEigen(void){
   dofM = new DofManager<Complex>(false);
 
   // Init //
-  A           = NULL;
-  B           = NULL;
-  eigenValue  = NULL;
-  eigenVector = NULL;
+  A = NULL;
+  B = NULL;
 
   // Per-thread non-zero term //
   #pragma omp parallel
@@ -35,12 +33,12 @@ SystemEigen::SystemEigen(void){
     this->nNZCountB[i] = 0;
 
   // Default //
-  nEigenValues   = 10;
-  maxIt          = 100;
-  tol            = 1E-6;
-  target         = 1;
-  whichProblem   = string("non_hermitian");
-  whichEigenpair = string("smallest_magnitude");
+  solver.setNumberOfEigenValues(10);
+  solver.setMaxIteration(100);
+  solver.setTolerance(1e-6);
+  solver.setTarget(1);
+  solver.setProblem("non_hermitian");
+  solver.setWhichEigenpair("smallest_magnitude");
 
   // The SystemEigen is not assembled and not solved//
   assembled    = false;
@@ -50,21 +48,8 @@ SystemEigen::SystemEigen(void){
 SystemEigen::~SystemEigen(void){
   delete dofM;
 
-  if(eigenVector)
-    delete eigenVector;
-
-  if(eigenValue)
-    delete eigenValue;
-
-  if(A){
-    MatDestroy(A);
-    delete A;
-  }
-
-  if(B){
-    MatDestroy(B);
-    delete B;
-  }
+  MatDestroy(&A);
+  MatDestroy(&B);
 }
 
 void SystemEigen::
@@ -84,9 +69,7 @@ addFormulationB(const Formulation<Complex>& formulation){
 
   // This EigenSystem is general
   general = true;
-
-  // Use generalized non-hermitian as default problem
-  whichProblem = string("gen_non_hermitian");
+  solver.setProblem("gen_non_hermitian");
 }
 
 void SystemEigen::
@@ -136,7 +119,7 @@ assembleCom(std::list<const FormulationBlock<Complex>*>::iterator it,
   }
 }
 
-Mat* SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size){
+Mat SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size){
   // MPI range //
   int nProc;
   int myProc;
@@ -201,16 +184,16 @@ Mat* SystemEigen::toPetsc(SolverMatrix<Complex>* tmp, size_t size){
       nonZeroDiag[i] = offSize;
 
   // Copy tmp into PETSc matrix //
-  Mat* M = new Mat;
+  Mat M;
 
   MatCreateAIJ(MPI_COMM_WORLD,
                myProcSize, myProcSize, size, size,
-               42, nonZeroDiag, 42, nonZeroOffDiag, M);
+               42, nonZeroDiag, 42, nonZeroOffDiag, &M);
 
-  petscSerialize(row, col, value, tmpSize, *M);
+  petscSerialize(row, col, value, tmpSize, M);
 
-  MatAssemblyBegin(*M, MAT_FINAL_ASSEMBLY);
-  MatAssemblyEnd  (*M, MAT_FINAL_ASSEMBLY);
+  MatAssemblyBegin(M, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd  (M, MAT_FINAL_ASSEMBLY);
 
   // Free //
   delete[] nonZeroDiag;
@@ -288,146 +271,17 @@ void SystemEigen::assemble(void){
 }
 
 void SystemEigen::solve(void){
-  // Check nEigenValues
-  if(!nEigenValues)
-    throw
-      Exception("The number of eigenvalues to compute is zero");
-
   // Is the SystemEigen assembled ? //
   if(!assembled)
     assemble();
 
-  // Build Solver //
-  EPS solver;
-  EPSCreate(MPI_COMM_WORLD, &solver);
-
+  // Assign matrices //
+  solver.setMatrixA(A);
   if(general)
-    EPSSetOperators(solver, *A, *B);
-  else
-    EPSSetOperators(solver, *A, NULL);
-
-  // Set problem type //
-  if(!whichProblem.compare("gen_non_hermitian"))
-    EPSSetProblemType(solver, EPS_GNHEP);
-
-  else if(!whichProblem.compare("non_hermitian"))
-    EPSSetProblemType(solver, EPS_NHEP);
-
-  else if(!whichProblem.compare("pos_gen_non_hermitian"))
-    EPSSetProblemType(solver, EPS_PGNHEP);
-
-  else
-    throw
-      Exception("%s -- %s %s %s", "SystemEigen::solve",
-                                  "set SystemEigen::setProblem()",
-                                  "to a legal value: set to",
-                                  whichProblem.c_str());
-  // Set Options //
-  EPSSetDimensions(solver, nEigenValues, PETSC_DECIDE, PETSC_DECIDE);
-  EPSSetTolerances(solver, tol, maxIt);
-
-  // Which Eigenpair //
-  if(!whichEigenpair.compare("smallest_magnitude")){
-    EPSSetWhichEigenpairs(solver, EPS_SMALLEST_MAGNITUDE);
-    EPSSetTarget(solver, target);
-  }
-
-  else if(!whichEigenpair.compare("target_real")){
-    EPSSetWhichEigenpairs(solver, EPS_TARGET_REAL);
-    EPSSetTarget(solver, target);
-  }
-
-  else if(!whichEigenpair.compare("target_magnitude")){
-    EPSSetWhichEigenpairs(solver, EPS_TARGET_MAGNITUDE);
-    EPSSetTarget(solver, target);
-  }
-
-  else
-    throw
-      Exception("%s -- %s %s %s", "SystemEigen::solve",
-                                  "set SystemEigen::setWhichEigenpair()",
-                                  "to a legal value: set to",
-                                  whichEigenpair.c_str());
-
-  // Use Krylov Schur Solver and MUMPS //
-  KSP ksp; // Krylov subspace solver
-  PC  pc;  // Preconditioner
-  ST  st;  // Spectral transform
-
-  EPSSetType(solver, "krylovschur");
-
-  EPSGetST(solver, &st);
-  STSetType(st, "sinvert");
-  STGetKSP(st, &ksp);
-
-  STSetMatMode(st, ST_MATMODE_INPLACE);
-  PetscOptionsSetValue("-mat_mumps_icntl_28", "2"); // MUMPS Parallel analysis
-  PetscOptionsSetValue("-mat_mumps_icntl_7",  "5"); // METIS: no meaning since 2
-  PetscOptionsSetValue("-mat_mumps_icntl_29", "2"); // ParMETIS
-
-  KSPSetType(ksp, "preonly");
-  KSPGetPC(ksp, &pc);
-  PCSetType(pc, "lu");
-  PCFactorSetMatSolverPackage(pc, "mumps");
-  /*
-  KSPSetType(ksp, "fgmres");
-  //KSPGMRESSetRestart(ksp, 300);
-  KSPSetTolerances(ksp, 1e-3, PETSC_DEFAULT, PETSC_DEFAULT, 1000);
-  KSPMonitorSet(ksp, KSPMonitorTrueResidualNorm, NULL, NULL);
-  KSPGetPC(ksp, &pc);
-  PCSetType(pc, "jacobi");
-  */
-  // Override with PETSc Database //
-  EPSSetFromOptions(solver);
-  STSetFromOptions(st);
+    solver.setMatrixB(B);
 
   // Solve //
-  EPSSolve(solver);
-
-  // Wait for everything to be ok //
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  // Get Solution //
-  const size_t size = dofM->getGlobalSize();
-
-  VecScatter   scat;
-  PetscScalar  lambda;
-  PetscScalar* x;
-  Vec          xPetscDist;
-  Vec          xPetscSeq;
-
-  MatGetVecs(*A, PETSC_NULL, &xPetscDist);
-  VecCreate(MPI_COMM_SELF, &xPetscSeq);
-  VecSetType(xPetscSeq, VECSEQ);
-  VecSetSizes(xPetscSeq, size, size);
-  VecScatterCreateToAll(xPetscDist, &scat, NULL);
-
-  EPSGetConverged(solver, &nEigenValues);
-
-  eigenValue  = new fullVector<Complex>(nEigenValues);
-  eigenVector = new vector<fullVector<Complex> >(nEigenValues);
-
-  for(PetscInt i = 0; i < nEigenValues; i++){
-    EPSGetEigenpair(solver, i, &lambda, NULL, xPetscDist, NULL);
-
-    VecScatterBegin(scat, xPetscDist, xPetscSeq, INSERT_VALUES,SCATTER_FORWARD);
-    VecScatterEnd(scat, xPetscDist, xPetscSeq, INSERT_VALUES,SCATTER_FORWARD);
-
-    VecGetArray(xPetscSeq, &x);
-
-    (*eigenVector)[i].resize(size);
-    for(size_t j = 0; j < size; j++)
-      (*eigenVector)[i](j) = x[j];
-
-    (*eigenValue)(i) = lambda;
-  }
-
-  VecDestroy(&xPetscDist);
-  VecDestroy(&xPetscSeq);
-  VecScatterDestroy(&scat);
-  EPSDestroy(&solver);
-
-  // System solved ! //
+  solver.solve();
   solved = true;
 
   // Wait for everything to be ok //
@@ -439,15 +293,14 @@ bool SystemEigen::isGeneral(void) const{
 }
 
 void SystemEigen::getEigenValues(fullVector<Complex>& eig) const{
-  eig.setAsProxy(*eigenValue, 0, eigenValue->size());
+  solver.getEigenValues(eig);
 }
 
 void SystemEigen::setProblem(std::string type){
-  this->whichProblem = type;
+  solver.setProblem(type);
 }
 
-void SystemEigen::
-setNumberOfEigenValues(size_t nEigenValues){
+void SystemEigen::setNumberOfEigenValues(size_t nEigenValues){
   const size_t nDof = dofM->getGlobalSize();
 
   if(nEigenValues > nDof)
@@ -457,39 +310,49 @@ setNumberOfEigenValues(size_t nEigenValues){
        nEigenValues, nDof);
 
   else
-    this->nEigenValues = nEigenValues;
+    solver.setNumberOfEigenValues(nEigenValues);
 }
 
 void SystemEigen::setMaxIteration(size_t maxIt){
-  this->maxIt = (PetscInt)(maxIt);
+  solver.setMaxIteration(maxIt);
 }
 
 void SystemEigen::setTolerance(double tol){
-  this->tol = (PetscReal)(tol);
+  solver.setTolerance(tol);
 }
 
 void SystemEigen::setTarget(Complex target){
-  this->target = target.real() + PETSC_i * target.imag();
+  solver.setTarget(target);
 }
 
 void SystemEigen::setWhichEigenpairs(std::string type){
-  this->whichEigenpair = type;
+  solver.setWhichEigenpair(type);
 }
 
 size_t SystemEigen::getNComputedSolution(void) const{
-  return nEigenValues;
+  return solver.getNComputedSolution();
 }
 
-void SystemEigen::getSolution(fullVector<Complex>& sol,
-                              size_t nSol) const{
-  sol.setAsProxy((*eigenVector)[nSol], 0, (*eigenVector)[nSol].size());
+void SystemEigen::getSolution(fullVector<Complex>& sol, size_t nSol) const{
+  // Solved ?
+  if(!solved)
+    throw Exception("System: addSolution -- System not solved");
+
+  solver.getEigenVector(sol, nSol);
 }
 
-void SystemEigen::getSolution(std::map<Dof, Complex>& sol,
-                              size_t nSol) const{
+void SystemEigen::getSolution(std::map<Dof, Complex>& sol, size_t nSol) const{
+  // Solved ?
+  if(!solved)
+    throw Exception("System: addSolution -- System not solved");
+
   // Get All Dofs
   map<Dof, Complex>::iterator it  = sol.begin();
   map<Dof, Complex>::iterator end = sol.end();
+
+  // Get Eigenvector
+  fullVector<Complex> vec;
+  solver.getEigenVector(vec, nSol);
 
   // Loop on Dofs and set Values
   for(; it != end; it++){
@@ -499,7 +362,7 @@ void SystemEigen::getSolution(std::map<Dof, Complex>& sol,
       it->second = dofM->getValue(it->first);
 
     else
-      it->second = (*eigenVector)[nSol](gId);
+      it->second = vec(gId);
   }
 }
 
@@ -524,6 +387,7 @@ void SystemEigen::getSolution(FEMSolution<Complex>& feSol,
     coef.insert(pair<Dof, Complex>(*it, 0));
 
   // Iterate on Solutions //
+  int nEigenValues = solver.getNComputedSolution();
   for(int i = 0; i < nEigenValues; i++){
     // Populate Map
     getSolution(coef, i);
@@ -537,6 +401,10 @@ void SystemEigen::
 getSolution(FEMSolution<Complex>& feSol,
             const FunctionSpace& fs,
             const std::vector<const GroupOfElement*>& domain) const{
+  // Solved ?
+  if(!solved)
+    throw Exception("System: addSolution -- System not solved");
+
   // Get size
   const size_t size = domain.size();
 

@@ -5,6 +5,7 @@
 #include "SystemAbstract.h"
 #include "petscmat.h"
 
+#include "SolverEigen.h"
 #include "SmallFem.h"
 
 /**
@@ -13,16 +14,10 @@
 
    This class assembles an eigenvalue system.
 
-   The eigenvalue problem can be generalized or not:
-   @li An eigenvalue problem is a of the type
-   @f$\qquad(\mathbf{A} - \lambda{}\mathbf{I})\mathbf{x} = \mathbf{b}@f$
-   @li A Generalized Eigenvalue problem is a of the type
-   @f$\qquad(\mathbf{A} - \lambda{}\mathbf{B})\mathbf{x} = \mathbf{b}@f$
-
    In the case of a generalized problem, a second set of Formulation%s
    can be used to assemble matrix @f$\mathbf{B}@f$
 
-   The Solver used is <a href="http://www.grycap.upv.es/slepc/">SLEPc</a>.
+   @see SolverEigen
  */
 
 class SystemEigen: public SystemAbstract<Complex>{
@@ -36,18 +31,9 @@ class SystemEigen: public SystemAbstract<Complex>{
 
   std::vector<size_t> nNZCountB;
 
-  Mat* A;
-  Mat* B;
-
-  PetscInt    nEigenValues;
-  PetscInt    maxIt;
-  PetscReal   tol;
-  PetscScalar target;
-  std::string whichProblem;
-  std::string whichEigenpair;
-
-  fullVector<Complex>*               eigenValue;
-  std::vector<fullVector<Complex> >* eigenVector;
+  Mat A;
+  Mat B;
+  SolverEigen solver;
 
  public:
   SystemEigen(void);
@@ -90,7 +76,7 @@ class SystemEigen: public SystemAbstract<Complex>{
                    std::list<const FormulationBlock<Complex>*>::iterator end,
                    SolverMatrix<Complex>& tmpMat);
 
-  Mat* toPetsc(SolverMatrix<Complex>* tmp, size_t size);
+  Mat toPetsc(SolverMatrix<Complex>* tmp, size_t size);
 };
 
 
@@ -109,8 +95,7 @@ class SystemEigen: public SystemAbstract<Complex>{
    Adds the given Formulation to the Formulation%s that will be assembled
    for matrix @f$\mathbf{B}@f$
 
-   If at least of Formulation is added with SystemEigen::addFormulationB(),
-   this SystemEigen becomes generalized
+   The system is now set as a generalized non hermitian!
    **
 
    @fn SystemEigen::isGeneral

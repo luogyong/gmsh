@@ -18,9 +18,6 @@
    @li A Generalized Eigenvalue problem is a of the type
    @f$\qquad(\mathbf{A} - \lambda{}\mathbf{B})\mathbf{x} = \mathbf{b}@f$
 
-   In the case of a generalized problem, a second set of Formulation%s
-   can be used to assemble matrix @f$\mathbf{B}@f$
-
    The Solver used is <a href="http://www.grycap.upv.es/slepc/">SLEPc</a>.
  */
 
@@ -38,7 +35,7 @@ class SolverEigen{
   EPSProblemType whichProblem;
   EPSWhich       whichEigenpair;
 
-  fullVector<Complex>* eigenValue;
+  fullVector<Complex>*               eigenValue;
   std::vector<fullVector<Complex> >* eigenVector;
 
  public:
@@ -81,45 +78,65 @@ class SolverEigen{
 
    @fn SolverEigen::getEigenValues
    @param eig A vector
-   Allocate and populates eig with the eigenvalues of this SolverEigen
+   The vector eig is now a proxy to the eigenvalues of this SolverEigen
+   **
+
+   @fn SolverEigen::getEigenVectors
+   @param vec A vector
+   @param eig An integer
+   The vector vec is now a proxy to the eig'th eigenvector of this SolverEigen
+   **
+
+   @fn SolverEigen::getNComputedSolution
+   @return Returns the number of eigenvalues computed by this SolverEigen
+   **
+
+   @fn SolverEigen::setMatrixA
+   @param A A matrix
+
+   The A matrix of this SolverEigen is now the given matrix
+   **
+
+   @fn SolverEigen::setMatrixB
+   @param B A matrix
+   The B matrix of this SolverEigen is now the given matrix
+   (the problem is now generalized)
    **
 
    @fn SolverEigen::setProblem(std::string type)
    @param type A string
-
    Sets the type of eigen problem
+   **
+
+   @fn SolverEigen::setWhichEigenpairs(std::string type)
+   @param type A string
+   Sets the type of eigenpairs that SolverEigen::solve() will look for
+   **
+
+   @fn SolverEigen::setTarget(Complex target)
+   @param target A complex value
+   Sets the eigenvalue target of SolverEigen::solve() to the given value
    **
 
    @fn SolverEigen::setNumberOfEigenValues
    @param nEigenValues A natural number
-
    Sets the number of eigenvalues computed by
    SolverEigen::solve() to the given number
    **
 
    @fn SolverEigen::setMaxIteration
    @param maxIt An integer
-
    Sets the maximum number of iteration of SolverEigen::solve()
    to the given value
    **
 
    @fn SolverEigen::setTolerance
    @param tol A real value
-
    Sets the convergence tolerance of SolverEigen::solve() to the given value
    **
 
-   @fn SolverEigen::setTarget(Complex target)
-   @param target A complex value
-
-   Sets the eigenvalue target of SolverEigen::solve() to the given value
-   **
-
-  @fn SolverEigen::setWhichEigenpairs(std::string type)
-  @param type A string
-
-   Sets the type of eigenpairs that SolverEigen::solve() will look for
+   @fn SolverEigen::solve
+   Solves this SolverEigen
 */
 
 #endif
