@@ -31,8 +31,10 @@ L_cav                 = 27.57  * mm
 deltaz                =  5.    * mm
 radius_mirror         = 25.    * mm
 thick_mirror_atcenter =  1.415 * mm
-dist2PML_xy           = lambda_haroche
-dist2PML_z            = lambda_haroche
+
+dist                  =  1.00
+dist2PML_xy           =  dist * lambda_haroche
+dist2PML_z            =  dist * lambda_haroche
 
 ## Box
 box_x =                      radius_mirror + dist2PML_xy
@@ -40,9 +42,10 @@ box_y =                      radius_mirror + dist2PML_xy
 box_z = L_cav / 2. + thick_mirror_atcenter + dist2PML_z
 
 ## PML
-pml_x = lambda_haroche
-pml_y = lambda_haroche
-pml_z = lambda_haroche
+thick = 1.00
+pml_x = thick * lambda_haroche
+pml_y = thick * lambda_haroche
+pml_z = thick * lambda_haroche
 
 ## Dump PML data on disk
 pml = open('pml.dat' ,'w')

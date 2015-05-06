@@ -1,19 +1,19 @@
 #!/bin/bash
 
 ## Binaries
-ROOT='/home/nicolas/bin/'
+ROOT=''
 BINREF=$ROOT'waveg'
 BINDDM=$ROOT'ddm'
 
 ## Data
-THREADS=12
+THREADS=2
 TYPE='vector'
 NDOM=2
 DDM='osrc'
-NMSH=3
-MSH='./guide3d_'
-REF='./guide3d_8.msh'
-INTERP='./guide3d_32.msh'
+NMSH=4
+MSH='./guide2d_'
+REF='./guide2d_32.msh'
+INTERP='./guide2d_64.msh'
 OR=4
 OV=4
 OB=4
@@ -39,12 +39,15 @@ do
             echo '#### '$NAME' ####'
 
             OMP_NUM_THREADS=$THREADS
-            mpirun -bind-to none -machinefile machine $BINDDM -msh $MYMESH -k $K \
+            mpirun -bind-to none \
+                   -np $NDOM \
+                   $BINDDM -msh $MYMESH -k $K \
                    -max 250 -ddm $DDM \
                    -pade 4 -ck 0 -chi 0 -lc 0.06 -type $TYPE -ov $v -ob $b \
                    -name $NAME -interp $INTERP -hist $NAME'.hist' \
                    -solver -ksp_rtol 1e-9
 
+            # -machinefile machine
             ## Synching nodes
             # rsync -avPH ace43:ddm/ .
             # ssh -x ace43 "rm -fv ~/ddm/*.dat(N)"

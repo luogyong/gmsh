@@ -21,10 +21,10 @@ Complex fSourceScal(fullVector<double>& xyz){
   const double  z  = xyz(2);
 
   const Complex E0 = Complex(1, 0);
-  const double  a  = 2.29e-2;
-  const double  b  = 1.02e-2;
+  const double  a  = 2;
+  const double  b  = 1;
   const int     m  = 1;
-  const int     n  = 0;
+  const int     n  = 1;
 
   const double ky = m * Pi / a;
   const double kz = n * Pi / b;

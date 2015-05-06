@@ -3,16 +3,17 @@
 
 // Physical constants //
 ////////////////////////
-C0       = 299792458;           // [m/s]
-Mu0      = 4 * Pi * 1e-7;       // [H/m]
-Eps0     = 1 / (C0 * C0 * Mu0); // [F/m]
+C0        = 299792458;           // [m/s]
+Mu0       = 4 * Pi * 1e-7;       // [H/m]
+Eps0      = 1 / (C0 * C0 * Mu0); // [F/m]
 EpsRAirRe = 1; // [-]
 EpsRAirIm = 0; // [-]
+
 
 // Rods //
 //////////
 DefineConstant[
-  RodN = {10,    Name "Input/00Rods/00Number [-]"},
+  RodN = {5,     Name "Input/00Rods/00Number [-]"},
   RodP = {0.015, Name "Input/00Rods/01Period [m]"},
   RodR = {0.005, Name "Input/00Rods/02Radius [m]"},
   RodL = {0.03,  Name "Input/00Rods/03Length [m]"},
@@ -38,7 +39,7 @@ DefineConstant[
 // Air //
 /////////
 DefineConstant[
-  AirXF = {1.0, Name "Input/02Air/00Air size (X) [lambda]"},
+  AirXF = {0.1, Name "Input/02Air/00Air size (X) [lambda]"},
   AirYF = {1.0, Name "Input/02Air/01Air size (Y) [lambda]"},
   AirZF = {1.5, Name "Input/02Air/02Air size (Z) [lambda]"}
 ];
@@ -51,7 +52,7 @@ AirZ = AirZF * Lambda; // [m]
 // Pml //
 /////////
 DefineConstant[
-  PmlSizeF = {0.5, Name "Input/03Pml/00Thickness [lambda]"}
+  PmlSizeF = {0.3, Name "Input/03Pml/00Thickness [lambda]"}
 ];
 
 PmlSize = PmlSizeF * Lambda; // [m]
@@ -60,8 +61,8 @@ PmlSize = PmlSizeF * Lambda; // [m]
 // Mesh //
 //////////
 DefineConstant[
-  MeshAirF = {10,  Name "Input/04Mesh/00Air size [1\lambda]"},
-  MeshRodF = {10,  Name "Input/04Mesh/01Rod size [1\lambda]"},
+  MeshAirF = {5,  Name "Input/04Mesh/00Air size [1\lambda]"},
+  MeshRodF = {5,  Name "Input/04Mesh/01Rod size [1\lambda]"},
   MeshSrcF = {100, Name "Input/04Mesh/03Source size [1\lambda]"}
 ];
 
@@ -73,5 +74,5 @@ MeshSrc = Lambda / MeshSrcF;
 // DDM //
 /////////
 DefineConstant[
-  UseDDM = {1,  Name "Input/05DDM/00Use DDM", Choices {0, 1}}
+  UseDDM = {0,  Name "Input/05DDM/00Use DDM", Choices {0, 1}}
 ];

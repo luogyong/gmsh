@@ -19,7 +19,7 @@ target   = ol.defineNumber(name = 'Input/02Eigen/00Target',     value = 0.00074)
 nEig     = ol.defineNumber(name = 'Input/02Eigen/01Number',     value = 10)
 postpro  = ol.defineNumber(name = 'Input/03Post-Pro/00Draw',    choices = {0,1},
                                                                   value = 1)
-nProc    = ol.defineNumber(name = 'Input/04Solver/00Process',   value = 4)
+nProc    = ol.defineNumber(name = 'Input/04Solver/00Process',   value = 2)
 tol      = ol.defineNumber(name = 'Input/04Solver/01Tolerance', value = 1e-6)
 #maxit    = ol.defineNumber(name = 'Input/04Solver/02Iteration', value = 10000)
 
@@ -46,7 +46,7 @@ ol.run('mesh',
 ol.mergeFile(name + '.msh')
 
 ## Simulate
-cmd  = 'mpirun -host localhost -np ' + str(nProc) + ' '
+cmd  = 'mpirun --bind-to none -np '   + str(nProc) + ' '
 cmd += 'emode'  + ' ' + \
        '-msh'   + ' ' + name + '.msh' + ' ' + \
        '-type'  + ' ' + 'vector'      + ' ' + \
@@ -61,7 +61,7 @@ if postpro == 0:
 
 cmd += '-solver -eps_monitor' # -eps_view'
 
-os.environ['OMP_NUM_THREADS'] = str(1)
+os.environ['OMP_NUM_THREADS'] = str(2)
 ol.call('sf', cmd)
 
 ## Draw

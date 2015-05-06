@@ -31,13 +31,15 @@ ext[] = Extrude {0, 0, LZ} {
 };
 
 // Mesh //
-// --> Buggy ?? --> reverts some triangle at boundary ??
-/*
 If(STRUCT == 1)
+  // --> Buggy ?? --> reverts some triangle at boundary ??
+  /*
   Transfinite Surface "*";
   Transfinite Volume  "*";
+  */
+  Printf("Cannot use structured mesh: reverting to unstructured (see .geo)");
 EndIf
-*/
+
 
 // Physicals //
 zero[] = {};

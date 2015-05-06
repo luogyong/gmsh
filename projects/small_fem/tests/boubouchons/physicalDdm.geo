@@ -130,18 +130,18 @@ For i In {0:(2 * PmlN) - 1}
   // Volumes
   Physical  Volume(110000 + Off + i) =   Pml~{3}[i];        // Pml X
   Physical  Volume(130000 + Off + i) = {
-    Pml~{5}[i * 1 * PmlN + 0],
-    Pml~{5}[i * 1 * PmlN + 1]
+    Pml~{5}[i * 2 + 0],
+    Pml~{5}[i * 2 + 1]
   };                                                        // Pml XZ
   Physical  Volume(140000 + Off + i) = {
-    Pml~{4}[i * 1 * PmlN + 0],
-    Pml~{4}[i * 1 * PmlN + 1]
+    Pml~{4}[i * 2 + 0],
+    Pml~{4}[i * 2 + 1]
   };                                                        // Pml XY
   Physical  Volume(150000 + Off + i) = {
-    Pml~{6}[i * 2 * PmlN + 0],
-    Pml~{6}[i * 2 * PmlN + 1],
-    Pml~{6}[i * 2 * PmlN + 2],
-    Pml~{6}[i * 2 * PmlN + 3]
+    Pml~{6}[i * 4 + 0],
+    Pml~{6}[i * 4 + 1],
+    Pml~{6}[i * 4 + 2],
+    Pml~{6}[i * 4 + 3]
   };                                                        // Pml XYZ
 
   // Right boundaries
