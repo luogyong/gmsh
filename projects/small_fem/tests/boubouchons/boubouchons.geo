@@ -22,9 +22,16 @@ EndIf
 
 // Physicals //
 ///////////////
+//If(UseDDM == 0)
+Include "physicalNoDdm.geo";
+//EndIf
+
 If(UseDDM == 1)
-  Include "physicalDdm.geo";
+  //Include "physicalDdm.geo";
 EndIf
-If(UseDDM == 0)
-  Include "physicalNoDdm.geo";
-EndIf
+
+Mesh 3;
+
+Include "partition.geo";
+
+Save "boubouchons.msh";
