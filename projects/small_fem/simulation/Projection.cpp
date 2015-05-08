@@ -20,19 +20,21 @@ using namespace std;
 // Functions to project (scalar and vector) //
 //////////////////////////////////////////////
 
-double fScal(fullVector<double>& xyz){
-  return
-    sin(10 * xyz(0)) +
-    sin(10 * xyz(1)) +
-    sin(10 * xyz(2));
+// !WARNING!: The analytical solution is ALLWAYS 3D,
+//            this may corrupt the error of a 2D FEM projection!!!
+
+Complex fScal(fullVector<double>& xyz){
+  return Complex(1, 1) * (sin(10 * xyz(0)) +
+                          sin(10 * xyz(1)) +
+                          sin(10 * xyz(2)));
 }
 
-fullVector<double> fVect(fullVector<double>& xyz){
-  fullVector<double> res(3);
+fullVector<Complex> fVect(fullVector<double>& xyz){
+  fullVector<Complex> res(3);
 
-  res(0) = sin(10 * xyz(0));
-  res(1) = sin(10 * xyz(1));
-  res(2) = sin(10 * xyz(2));
+  res(0) = Complex(1, 1) * sin(10 * xyz(0));
+  res(1) = Complex(1, 1) * sin(10 * xyz(1));
+  res(2) = Complex(1, 1) * sin(10 * xyz(2));
 
   return res;
 }
@@ -42,33 +44,36 @@ fullVector<double> fVect(fullVector<double>& xyz){
 /////////////////////////////////////
 
 // Analytical solution (scalar and vector) //
-void ana(double (*f)(fullVector<double>& xyz),
+void ana(Complex (*f)(fullVector<double>& xyz),
          const fullMatrix<double>& point,
-         fullMatrix<double>& eval);
+         fullMatrix<Complex>& eval);
 
-void ana(fullVector<double> (*f)(fullVector<double>& xyz),
+void ana(fullVector<Complex> (*f)(fullVector<double>& xyz),
          const fullMatrix<double>& point,
-         fullMatrix<double>& eval);
+         fullMatrix<Complex>& eval);
 
 // FEM solution (scalar and vector) //
-void fem(double (*f)(fullVector<double>& xyz),
+void fem(Complex (*f)(fullVector<double>& xyz),
          GroupOfElement& domain,
          size_t order,
          const fullMatrix<double>& point,
-         fullMatrix<double>& sol,
+         fullMatrix<Complex>& sol,
          bool nopos);
 
-void fem(fullVector<double> (*f)(fullVector<double>& xyz),
+void fem(fullVector<Complex> (*f)(fullVector<double>& xyz),
          GroupOfElement& domain,
          size_t order,
          const fullMatrix<double>& point,
-         fullMatrix<double>& sol,
+         fullMatrix<Complex>& sol,
          bool nopos);
+
+// Modulus of a Complex number //
+double mod(Complex a);
 
 // L2 norms and error (|A|, |A - B| and |A - B| / |A|) //
-double l2Norm(const fullMatrix<double>& val);
-double l2Norm(const fullMatrix<double>& valA, const fullMatrix<double>& valB);
-double l2Error(const fullMatrix<double>& fem, const fullMatrix<double>& ana);
+double l2Norm(const fullMatrix<Complex>& val);
+double l2Norm(const fullMatrix<Complex>& valA, const fullMatrix<Complex>& valB);
+double l2Error(const fullMatrix<Complex>& fem, const fullMatrix<Complex>& ana);
 
 // Write Octave file //
 void write(bool isScalar, const fullMatrix<double>& l2, string name);
@@ -115,7 +120,7 @@ void compute(const Options& option){
 
   // Real Solutions //
   cout << "## Real Solution" << endl << flush;
-  fullMatrix<double> realSol;
+  fullMatrix<Complex> realSol;
 
   if(isScalar)
     ana(fScal, point, realSol);
@@ -124,8 +129,8 @@ void compute(const Options& option){
 
   // FEM Solution & L2 Error //
   cout << "## FEM Solutions" << endl << flush;
-  fullMatrix<double> femSol;
-  fullMatrix<double> l2(nOrder, nMesh);
+  fullMatrix<Complex> femSol;
+  fullMatrix<double>  l2(nOrder, nMesh);
 
   // Iterate on Meshes
   for(size_t i = 0; i < nMesh; i++){
@@ -167,9 +172,9 @@ int main(int argc, char** argv){
 // Implentation of helping functions //
 ///////////////////////////////////////
 
-void ana(double (*f)(fullVector<double>& xyz),
+void ana(Complex (*f)(fullVector<double>& xyz),
          const fullMatrix<double>& point,
-         fullMatrix<double>& eval){
+         fullMatrix<Complex>& eval){
   // Alloc eval for Scalar Values //
   const size_t nPoint = point.size1();
   eval.resize(nPoint, 1);
@@ -185,16 +190,16 @@ void ana(double (*f)(fullVector<double>& xyz),
   }
 }
 
-void ana(fullVector<double> (*f)(fullVector<double>& xyz),
+void ana(fullVector<Complex> (*f)(fullVector<double>& xyz),
          const fullMatrix<double>& point,
-         fullMatrix<double>& eval){
+         fullMatrix<Complex>& eval){
   // Alloc eval for Vectorial Values //
   const size_t nPoint = point.size1();
   eval.resize(nPoint, 3);
 
   // Loop on point and evaluate f //
   fullVector<double> xyz(3);
-  fullVector<double> tmp(3);
+  fullVector<Complex> tmp(3);
   for(size_t i = 0; i < nPoint; i++){
     xyz(0) = point(i, 0);
     xyz(1) = point(i, 1);
@@ -208,18 +213,18 @@ void ana(fullVector<double> (*f)(fullVector<double>& xyz),
   }
 }
 
-void fem(double (*f)(fullVector<double>& xyz),
+void fem(Complex (*f)(fullVector<double>& xyz),
          GroupOfElement& domain,
          size_t order,
          const fullMatrix<double>& point,
-         fullMatrix<double>& sol,
+         fullMatrix<Complex>& sol,
          bool nopos){
   // Projection //
   stringstream stream;
 
   FunctionSpaceScalar fSpace(domain, order);
-  FormulationProjection<double> projection(domain, fSpace, f);
-  System<double> sysProj;
+  FormulationProjection<Complex> projection(domain, fSpace, f);
+  System<Complex> sysProj;
 
   sysProj.addFormulation(projection);
 
@@ -233,21 +238,21 @@ void fem(double (*f)(fullVector<double>& xyz),
 
   set<Dof>::iterator    end = dof.end();
   set<Dof>::iterator     it = dof.begin();
-  map<Dof, double>   sysSol;
+  map<Dof, Complex>   sysSol;
 
   for(; it != end; it++)
-    sysSol.insert(pair<Dof, double>(*it, 0));
+    sysSol.insert(pair<Dof, Complex>(*it, 0));
 
   // Get Solution //
   sysProj.getSolution(sysSol, 0);
 
   // Interpolate on Ref Points //
   vector<bool> isValid;
-  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol,isValid);
+  Interpolator<Complex>::interpolate(domain, fSpace, sysSol, point, sol,isValid);
 
   // Post-processing //
   if(!nopos){
-    FEMSolution<double> feSol;
+    FEMSolution<Complex> feSol;
     stream << "projection_Mesh" << domain.getNumber() << "_Order" << order;
 
     sysProj.getSolution(feSol, fSpace, domain);
@@ -255,18 +260,18 @@ void fem(double (*f)(fullVector<double>& xyz),
   }
 }
 
-void fem(fullVector<double> (*f)(fullVector<double>& xyz),
+void fem(fullVector<Complex> (*f)(fullVector<double>& xyz),
          GroupOfElement& domain,
          size_t order,
          const fullMatrix<double>& point,
-         fullMatrix<double>& sol,
+         fullMatrix<Complex>& sol,
          bool nopos){
   // Projection //
   stringstream stream;
 
   FunctionSpaceVector fSpace(domain, order);
-  FormulationProjection<double> projection(domain, fSpace, f);
-  System<double> sysProj;
+  FormulationProjection<Complex> projection(domain, fSpace, f);
+  System<Complex> sysProj;
 
   sysProj.addFormulation(projection);
 
@@ -280,21 +285,21 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
 
   set<Dof>::iterator    end = dof.end();
   set<Dof>::iterator     it = dof.begin();
-  map<Dof, double>   sysSol;
+  map<Dof, Complex>   sysSol;
 
   for(; it != end; it++)
-    sysSol.insert(pair<Dof, double>(*it, 0));
+    sysSol.insert(pair<Dof, Complex>(*it, 0));
 
   // Get Solution //
   sysProj.getSolution(sysSol, 0);
 
   // Interpolate on Ref Points //
   vector<bool> isValid;
-  Interpolator<double>::interpolate(domain, fSpace, sysSol, point, sol,isValid);
+  Interpolator<Complex>::interpolate(domain, fSpace, sysSol, point, sol,isValid);
 
   // Post-processing //
   if(!nopos){
-    FEMSolution<double> feSol;
+    FEMSolution<Complex> feSol;
     stream << "projection_Mesh" << domain.getNumber() << "_Order" << order;
 
     sysProj.getSolution(feSol, fSpace, domain);
@@ -302,7 +307,11 @@ void fem(fullVector<double> (*f)(fullVector<double>& xyz),
   }
 }
 
-double l2Norm(const fullMatrix<double>& val){
+double modulusSquare(Complex a){
+  return (a.real() * a.real()) + (a.imag() * a.imag());
+}
+
+double l2Norm(const fullMatrix<Complex>& val){
   const size_t nPoint = val.size1();
   const size_t    dim = val.size2();
 
@@ -313,15 +322,15 @@ double l2Norm(const fullMatrix<double>& val){
     modSquare = 0;
 
     for(size_t j = 0; j < dim; j++)
-      modSquare += val(i, j) * val(i, j);
+      modSquare += modulusSquare(val(i, j));
 
     norm += modSquare;
   }
 
-  return norm = sqrt(norm);
+  return sqrt(norm);
 }
 
-double l2Norm(const fullMatrix<double>& valA, const fullMatrix<double>& valB){
+double l2Norm(const fullMatrix<Complex>& valA, const fullMatrix<Complex>& valB){
   const size_t nPoint = valA.size1();
   const size_t    dim = valA.size2();
 
@@ -332,15 +341,15 @@ double l2Norm(const fullMatrix<double>& valA, const fullMatrix<double>& valB){
     modSquare = 0;
 
     for(size_t j = 0; j < dim; j++)
-      modSquare += (valA(i, j) - valB(i, j)) * (valA(i, j) - valB(i, j));
+      modSquare += modulusSquare(valA(i, j) - valB(i, j));
 
     norm += modSquare;
   }
 
-  return norm = sqrt(norm);
+  return sqrt(norm);
 }
 
-double l2Error(const fullMatrix<double>& fem, const fullMatrix<double>& ana){
+double l2Error(const fullMatrix<Complex>& fem, const fullMatrix<Complex>& ana){
   double anaNorm = l2Norm(ana);
   double femNorm = l2Norm(fem, ana);
 
