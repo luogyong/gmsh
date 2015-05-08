@@ -3,7 +3,6 @@
 #include "SystemHelper.h"
 #include "Interpolator.h"
 #include "FormulationHelper.h"
-#include "FormulationImpedance.h"
 #include "FormulationSilverMuller.h"
 #include "FormulationSteadyWave.h"
 
@@ -13,21 +12,27 @@ using namespace std;
 
 static const int    scal = 0;
 static const int    vect = 1;
-static       double k;
+
+static const double  Pi = M_PI;
+
+static const Complex E0 = Complex(1, 0);
+static const double  a  = 1;
+static const double  b  = 1;
+static const int     m  = 1;
+static const int     n  = 0;
+
+static const double  ky = m * Pi / a;
+static const double  kz = n * Pi / b;
+static       double  k;
+static       Complex kx;
+
+void getKx(void){
+  kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
+}
 
 Complex fSourceScal(fullVector<double>& xyz){
-  const double  Pi = M_PI;
-  const double  y  = xyz(1);
-  const double  z  = xyz(2);
-
-  const Complex E0 = Complex(1, 0);
-  const double  a  = 2;
-  const double  b  = 1;
-  const int     m  = 1;
-  const int     n  = 1;
-
-  const double ky = m * Pi / a;
-  const double kz = n * Pi / b;
+  const double y = xyz(1);
+  const double z = xyz(2);
 
   return E0 * Complex(sin(ky * y) * sin(kz * z), 0);
 }
@@ -38,20 +43,10 @@ Complex fZeroScal(fullVector<double>& xyz){
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   const Complex I  = Complex(0, 1);
-  const double  Pi = M_PI;
   const double  x  = xyz(0);
   const double  y  = xyz(1);
   const double  z  = xyz(2);
 
-  const Complex E0 = Complex(1, 0);
-  const double  a  = 1;
-  const double  b  = 1;
-  const int     m  = 1;
-  const int     n  = 1;
-
-  const Complex ky = Complex(m * Pi / a, 0);
-  const Complex kz = Complex(n * Pi / b, 0);
-  const Complex kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
   /*
   // TEM 2D
   fullVector<Complex> tmp(3);
@@ -59,13 +54,13 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   tmp(1) = E0;
   tmp(2) = Complex(0, 0);
   */
-  /*
+
   // TMm 2D
   fullVector<Complex> tmp(3);
-  tmp(0) = E0 * I * ky / k * sin(ky * y);
-  tmp(1) = E0 *     kx / k * cos(ky * y);
+  tmp(0) = -E0 * I * ky / k * sin(ky * y);
+  tmp(1) = +E0 *     kx / k * cos(ky * y);
   tmp(2) = Complex(0, 0);
-  */
+
   /*
   // TEm0 3D
   fullVector<Complex> tmp(3);
@@ -80,12 +75,13 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
   tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
   */
+  /*
   // TMmn 3D
   fullVector<Complex> tmp(3);
   tmp(0) = E0                                  * sin(ky * y) * sin(kz * z);
   tmp(1) = E0 * (-I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
   tmp(2) = E0 * (-I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);
-
+  */
   return tmp;
 }
 
@@ -117,9 +113,14 @@ void compute(const Options& option){
 
   // Get Parameters //
   const size_t nDom  = atoi(option.getValue("-n")[1].c_str());
-  k                  = atof(option.getValue("-k")[1].c_str());
   const size_t order = atoi(option.getValue("-o")[1].c_str());
-  const double sigma = atof(option.getValue("-sigma")[1].c_str());
+  k                  = atof(option.getValue("-k")[1].c_str());
+
+  // Compute kx //
+  getKx();
+
+  // Compute kInfinity for mode matching in silver-muller //
+  Complex kInf = (k * k) / kx;
 
   cout << "Wavenumber: " << k     << endl
        << "Order:      " << order << endl
@@ -154,17 +155,13 @@ void compute(const Options& option){
     fs = new FunctionSpaceVector(domain, order);
 
   // Steady Wave Formulation //
-  const double    Z0 = 119.9169832 * M_PI;
-  const Complex epsr(1, 1 / k * Z0 * sigma);
-  const Complex  mur(1, 0);
-
   FormulationSteadyWave<Complex>  wave(volume,   *fs, k);
-  FormulationImpedance       impedance(infinity, *fs, k, epsr, mur);
+  FormulationSilverMuller         radiation(infinity, *fs, kInf);
 
   // Solve //
   System<Complex> system;
   system.addFormulation(wave);
-  system.addFormulation(impedance);
+  system.addFormulation(radiation);
 
   // Constraint
   if(fs->isScalar()){
@@ -221,9 +218,9 @@ void compute(const Options& option){
         stringstream name;
         name << stream.str() << i << ".dat";
 
-        map<const MVertex*, vector<Complex> > map;
-        Interpolator<Complex>::interpolate(*perVolume[i], visuGoe, *fs,sol,map);
-        Interpolator<Complex>::write(name.str(), map);
+        map<const MVertex*, vector<Complex> > mpV;
+        Interpolator<Complex>::interpolate(*perVolume[i], visuGoe, *fs,sol,mpV);
+        Interpolator<Complex>::write(name.str(), mpV);
       }
     }
 
@@ -243,7 +240,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-k,-n,-sigma,-type,-interp,-name,-nopos");
+  SmallFem::Keywords("-msh,-o,-k,-n,-type,-interp,-name,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

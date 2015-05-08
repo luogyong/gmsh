@@ -15,8 +15,11 @@
 
 class FormulationSilverMuller: public FormulationBlock<Complex>{
  private:
+  static const Complex I;
+
+ private:
   // Wavenumber //
-  double k;
+  Complex k;
 
   // Function Space & Domain //
   const FunctionSpace*  fspace;
@@ -28,7 +31,7 @@ class FormulationSilverMuller: public FormulationBlock<Complex>{
  public:
   FormulationSilverMuller(const GroupOfElement& domain,
                           const FunctionSpace& fs,
-                          double k);
+                          Complex k);
 
   virtual ~FormulationSilverMuller(void);
 

@@ -13,10 +13,11 @@
 
 using namespace std;
 
+const Complex FormulationSilverMuller::I = Complex(0, 1);
 
 FormulationSilverMuller::FormulationSilverMuller(const GroupOfElement& domain,
                                                  const FunctionSpace& fs,
-                                                 double k){
+                                                 Complex k){
   // Check GroupOfElement Stats: Uniform Mesh //
   pair<bool, size_t> uniform = domain.isUniform();
   size_t               eType = uniform.second;
@@ -59,7 +60,7 @@ FormulationSilverMuller::~FormulationSilverMuller(void){
 
 Complex FormulationSilverMuller::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
-  return Complex(0, -1 * k * localTerms->getTerm(dofI, dofJ, elementId));
+  return -I * k * localTerms->getTerm(dofI, dofJ, elementId);
 }
 
 Complex FormulationSilverMuller::rhs(size_t equationI, size_t elementId) const{
