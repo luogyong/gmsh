@@ -61,18 +61,13 @@ PmlSize = PmlSizeF * Lambda; // [m]
 // Mesh //
 //////////
 DefineConstant[
-  MeshAirF = {5,  Name "Input/04Mesh/00Air size [1\lambda]"},
-  MeshRodF = {5,  Name "Input/04Mesh/01Rod size [1\lambda]"},
-  MeshSrcF = {100, Name "Input/04Mesh/03Source size [1\lambda]"}
+  MeshAirF = {5,   Name "Input/04Mesh/00Air size [1\lambda]"},
+  MeshRodF = {5,   Name "Input/04Mesh/01Rod size [1\lambda]"},
+  MeshSrcF = {100, Name "Input/04Mesh/03Source size [1\lambda]"},
+
+  DoMesh   = {0,   Name "Input/04Mesh/04Mesh", Choices {0, 1}}
 ];
 
 MeshAir = Lambda / MeshAirF;
 MeshRod = Lambda / MeshRodF;
 MeshSrc = Lambda / MeshSrcF;
-
-
-// DDM //
-/////////
-DefineConstant[
-  UseDDM = {1,  Name "Input/05DDM/00Use DDM", Choices {0, 1}}
-];

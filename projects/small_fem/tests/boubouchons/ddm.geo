@@ -43,6 +43,45 @@
 //      = 7: 'PmlXYZ' front down part of kth volume
 //      = 8: 'PmlXYZ' front   up part of kth volume
 
+// DdmSurf~{j}[k]
+//  * k denotes a unique volume in the geometry
+//  * j = 0: for right boundary (along x axis) of kth volume
+//      = 1: for  left boundary (along x axis) of kth volume
+
 Include "ddmRod.geo";
 Include "ddmEnd.geo";
 Include "ddmPml.geo";
+
+For i In {0:1}
+  DdmSurf~{i} = {
+    DdmRod~{0}~{i}[],
+    DdmRod~{1}~{i}[],
+    DdmRod~{2}~{i}[],
+    DdmRod~{3}~{i}[],
+    DdmRod~{4}~{i}[],
+    DdmRod~{5}~{i}[],
+    DdmRod~{6}~{i}[],
+    DdmRod~{7}~{i}[],
+    DdmRod~{8}~{i}[],
+
+    DdmEnd~{0}~{i}[],
+    DdmEnd~{1}~{i}[],
+    DdmEnd~{2}~{i}[],
+    DdmEnd~{3}~{i}[],
+    DdmEnd~{4}~{i}[],
+    DdmEnd~{5}~{i}[],
+    DdmEnd~{6}~{i}[],
+    DdmEnd~{7}~{i}[],
+    DdmEnd~{8}~{i}[],
+
+    DdmPml~{0}~{i}[],
+    DdmPml~{1}~{i}[],
+    DdmPml~{2}~{i}[],
+    DdmPml~{3}~{i}[],
+    DdmPml~{4}~{i}[],
+    DdmPml~{5}~{i}[],
+    DdmPml~{6}~{i}[],
+    DdmPml~{7}~{i}[],
+    DdmPml~{8}~{i}[]
+  };
+EndFor
