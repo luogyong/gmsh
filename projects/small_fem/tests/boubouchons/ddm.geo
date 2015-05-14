@@ -53,35 +53,45 @@ Include "ddmEnd.geo";
 Include "ddmPml.geo";
 
 For i In {0:1}
-  DdmSurf~{i} = {
-    DdmRod~{0}~{i}[],
-    DdmRod~{1}~{i}[],
-    DdmRod~{2}~{i}[],
-    DdmRod~{3}~{i}[],
-    DdmRod~{4}~{i}[],
-    DdmRod~{5}~{i}[],
-    DdmRod~{6}~{i}[],
-    DdmRod~{7}~{i}[],
-    DdmRod~{8}~{i}[],
+  For j In {0:RodN - 1}
+    DdmSortRod~{j}~{i} = {
+      DdmRod~{0}~{i}[j],
+      DdmRod~{1}~{i}[j],
+      DdmRod~{2}~{i}[j],
+      DdmRod~{3}~{i}[j],
+      DdmRod~{4}~{i}[j],
+      DdmRod~{5}~{i}[j],
+      DdmRod~{6}~{i}[j],
+      DdmRod~{7}~{i}[j],
+      DdmRod~{8}~{i}[j]
+    };
+  EndFor
 
-    DdmEnd~{0}~{i}[],
-    DdmEnd~{1}~{i}[],
-    DdmEnd~{2}~{i}[],
-    DdmEnd~{3}~{i}[],
-    DdmEnd~{4}~{i}[],
-    DdmEnd~{5}~{i}[],
-    DdmEnd~{6}~{i}[],
-    DdmEnd~{7}~{i}[],
-    DdmEnd~{8}~{i}[],
+  For j In {0:(2 * EndN - 1)}
+    DdmSortEnd~{j}~{i} = {
+      DdmEnd~{0}~{i}[j],
+      DdmEnd~{1}~{i}[j],
+      DdmEnd~{2}~{i}[j],
+      DdmEnd~{3}~{i}[j],
+      DdmEnd~{4}~{i}[j],
+      DdmEnd~{5}~{i}[j],
+      DdmEnd~{6}~{i}[j],
+      DdmEnd~{7}~{i}[j],
+      DdmEnd~{8}~{i}[j]
+    };
+  EndFor
 
-    DdmPml~{0}~{i}[],
-    DdmPml~{1}~{i}[],
-    DdmPml~{2}~{i}[],
-    DdmPml~{3}~{i}[],
-    DdmPml~{4}~{i}[],
-    DdmPml~{5}~{i}[],
-    DdmPml~{6}~{i}[],
-    DdmPml~{7}~{i}[],
-    DdmPml~{8}~{i}[]
-  };
+  For j In {0:(2 * PmlN - 1)}
+    DdmSortPml~{j}~{i} = {
+      DdmPml~{0}~{i}[j],
+      DdmPml~{1}~{i}[j],
+      DdmPml~{2}~{i}[j],
+      DdmPml~{3}~{i}[j],
+      DdmPml~{4}~{i}[j],
+      DdmPml~{5}~{i}[j],
+      DdmPml~{6}~{i}[j],
+      DdmPml~{7}~{i}[j],
+      DdmPml~{8}~{i}[j]
+    };
+  EndFor
 EndFor

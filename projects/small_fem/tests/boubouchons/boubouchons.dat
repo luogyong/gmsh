@@ -13,7 +13,7 @@ EpsRAirIm = 0; // [-]
 // Rods //
 //////////
 DefineConstant[
-  RodN = {10,    Name "Input/00Rods/00Number [-]"},
+  RodN = {3,     Name "Input/00Rods/00Number [-]"},
   RodP = {0.015, Name "Input/00Rods/01Period [m]"},
   RodR = {0.005, Name "Input/00Rods/02Radius [m]"},
   RodL = {0.03,  Name "Input/00Rods/03Length [m]"},
