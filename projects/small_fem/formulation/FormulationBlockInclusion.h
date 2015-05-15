@@ -8,3 +8,8 @@
 template<typename scalar>
 FormulationBlock<scalar>::~FormulationBlock(void){
 }
+
+template<typename scalar>
+bool FormulationBlock<scalar>::isBlock(void) const{
+  return true;
+}

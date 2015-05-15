@@ -36,7 +36,7 @@ Function {
     einc[] = Vector[0,0,1] * Complex[ Cos[-k*X[]], Sin[-k*X[]] ]; // TE
   EndIf
   If(!POLARISATION)
-    einc[] = Vector[0,1,0] ;//* Complex[ Cos[-k*X[]], Sin[-k*X[]] ]; // TM
+    einc[] = Vector[0,1,0] * Complex[ Cos[-k*X[]], Sin[-k*X[]] ]; // TM
   EndIf
 
   // parameter for ABC

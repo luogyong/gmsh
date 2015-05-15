@@ -72,14 +72,14 @@ void SystemAbstract<scalar>::
 addFormulationCoupled(const FormulationCoupled<scalar>& formulation,
                       std::list<const FormulationBlock<scalar>*>& fList){
   // Get the list of Formulation Blocks //
-  const std::list<const FormulationBlock<scalar>*>&
+  const std::list<FormulationBlock<scalar>*>&
     blockList = formulation.getFormulationBlocks();
 
   // Iterate on list and add the pointed Formulations //
-  typename std::list<const FormulationBlock<scalar>*>::const_iterator
+  typename std::list<FormulationBlock<scalar>*>::const_iterator
     end = blockList.end();
 
-  typename std::list<const FormulationBlock<scalar>*>::const_iterator
+  typename std::list<FormulationBlock<scalar>*>::const_iterator
     it  = blockList.begin();
 
   for(; it != end; it++)

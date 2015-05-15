@@ -186,6 +186,8 @@ add_executable(tester simulation/Test.cpp)
 
 add_executable(bouchon simulation/Boubouchons.cpp
                        simulation/BoubouchonsHelper.cpp)
+add_executable(bouddm  simulation/BoubouchonsDdm.cpp
+                       simulation/BoubouchonsHelper.cpp)
 
 ## Link ##
 ##########
@@ -216,3 +218,4 @@ target_link_libraries(ref    sf)
 target_link_libraries(tester sf)
 
 target_link_libraries(bouchon sf)
+target_link_libraries(bouddm  sf)

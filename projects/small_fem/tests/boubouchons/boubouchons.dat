@@ -39,7 +39,7 @@ DefineConstant[
 // Air //
 /////////
 DefineConstant[
-  AirXF = {1.0, Name "Input/02Air/00Air size (X) [lambda]"},
+  AirXF = {0.1, Name "Input/02Air/00Air size (X) [lambda]"},
   AirYF = {1.0, Name "Input/02Air/01Air size (Y) [lambda]"},
   AirZF = {1.5, Name "Input/02Air/02Air size (Z) [lambda]"}
 ];
@@ -52,7 +52,7 @@ AirZ = AirZF * Lambda; // [m]
 // Pml //
 /////////
 DefineConstant[
-  PmlSizeF = {1, Name "Input/03Pml/00Thickness [lambda]"}
+  PmlSizeF = {0.1, Name "Input/03Pml/00Thickness [lambda]"}
 ];
 
 PmlSize = PmlSizeF * Lambda; // [m]

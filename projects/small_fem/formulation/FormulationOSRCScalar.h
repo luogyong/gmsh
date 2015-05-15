@@ -47,7 +47,7 @@ class FormulationOSRCScalar: public FormulationCoupled<Complex>{
   TermProjectionField<Complex>* RHS;
 
   // Formulations //
-  std::list<const FormulationBlock<Complex>*> fList;
+  std::list<FormulationBlock<Complex>*> fList;
 
  public:
   FormulationOSRCScalar(DDMContextOSRCScalar& context);
@@ -55,7 +55,7 @@ class FormulationOSRCScalar: public FormulationCoupled<Complex>{
   virtual ~FormulationOSRCScalar(void);
 
   virtual
-    const std::list<const FormulationBlock<Complex>*>&
+    const std::list<FormulationBlock<Complex>*>&
                                                getFormulationBlocks(void) const;
 
   virtual bool isBlock(void) const;

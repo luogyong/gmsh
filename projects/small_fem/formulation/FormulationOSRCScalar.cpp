@@ -113,8 +113,8 @@ FormulationOSRCScalar::FormulationOSRCScalar(DDMContextOSRCScalar& context){
 
 FormulationOSRCScalar::~FormulationOSRCScalar(void){
   // Iterate & Delete Formulations //
-  list<const FormulationBlock<Complex>*>::iterator end = fList.end();
-  list<const FormulationBlock<Complex>*>::iterator it  = fList.begin();
+  list<FormulationBlock<Complex>*>::iterator end = fList.end();
+  list<FormulationBlock<Complex>*>::iterator it  = fList.begin();
 
   for(; it !=end; it++)
     delete *it;
@@ -132,7 +132,7 @@ FormulationOSRCScalar::~FormulationOSRCScalar(void){
   delete gaussFF;
 }
 
-const list<const FormulationBlock<Complex>*>&
+const list<FormulationBlock<Complex>*>&
 FormulationOSRCScalar::getFormulationBlocks(void) const{
   return fList;
 }

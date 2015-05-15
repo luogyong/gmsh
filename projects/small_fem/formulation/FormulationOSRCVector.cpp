@@ -146,8 +146,8 @@ FormulationOSRCVector::FormulationOSRCVector(DDMContextOSRCVector& context){
 
 FormulationOSRCVector::~FormulationOSRCVector(void){
   // Iterate & Delete Formulations //
-  list<const FormulationBlock<Complex>*>::iterator end = fList.end();
-  list<const FormulationBlock<Complex>*>::iterator it  = fList.begin();
+  list<FormulationBlock<Complex>*>::iterator end = fList.end();
+  list<FormulationBlock<Complex>*>::iterator it  = fList.begin();
 
   for(; it !=end; it++)
     delete *it;
@@ -171,7 +171,7 @@ FormulationOSRCVector::~FormulationOSRCVector(void){
   delete gauss;
 }
 
-const list<const FormulationBlock<Complex>*>&
+const list<FormulationBlock<Complex>*>&
 FormulationOSRCVector::getFormulationBlocks(void) const{
   return fList;
 }

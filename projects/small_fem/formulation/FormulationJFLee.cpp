@@ -104,8 +104,8 @@ FormulationJFLee::FormulationJFLee(DDMContextJFLee& context){
 
 FormulationJFLee::~FormulationJFLee(void){
   // Iterate & Delete Formulations //
-  list<const FormulationBlock<Complex>*>::iterator end = fList.end();
-  list<const FormulationBlock<Complex>*>::iterator it  = fList.begin();
+  list<FormulationBlock<Complex>*>::iterator end = fList.end();
+  list<FormulationBlock<Complex>*>::iterator it  = fList.begin();
 
   for(; it !=end; it++)
     delete *it;
@@ -125,7 +125,7 @@ FormulationJFLee::~FormulationJFLee(void){
   delete gauss;
 }
 
-const list<const FormulationBlock<Complex>*>&
+const list<FormulationBlock<Complex>*>&
 FormulationJFLee::getFormulationBlocks(void) const{
   return fList;
 }

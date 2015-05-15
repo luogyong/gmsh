@@ -56,7 +56,7 @@ class FormulationOSRCVector: public FormulationCoupled<Complex>{
   TermGradGrad<double>*        PdRo;
 
   // Formulations //
-  std::list<const FormulationBlock<Complex>*> fList;
+  std::list<FormulationBlock<Complex>*> fList;
 
  public:
   FormulationOSRCVector(DDMContextOSRCVector& context);
@@ -64,7 +64,7 @@ class FormulationOSRCVector: public FormulationCoupled<Complex>{
   virtual ~FormulationOSRCVector(void);
 
   virtual
-    const std::list<const FormulationBlock<Complex>*>&
+    const std::list<FormulationBlock<Complex>*>&
                                                getFormulationBlocks(void) const;
 
   virtual bool isBlock(void) const;

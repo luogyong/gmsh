@@ -8,3 +8,8 @@
 template<typename scalar>
 FormulationCoupled<scalar>::~FormulationCoupled(void){
 }
+
+template<typename scalar>
+bool FormulationCoupled<scalar>::isBlock(void) const{
+  return false;
+}

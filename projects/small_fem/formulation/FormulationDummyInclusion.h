@@ -18,7 +18,7 @@ FormulationDummy<scalar>::~FormulationDummy(void){
 }
 
 template<typename scalar>
-const std::list<const FormulationBlock<scalar>*>&
+const std::list<FormulationBlock<scalar>*>&
 FormulationDummy<scalar>::getFormulationBlocks(void) const{
   return fList;
 }

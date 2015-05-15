@@ -295,6 +295,8 @@ void compute(const Options& option){
     OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
   }
 
+  cout << "WARNING!: check aux space orders !!" << endl;
+
   // Jin Fa Lee
   FunctionSpaceVector* JFPhi = NULL;
   FunctionSpaceScalar* JFRho = NULL;

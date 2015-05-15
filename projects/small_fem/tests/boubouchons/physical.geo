@@ -27,22 +27,22 @@ Physical  Volume(1008) = Rod[];     // Rods
 Physical  Volume(1009) = Src~{0};   // Source
 Physical    Line(1011) = Src~{1};   // Source line
 
-// Boundaries for 'Rod' (Right / Left)
+// Boundaries for 'Rod'
 For i In {0:RodN - 1}
-  Physical Surface(20000 + i + 1) = DdmSortRod~{i}~{0}[];
-  Physical Surface(30000 + i + 1) = DdmSortRod~{i}~{1}[];
+  Physical Surface(40000 + i + 1) = { DdmSortRod~{i}~{0}[],
+                                      DdmSortRod~{i}~{1}[] };
 EndFor
 
-// Boundaries for 'End' (Right / Left)
+// Boundaries for 'End'
 For i In {0:(2 * EndN - 1)}
-  Physical Surface(20000 + i + 1 + RodN) = DdmSortEnd~{i}~{0}[];
-  Physical Surface(30000 + i + 1 + RodN) = DdmSortEnd~{i}~{1}[];
+  Physical Surface(40000 + i + 1 + RodN) = { DdmSortEnd~{i}~{0}[],
+                                             DdmSortEnd~{i}~{1}[] };
 EndFor
 
-// Boundaries for 'PmlX' (Right / Left)
+// Boundaries for 'PmlX'
 For i In {0:(2 * PmlN - 1)}
-  Physical Surface(20000 + i + 1 + RodN + 2 * EndN) = DdmSortPml~{i}~{0}[];
-  Physical Surface(30000 + i + 1 + RodN + 2 * EndN) = DdmSortPml~{i}~{1}[];
+  Physical Surface(40000 + i + 1 + RodN + 2 * EndN) = { DdmSortPml~{i}~{0}[],
+                                                        DdmSortPml~{i}~{1}[] };
 EndFor
 
 // Clear

@@ -32,6 +32,8 @@ class FormulationBlock: public Formulation<scalar>{
   virtual const FunctionSpace&  field(void)  const = 0;
   virtual const FunctionSpace&  test(void)   const = 0;
   virtual const GroupOfElement& domain(void) const = 0;
+
+  virtual bool isBlock(void) const;
 };
 
 /**

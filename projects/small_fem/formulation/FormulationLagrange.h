@@ -21,7 +21,7 @@ class FormulationLagrange: public FormulationCoupled<Complex>{
   TermProjectionField<double>* proj;  // Proj     . Lagrange
 
   // Formulations //
-  std::list<const FormulationBlock<Complex>*> fList;
+  std::list<FormulationBlock<Complex>*> fList;
 
  public:
   FormulationLagrange(const GroupOfElement& domain,
@@ -32,7 +32,7 @@ class FormulationLagrange: public FormulationCoupled<Complex>{
   virtual ~FormulationLagrange(void);
 
   virtual
-    const std::list<const FormulationBlock<Complex>*>&
+    const std::list<FormulationBlock<Complex>*>&
                                                getFormulationBlocks(void) const;
   virtual bool isBlock(void) const;
 };

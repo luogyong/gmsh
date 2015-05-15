@@ -13,7 +13,7 @@
 template<typename scalar>
 class FormulationDummy: public FormulationCoupled<scalar>{
  private:
-  std::list<const FormulationBlock<scalar>*> fList;
+  std::list<FormulationBlock<scalar>*> fList;
 
  public:
   FormulationDummy(void);
@@ -21,7 +21,7 @@ class FormulationDummy: public FormulationCoupled<scalar>{
   virtual ~FormulationDummy(void);
 
   virtual
-    const std::list<const FormulationBlock<scalar>*>&
+    const std::list<FormulationBlock<scalar>*>&
                                                getFormulationBlocks(void) const;
 
   virtual bool isBlock(void) const;

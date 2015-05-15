@@ -13,12 +13,29 @@
 #include "TermFieldField.h"
 #include "TermGradGrad.h"
 #include "TermCurlCurl.h"
+#include "TermDummy.h"
 
 template<typename scalar>
 FormulationSteadyWave<scalar>::
 FormulationSteadyWave(const GroupOfElement& domain,
                       const FunctionSpace& fs,
                       double k){
+  // Save Data //
+  ddomain = &domain;
+  ffs     = &fs;
+
+  // Wave Squared //
+  kSquare = k * k;
+
+  // No source //
+  src = NULL;
+
+  // Is domain empty ? //
+  if(domain.isEmpty()){
+    mass = new TermDummy<scalar>;
+    stif = new TermDummy<scalar>;
+    return;
+  }
 
   // Check domain stats: uniform mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();
@@ -26,13 +43,6 @@ FormulationSteadyWave(const GroupOfElement& domain,
 
   if(!uniform.first)
     throw Exception("FormulationSteadyWave needs a uniform mesh");
-
-  // Save Data //
-  ddomain = &domain;
-  ffs     = &fs;
-
-  // Wave Squared //
-  kSquare = k * k;
 
   // Get Basis //
   const size_t form  = fs.getForm();
@@ -74,9 +84,6 @@ FormulationSteadyWave(const GroupOfElement& domain,
     // Else //
     throw Exception("FormulationSteadyWave does 0 and 1 forms only");
   }
-
-  // No source //
-  src = NULL;
 }
 
 template<typename scalar>
@@ -87,6 +94,20 @@ FormulationSteadyWave(const GroupOfElement& domain,
                       void (*nu)(fullVector<double>&, fullMatrix<scalar>&),
                       void (*eps)(fullVector<double>&, fullMatrix<scalar>&),
                       fullVector<scalar> (*source)(fullVector<double>&)){
+  // Save Data //
+  ddomain = &domain;
+  ffs     = &fs;
+
+  // Wave Squared //
+  kSquare = k * k;
+
+  // Is domain empty ? //
+  if(domain.isEmpty()){
+    mass = new TermDummy<scalar>;
+    stif = new TermDummy<scalar>;
+    src  = new TermDummy<scalar>;
+    return;
+  }
 
   // Check domain stats: uniform mesh //
   std::pair<bool, size_t> uniform = domain.isUniform();
@@ -94,13 +115,6 @@ FormulationSteadyWave(const GroupOfElement& domain,
 
   if(!uniform.first)
     throw Exception("FormulationSteadyWave needs a uniform mesh");
-
-  // Save Data //
-  ddomain = &domain;
-  ffs     = &fs;
-
-  // Wave Squared //
-  kSquare = k * k;
 
   // Get Basis //
   const size_t form  = fs.getForm();

@@ -28,8 +28,10 @@ class FormulationCoupled: public Formulation<scalar>{
   virtual ~FormulationCoupled(void);
 
   virtual
-    const std::list<const FormulationBlock<scalar>*>&
+    const std::list<FormulationBlock<scalar>*>&
                                            getFormulationBlocks(void) const = 0;
+
+  virtual bool isBlock(void) const;
 };
 
 /**
