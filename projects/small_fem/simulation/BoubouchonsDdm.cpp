@@ -227,7 +227,43 @@ void compute(const Options& option){
     new SolverDDM(allFem, dummy, context, ddm, upDdm, rhsG);
 
   // Solve
-  solver->solve(1000);
+  solver->solve(10);
+
+  // Get Solution
+  solver->getSolution(ddmG);
+  context.setDDMDofs(ddmG);
+
+  // Clear DDM
+  delete solver;
+
+  // Full Problem //
+  cout << "Solving full problem" << endl << flush;
+  ddm.update();
+
+  System<Complex> full;
+  full.addFormulation(allFem);
+  full.addFormulation(ddm);
+
+  SystemHelper<Complex>::dirichlet(full, fs, srcLine, fSrc);
+
+  full.assemble();
+  full.solve();
+
+  // Draw Solution //
+  try{
+    option.getValue("-nopos");
+  }
+  catch(...){
+    cout << "Writing full problem" << endl << flush;
+
+    FEMSolution<Complex> feSol;
+    full.getSolution(feSol, fs, domain);
+
+    feSol.setSaveMesh(false);
+    feSol.setBinaryFormat(true);
+    feSol.setParition(myProc + 1);
+    feSol.write("boubouchon");
+  }
 
   // Clear //
   for(int j = 0; j < NPade; j++){
