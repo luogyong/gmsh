@@ -48,7 +48,7 @@ void compute(const Options& option){
   // MPI //
   int nProcs;
   int myProc;
-  MPIOStream cout(6, std::cout);
+  MPIOStream cout(0, std::cout);
 
   MPI_Comm_size(MPI_COMM_WORLD,&nProcs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
@@ -227,7 +227,7 @@ void compute(const Options& option){
     new SolverDDM(allFem, dummy, context, ddm, upDdm, rhsG);
 
   // Solve
-  //solver->solve(1000);
+  solver->solve(1000);
 
   // Clear //
   for(int j = 0; j < NPade; j++){

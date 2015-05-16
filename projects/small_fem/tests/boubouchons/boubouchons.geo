@@ -16,16 +16,19 @@ Include "center.geo";
 
 // Surfaces for DDM //
 //////////////////////
-Include "ddm.geo";
+//Include "ddm.geo";
+Include "ddmTwo.geo";
 
 // Physicals //
 ///////////////
-Include "physical.geo";
+//Include "physical.geo";
+Include "physicalTwo.geo";
 
 // Mesh (with partitions) //
 ////////////////////////////
 If(DoMesh == 1)
   Mesh    3;
-  Include "partition.geo";
+  //Include "partition.geo";
+  Include "partitionTwo.geo";
   Save    "boubouchons.msh";
 EndIf

@@ -13,7 +13,7 @@ EpsRAirIm = 0; // [-]
 // Rods //
 //////////
 DefineConstant[
-  RodN = {3,     Name "Input/00Rods/00Number [-]"},
+  RodN = {4,     Name "Input/00Rods/00Number [-]"},
   RodP = {0.015, Name "Input/00Rods/01Period [m]"},
   RodR = {0.005, Name "Input/00Rods/02Radius [m]"},
   RodL = {0.03,  Name "Input/00Rods/03Length [m]"},
@@ -39,7 +39,7 @@ DefineConstant[
 // Air //
 /////////
 DefineConstant[
-  AirXF = {0.1, Name "Input/02Air/00Air size (X) [lambda]"},
+  AirXF = {1.0, Name "Input/02Air/00Air size (X) [lambda]"},
   AirYF = {1.0, Name "Input/02Air/01Air size (Y) [lambda]"},
   AirZF = {1.5, Name "Input/02Air/02Air size (Z) [lambda]"}
 ];
@@ -52,7 +52,7 @@ AirZ = AirZF * Lambda; // [m]
 // Pml //
 /////////
 DefineConstant[
-  PmlSizeF = {0.1, Name "Input/03Pml/00Thickness [lambda]"}
+  PmlSizeF = {1.0, Name "Input/03Pml/00Thickness [lambda]"}
 ];
 
 PmlSize = PmlSizeF * Lambda; // [m]
