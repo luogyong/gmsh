@@ -33,7 +33,7 @@ For i In {0:RodN - 1}
 EndFor
 
 // Source //
-SetPartition (RodN + 1) { Volume{ Src~{0} }; Line { Src~{1} }; } // Source
+SetPartition (RodN + 1) { Surface{ Src~{1}[] }; } // Source
 
 // Ends //
 Off = RodN;

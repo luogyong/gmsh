@@ -39,7 +39,7 @@ For i In {0:RodN - 1}
 EndFor
 
 // Source //
-SetPartition (1) { Volume{ Src~{0} }; Line { Src~{1} }; } // Source
+SetPartition (1) { Surface{ Src~{1}[] }; } // Source
 
 // Ends //
 For i In {0:(2 * EndN) - 1}

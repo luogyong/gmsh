@@ -17,7 +17,7 @@ Translate{-RodP * (RodN / 2 - 0.5), 0, 0}{
   Volume{
     allVol[],
     allEnd[],
-    Src~{0},
+    Src~{0}[],
     Pml~{0}[],
     Pml~{1}[],
     Pml~{2}[],

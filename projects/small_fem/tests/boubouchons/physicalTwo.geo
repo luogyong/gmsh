@@ -13,21 +13,19 @@ For i In {0:EndN - 1}
 EndFor
 
 // Physicals
-Physical  Volume(1000) = Pml~{6}[]; // Pml XYZ
-Physical  Volume(1001) = Pml~{5}[]; // Pml XZ
-Physical  Volume(1002) = Pml~{2}[]; // Pml YZ
-Physical  Volume(1003) = Pml~{4}[]; // Pml XY
-Physical  Volume(1004) = Pml~{0}[]; // Pml Z
-Physical  Volume(1005) = Pml~{1}[]; // Pml Y
-Physical  Volume(1006) = Pml~{3}[]; // Pml X
+Physical   Volume(1000) = Pml~{6}[]; // Pml XYZ
+Physical   Volume(1001) = Pml~{5}[]; // Pml XZ
+Physical   Volume(1002) = Pml~{2}[]; // Pml YZ
+Physical   Volume(1003) = Pml~{4}[]; // Pml XY
+Physical   Volume(1004) = Pml~{0}[]; // Pml Z
+Physical   Volume(1005) = Pml~{1}[]; // Pml Y
+Physical   Volume(1006) = Pml~{3}[]; // Pml X
 
-Physical  Volume(1007) = Air[];     // Air
-Physical  Volume(1008) = Rod[];     // Rods
+Physical   Volume(1007) = Air[];     // Air
+Physical   Volume(1008) = Rod[];     // Rods
+Physical  Surface(1009) = Src~{1}[]; // Source
 
-Physical  Volume(1009) = Src~{0};   // Source
-Physical    Line(1011) = Src~{1};   // Source line
-
-// Ddm Boundary //
+// Ddm Boundary
 Physical Surface(40001) = { DdmRod~{0},
                             DdmRod~{1},
                             DdmRod~{2},

@@ -7,7 +7,8 @@ Include "boubouchons.dat";
 Include "cell.geo";
 Include "grid.geo";
 Include "ends.geo";
-Include  "src.geo";
+//Include  "srcLine.geo";
+Include  "srcSphere.geo";
 Include  "pml.geo";
 
 // Center geomtry //

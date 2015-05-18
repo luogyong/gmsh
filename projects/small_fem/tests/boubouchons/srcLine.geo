@@ -17,14 +17,12 @@ SrcSf = news;  Plane Surface(SrcSf) = {SrcLl};
 
 // 3D Source //
 ///////////////
-Tmp~{0} = Extrude{0, 0, SrcL}{ Surface{SrcSf}; };
-Src~{0} = Tmp~{0}[1];
+Tmp     = Extrude{0, 0, SrcL}{ Surface{SrcSf}; };
+Src~{0} = Tmp[1];
 
-// Get Source Line //
-/////////////////////
-Tmp~{0} = Boundary{  Volume{Src~{0}};   };
-Tmp~{1} = Boundary{ Surface{Tmp~{0}[2]};}; // A surface containing the line
-Src~{1} = Fabs(Tmp~{1}[3]);                // The line
+// Get Source Boundary //
+/////////////////////////
+Src~{1} = Boundary{ Volume{Src~{0}}; };
 
 // Rotate //
 ////////////
@@ -44,6 +42,10 @@ SrcSl = newsl; Surface Loop(SrcSl) = {BndSrc[]};
 
 Volume(End~{0}[0]) = {EndSl, SrcSl};
 
+// Remove Volume //
+///////////////////
+Delete{ Volume{Src~{0}}; }
+
 // Clear //
 ///////////
 SrcPt~{0} = {};
@@ -57,8 +59,7 @@ SrcCr~{3} = {};
 SrcCr~{4} = {};
 SrcLl     = {};
 SrcSf     = {};
-Tmp~{0}   = {};
-Tmp~{1}   = {};
+Tmp       = {};
 BndEnd    = {};
 BndSrc    = {};
 EndSl     = {};

@@ -13,7 +13,7 @@ EpsRAirIm = 0; // [-]
 // Rods //
 //////////
 DefineConstant[
-  RodN = {4,     Name "Input/00Rods/00Number [-]"},
+  RodN = {10,    Name "Input/00Rods/00Number [-]"},
   RodP = {0.015, Name "Input/00Rods/01Period [m]"},
   RodR = {0.005, Name "Input/00Rods/02Radius [m]"},
   RodL = {0.03,  Name "Input/00Rods/03Length [m]"},
@@ -29,9 +29,9 @@ DefineConstant[
   Freq   = {6e9,       Name "Input/01Source/00Frequency [Hz]"},
   Lambda = {C0 / Freq, Name "Input/01Source/01Wavelength [m]", ReadOnly 1},
 
-  SrcR = {0.0005,       Name "Input/01Source/02Radius [m]"},
-  SrcL = {0.005,        Name "Input/01Source/03Length [m]"},
-  SrcX = {-RodP + RodR, Name "Input/01Source/04X position [m]"},
+  SrcR = {RodR / 2, Name "Input/01Source/02Radius [m]"},
+  SrcL = {0.005,    Name "Input/01Source/03Length [m]"},
+  SrcX = {-RodP,    Name "Input/01Source/04X position [m]"},
 
   IsSrcParallel = {1, Name "Input/01Source/05Is parallel", Choices {0, 1}}
 ];
