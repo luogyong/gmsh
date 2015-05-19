@@ -11,14 +11,11 @@ Group {
   PmlX    = Region[1006];
   Air     = Region[1007];
   Rod     = Region[1008];
-  SrcVol  = Region[1009];
-  SrcLine = Region[1011];
+  Src     = Region[1009];
 
   // Domains
-  AirSrc = Region[{ Air, SrcVol }];
-  Domain = Region[{ Air, SrcVol, Rod }];
   Pml    = Region[{ PmlXYZ, PmlXY, PmlXZ, PmlYZ, PmlX, PmlY, PmlZ }];
-  Omega  = Region[{ Domain, Pml }];
+  Domain = Region[{ Air, Rod, Pml }];
 }
 
 Function {
@@ -28,9 +25,12 @@ Function {
   a_pml = 1.0;
   b_pml = 1.0;
 
-  sx[Domain] = 1.0;
-  sy[Domain] = 1.0;
-  sz[Domain] = 1.0;
+  sx[Air]    = 1.0;
+  sy[Air]    = 1.0;
+  sz[Air]    = 1.0;
+  sx[Rod]    = 1.0;
+  sy[Rod]    = 1.0;
+  sz[Rod]    = 1.0;
   sx[PmlXYZ] = Complex[a_pml, -b_pml];
   sy[PmlXYZ] = Complex[a_pml, -b_pml];
   sz[PmlXYZ] = Complex[a_pml, -b_pml];
@@ -60,19 +60,19 @@ Function {
   EpsilonRAir[] = Complex[EpsRAirRe, EpsRAirIm];
   EpsilonRRod[] = Complex[EpsRRodRe, EpsRRodIm];
 
-  EpsilonR[Rod]    = EpsilonRRod[] * TensorDiag[1.0,   1.0,   1.0];
-  EpsilonR[AirSrc] = EpsilonRAir[] * TensorDiag[1.0,   1.0,   1.0];
-  EpsilonR[Pml]    =                 TensorDiag[Lxx[], Lyy[], Lzz[]];
+  EpsilonR[Rod] = EpsilonRRod[] * TensorDiag[1.0,   1.0,   1.0];
+  EpsilonR[Air] = EpsilonRAir[] * TensorDiag[1.0,   1.0,   1.0];
+  EpsilonR[Pml] =                 TensorDiag[Lxx[], Lyy[], Lzz[]];
 
-  NuR[Rod]    = TensorDiag[1.0,         1.0,         1.0];
-  NuR[AirSrc] = TensorDiag[1.0,         1.0,         1.0];
-  NuR[Pml]    = TensorDiag[1.0 / Lxx[], 1.0 / Lyy[], 1.0 / Lzz[]];
+  NuR[Rod] = TensorDiag[1.0,         1.0,         1.0];
+  NuR[Air] = TensorDiag[1.0,         1.0,         1.0];
+  NuR[Pml] = TensorDiag[1.0 / Lxx[], 1.0 / Lyy[], 1.0 / Lzz[]];
 
   If(IsSrcParallel == 1)
-    source[] = Complex[0, 1] * Vector[0, 0, Omega0*Mu0*Cos[Pi*Z[]/SrcL]];
+    source[] = Complex[0, 1] * Vector[0, 0, Omega0 * Mu0];
   EndIf
   If(IsSrcParallel == 0)
-    source[] = Complex[0, 1] * Vector[0, Omega0*Mu0*Cos[Pi*Y[]/SrcL], 0];
+    source[] = Complex[0, 1] * Vector[0, Omega0 * Mu0, 0];
   EndIf
 }
 
@@ -115,7 +115,7 @@ Integration {
 Constraint {
   { Name DirichletBC;
     Case {
-      { Region SrcLine; Type AssignFromResolution; NameOfResolution Dirichlet; }
+      { Region Src; Type AssignFromResolution; NameOfResolution Dirichlet; }
     }
   }
 }
@@ -124,9 +124,9 @@ FunctionSpace {
   { Name HCurl0; Type Form1;
     BasisFunction {
       { Name sn;  NameOfCoef un;  Function BF_Edge;
-        Support Region[{ Omega, SrcLine }]; Entity EdgesOf[All]; }
+        Support Region[{ Domain, Src }]; Entity EdgesOf[All]; }
       // { Name sn2; NameOfCoef un2; Function BF_Edge_2E;
-        // Support Region[{ Omega, SrcLine }]; Entity EdgesOf[All]; }
+        // Support Region[Domain]; Entity EdgesOf[All]; }
     }
     Constraint {
       { NameOfCoef un;  EntityType EdgesOf; NameOfConstraint DirichletBC; }
@@ -141,8 +141,8 @@ Formulation {
       { Name u; Type Local; NameOfSpace HCurl0; }
     }
     Equation {
-      Galerkin { [ Dof{u},    {u} ]; In SrcLine; Jacobian Lin; Integration I2; }
-      Galerkin { [ -source[], {u} ]; In SrcLine; Jacobian Lin; Integration I2; }
+      Galerkin { [ Dof{u},    {u} ]; In Src; Jacobian Sur; Integration I2; }
+      Galerkin { [ -source[], {u} ]; In Src; Jacobian Sur; Integration I2; }
     }
   }
 
@@ -152,9 +152,9 @@ Formulation {
     }
     Equation {
       Galerkin { [-NuR[] * Dof{Curl u}, {Curl u}];
-        In Omega; Jacobian Vol; Integration I2; }
+        In Domain; Jacobian Vol; Integration I2; }
       Galerkin { [(Omega0/C0)^2 * EpsilonR[] * Dof{u}, {u}];
-        In Omega; Jacobian Vol; Integration I2; }
+        In Domain; Jacobian Vol; Integration I2; }
     }
   }
 }
@@ -190,7 +190,7 @@ Resolution {
 PostProcessing {
   { Name Post; NameOfFormulation Maxwell;
     Quantity {
-      { Name E; Value { Local { [{ u }]; In Omega; Jacobian Vol; } } }
+      { Name E; Value { Local { [{ u }]; In Domain; Jacobian Vol; } } }
     }
   }
 }
@@ -198,7 +198,7 @@ PostProcessing {
 PostOperation {
   { Name Post; NameOfPostProcessing Post;
     Operation {
-      Print[E, OnElementsOf Omega, File "./boubouchons.pos"];
+      Print[E, OnElementsOf Domain, File "./boubouchons.pos"];
     }
   }
 }
