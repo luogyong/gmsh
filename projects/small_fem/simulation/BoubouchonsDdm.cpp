@@ -12,7 +12,10 @@
 #include "FormulationDummy.h"
 #include "FormulationContainer.h"
 #include "FormulationSteadyWave.h"
+
+#include "FormulationEMDA.h"
 #include "FormulationOSRCVector.h"
+#include "FormulationUpdateEMDA.h"
 #include "FormulationUpdateOSRCVector.h"
 
 #include "SolverDDM.h"
@@ -30,7 +33,6 @@ const double Mu0       = 4 * Pi * 1e-7;
 
 const double epsRRodRe = 6;
 const double epsRRodIm = 0;
-const double srcL      = 0.005;
 
 double Omega0;
 
@@ -63,61 +65,47 @@ void compute(const Options& option){
   const int orderVol = atoi(option.getValue("-ov")[1].c_str());
   const int orderSur = atoi(option.getValue("-ob")[1].c_str());
 
+  // EMDA
+  double chi = 1;
+
   // OSRC
-  double    ck = atof(option.getValue("-ck")[1].c_str());
-  int    NPade = atoi(option.getValue("-pade")[1].c_str());
+  double    ck = 0;
+  int    NPade = 4;
   Complex keps = k + Complex(0, k * ck);
 
   // Get Domains //
   cout << "Reading domain... " << endl << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
-  GroupOfElement     air(msh.getFromPhysical(1007, myProc + 1));
-  GroupOfElement     rod(msh.getFromPhysical(1008, myProc + 1));
-  GroupOfElement  srcVol(msh.getFromPhysical(1009, myProc + 1));
-  GroupOfElement srcLine(msh.getFromPhysical(1011, myProc + 1));
-
-  GroupOfElement pmlXYZ(msh.getFromPhysical(1000, myProc + 1));
-  GroupOfElement pmlXZ(msh.getFromPhysical( 1001, myProc + 1));
-  GroupOfElement pmlYZ(msh.getFromPhysical( 1002, myProc + 1));
-  GroupOfElement pmlXY(msh.getFromPhysical( 1003, myProc + 1));
-  GroupOfElement pmlZ(msh.getFromPhysical(  1004, myProc + 1));
-  GroupOfElement pmlY(msh.getFromPhysical(  1005, myProc + 1));
-  GroupOfElement pmlX(msh.getFromPhysical(  1006, myProc + 1));
-
+  GroupOfElement         air(msh.getFromPhysical(1007,   myProc + 1));
+  GroupOfElement         rod(msh.getFromPhysical(1008,   myProc + 1));
+  GroupOfElement         src(msh.getFromPhysical(1009,   myProc + 1));
+  GroupOfElement      pmlXYZ(msh.getFromPhysical(1000,   myProc + 1));
+  GroupOfElement       pmlXZ(msh.getFromPhysical(1001,   myProc + 1));
+  GroupOfElement       pmlYZ(msh.getFromPhysical(1002,   myProc + 1));
+  GroupOfElement       pmlXY(msh.getFromPhysical(1003,   myProc + 1));
+  GroupOfElement        pmlZ(msh.getFromPhysical(1004,   myProc + 1));
+  GroupOfElement        pmlY(msh.getFromPhysical(1005,   myProc + 1));
+  GroupOfElement        pmlX(msh.getFromPhysical(1006,   myProc + 1));
   GroupOfElement ddmBoundary(msh.getFromPhysical(40000 + myProc + 1));
 
-  cout <<         air.getNumber() << endl
-       <<         rod.getNumber() << endl
-       <<      srcVol.getNumber() << endl
-       <<     srcLine.getNumber() << endl
-       <<      pmlXYZ.getNumber() << endl
-       <<       pmlXY.getNumber() << endl
-       <<       pmlYZ.getNumber() << endl
-       <<       pmlXY.getNumber() << endl
-       <<        pmlZ.getNumber() << endl
-       <<        pmlY.getNumber() << endl
-       <<        pmlX.getNumber() << endl
-       << ddmBoundary.getNumber() << endl;
-
   // Full domain
-  vector<const GroupOfElement*> domain(12);
+  vector<const GroupOfElement*> domain(11);
   domain[0]  = &air;
   domain[1]  = &rod;
-  domain[2]  = &srcVol;
-  domain[3]  = &srcLine;
-  domain[4]  = &pmlXYZ;
-  domain[5]  = &pmlXZ;
-  domain[6]  = &pmlYZ;
-  domain[7]  = &pmlXY;
-  domain[8]  = &pmlZ;
-  domain[9]  = &pmlY;
-  domain[10] = &pmlX;
-  domain[11] = &ddmBoundary;
+  domain[2]  = &src;
+  domain[3]  = &pmlXYZ;
+  domain[4]  = &pmlXZ;
+  domain[5]  = &pmlYZ;
+  domain[6]  = &pmlXY;
+  domain[7]  = &pmlZ;
+  domain[8]  = &pmlY;
+  domain[9]  = &pmlX;
+  domain[10] = &ddmBoundary;
 
   // Dirichlet boundary container
   vector<const GroupOfElement*> dirichlet(1);
-  dirichlet[0] = &srcLine;
+  dirichlet[0] = &src;
 
   // DDM boundary container
   vector<const GroupOfElement*> ddmBoundaryDomain(1);
@@ -145,9 +133,7 @@ void compute(const Options& option){
 
   // Waves
   Wave    waveAir(air,    fs, k);
-  Wave waveSrcVol(srcVol, fs, k);
   Wave    waveRod(rod,    fs, k, nuRRod, epsRRod, sVol);
-
   Wave wavePmlXYZ(pmlXYZ, fs, k, Material::XYZ::Nu, Material::XYZ::Eps, sVol);
   Wave  wavePmlXY(pmlXY,  fs, k,  Material::XY::Nu,  Material::XY::Eps, sVol);
   Wave  wavePmlYZ(pmlYZ,  fs, k,  Material::YZ::Nu,  Material::YZ::Eps, sVol);
@@ -162,14 +148,18 @@ void compute(const Options& option){
   FormulationHelper::initDofMap(fG, ddmBoundary, ddmG);
   FormulationHelper::initDofMap(fG, ddmBoundary, rhsG);
 
-  DDMContextOSRCVector context(ddmBoundary, dirichlet,
-                               fs, fG, OsrcPhi, OsrcRho, OsrcR,
-                               k, keps, NPade, Pi / 2);
+
+  //DDMContextOSRCVector context(ddmBoundary, dirichlet,
+  //                             fs, fG, OsrcPhi, OsrcRho, OsrcR,
+  //                             k, keps, NPade, Pi / 2);
+  DDMContextEMDA context(ddmBoundary, dirichlet, fs, fG, k, chi);
   context.setDDMDofs(ddmG);
 
   // Ddm
-  FormulationOSRCVector         ddm(context);
-  FormulationUpdateOSRCVector upDdm(context);
+  //FormulationOSRCVector         ddm(context);
+  //FormulationUpdateOSRCVector upDdm(context);
+  FormulationEMDA         ddm(context);
+  FormulationUpdateEMDA upDdm(context);
 
   // Dummy
   FormulationDummy<Complex> dummy;
@@ -177,7 +167,6 @@ void compute(const Options& option){
   // Container
   FormulationContainer<Complex> allFem;
   allFem.addFormulation(waveAir);
-  allFem.addFormulation(waveSrcVol);
   allFem.addFormulation(waveRod);
   allFem.addFormulation(wavePmlXYZ);
   allFem.addFormulation(wavePmlXY);
@@ -194,12 +183,10 @@ void compute(const Options& option){
   nonHomogenous->addFormulation(allFem);
   nonHomogenous->addFormulation(ddm);
 
-  SystemHelper<Complex>::dirichlet(*nonHomogenous, fs, srcLine, fSrc);
+  SystemHelper<Complex>::dirichlet(*nonHomogenous, fs, src, fSrc);
 
   nonHomogenous->assemble();
   nonHomogenous->solve();
-
-  cout << nonHomogenous->getSize() << endl;
 
   // Solve non-homogenous DDM problem //
   cout << "Computing right hand side" << endl << flush;
@@ -214,20 +201,20 @@ void compute(const Options& option){
   nonHomogenousDDM->solve();
   nonHomogenousDDM->getSolution(rhsG, 0);
 
-  cout << nonHomogenousDDM->getSize() << endl;
-
   // Clear Systems //
   delete nonHomogenous;
   delete nonHomogenousDDM;
 
   // DDM Solver //
   cout << "Solving DDM problem" << endl << flush;
-
-  SolverDDM* solver =
-    new SolverDDM(allFem, dummy, context, ddm, upDdm, rhsG);
+  SolverDDM* solver = new SolverDDM(allFem, dummy, context, ddm, upDdm, rhsG);
 
   // Solve
-  solver->solve(10);
+  int maxIt = 1000;
+  solver->setMaximumIteration(maxIt);
+  solver->setRestart(maxIt); // No restart!
+  cout << " ! Warning: no restart ! " << endl;
+  solver->solve();
 
   // Get Solution
   solver->getSolution(ddmG);
@@ -244,7 +231,7 @@ void compute(const Options& option){
   full.addFormulation(allFem);
   full.addFormulation(ddm);
 
-  SystemHelper<Complex>::dirichlet(full, fs, srcLine, fSrc);
+  SystemHelper<Complex>::dirichlet(full, fs, src, fSrc);
 
   full.assemble();
   full.solve();
@@ -259,7 +246,7 @@ void compute(const Options& option){
     FEMSolution<Complex> feSol;
     full.getSolution(feSol, fs, domain);
 
-    feSol.setSaveMesh(false);
+    feSol.setSaveMesh(true);
     feSol.setBinaryFormat(true);
     feSol.setParition(myProc + 1);
     feSol.write("boubouchon");
@@ -274,7 +261,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-ov,-ob,-f,-ck,-pade,-nopos");
+  SmallFem::Keywords("-msh,-ov,-ob,-f,-nopos");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());
@@ -304,7 +291,7 @@ fullVector<Complex> fSrc(fullVector<double>& xyz){
 
   ret(0) = Complex(0, 0);
   ret(1) = Complex(0, 0);
-  ret(2) = Complex(0, 1) * Omega0 * Mu0 * cos(Pi * xyz(2) / srcL);
+  ret(2) = Complex(0, 1) * Omega0 * Mu0;
 
   return ret;
 }

@@ -88,6 +88,10 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   // Set opertation //
   MatShellSetOperation(A, MATOP_MULT, (void(*)(void))(SolverDDM::matMult));
 
+  // Iterative data //
+  maxIt   = 100;
+  restart = 100;
+
   // History //
   hist  = NULL;
   nHist = 0;
@@ -105,7 +109,23 @@ SolverDDM::~SolverDDM(void){
     PetscFree(hist);
 }
 
-void SolverDDM::solve(int nStep){
+void SolverDDM::setMaximumIteration(int maxIt){
+  if(maxIt >= 0)
+    this->maxIt = maxIt;
+  else
+    throw Exception("SolverDDM::setMaximumIteration: "
+                    "a negative value was given!");
+}
+
+void SolverDDM::setRestart(int restart){
+  if(restart >= 0)
+    this->restart = restart;
+  else
+    throw Exception("SolverDDM::setRestart: "
+                    "a negative value was given!");
+}
+
+void SolverDDM::solve(void){
   // Create Solver
   KSP solver;
 
@@ -113,7 +133,8 @@ void SolverDDM::solve(int nStep){
   KSPSetOperators(solver, A, A);// For PETSc 3.4 add DIFFERENT_NONZERO_PATTERN);
   KSPSetType(solver, "gmres");
 
-  KSPSetTolerances(solver, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, nStep);
+  KSPSetTolerances(solver, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, maxIt);
+  KSPGMRESSetRestart(solver, restart);
 
   // Override with PETSc Database //
   KSPSetFromOptions(solver);
@@ -127,8 +148,8 @@ void SolverDDM::solve(int nStep){
   PetscBarrier(PETSC_NULL);
 
   // Set History
-  PetscMalloc(nStep * sizeof(PetscReal), (void**)(&hist));
-  KSPSetResidualHistory(solver, hist, nStep, PETSC_TRUE);
+  PetscMalloc(maxIt * sizeof(PetscReal), (void**)(&hist));
+  KSPSetResidualHistory(solver, hist, maxIt, PETSC_TRUE);
 
   // Solve, Get History and Delete Solver //
   KSPSolve(solver, b, x);

@@ -19,7 +19,6 @@ const double Mu0       = 4 * Pi * 1e-7;
 
 const double epsRRodRe = 6;
 const double epsRRodIm = 0;
-const double srcL      = 0.005;
 
 double Omega0;
 
@@ -38,32 +37,29 @@ void compute(const Options& option){
   cout << "Reading domain... " << endl << flush;
   Mesh msh(option.getValue("-msh")[1]);
 
-  GroupOfElement     air(msh.getFromPhysical(1007));
-  GroupOfElement     rod(msh.getFromPhysical(1008));
-  GroupOfElement  srcVol(msh.getFromPhysical(1009));
-  GroupOfElement srcLine(msh.getFromPhysical(1011));
-
+  GroupOfElement    air(msh.getFromPhysical(1007));
+  GroupOfElement    rod(msh.getFromPhysical(1008));
+  GroupOfElement    src(msh.getFromPhysical(1009));
   GroupOfElement pmlXYZ(msh.getFromPhysical(1000));
-  GroupOfElement pmlXZ(msh.getFromPhysical(1001));
-  GroupOfElement pmlYZ(msh.getFromPhysical(1002));
-  GroupOfElement pmlXY(msh.getFromPhysical(1003));
-  GroupOfElement pmlZ(msh.getFromPhysical(1004));
-  GroupOfElement pmlY(msh.getFromPhysical(1005));
-  GroupOfElement pmlX(msh.getFromPhysical(1006));
+  GroupOfElement  pmlXZ(msh.getFromPhysical(1001));
+  GroupOfElement  pmlYZ(msh.getFromPhysical(1002));
+  GroupOfElement  pmlXY(msh.getFromPhysical(1003));
+  GroupOfElement   pmlZ(msh.getFromPhysical(1004));
+  GroupOfElement   pmlY(msh.getFromPhysical(1005));
+  GroupOfElement   pmlX(msh.getFromPhysical(1006));
 
   // Full Domain
-  vector<const GroupOfElement*> dom(11);
-  dom[0]  = &air;
-  dom[1]  = &rod;
-  dom[2]  = &srcVol;
-  dom[3]  = &srcLine;
-  dom[4]  = &pmlXYZ;
-  dom[5]  = &pmlXZ;
-  dom[6]  = &pmlYZ;
-  dom[7]  = &pmlXY;
-  dom[8]  = &pmlZ;
-  dom[9]  = &pmlY;
-  dom[10] = &pmlX;
+  vector<const GroupOfElement*> domain(10);
+  domain[0] = &air;
+  domain[1] = &rod;
+  domain[2] = &src;
+  domain[3] = &pmlXYZ;
+  domain[4] = &pmlXZ;
+  domain[5] = &pmlYZ;
+  domain[6] = &pmlXY;
+  domain[7] = &pmlZ;
+  domain[8] = &pmlY;
+  domain[9] = &pmlX;
 
   // Wavenumber //
   double f  = atof(option.getValue("-f")[1].c_str());
@@ -73,14 +69,12 @@ void compute(const Options& option){
   // FunctionSpace //
   cout << "Functionspace... " << endl << flush;
   size_t order = atoi(option.getValue("-o")[1].c_str());
-  FunctionSpaceVector fs(dom, order);
+  FunctionSpaceVector fs(domain, order);
 
   // Formulations for wave //
   cout << "FEM terms... " << endl << flush;
   Wave    waveAir(air,    fs, k);
-  Wave waveSrcVol(srcVol, fs, k);
   Wave    waveRod(rod,    fs, k, nuRRod, epsRRod, sVol);
-
   Wave wavePmlXYZ(pmlXYZ, fs, k, Material::XYZ::Nu, Material::XYZ::Eps, sVol);
   Wave  wavePmlXY(pmlXY,  fs, k,  Material::XY::Nu,  Material::XY::Eps, sVol);
   Wave  wavePmlYZ(pmlYZ,  fs, k,  Material::YZ::Nu,  Material::YZ::Eps, sVol);
@@ -92,7 +86,6 @@ void compute(const Options& option){
   // System //
   System<Complex> system;
   system.addFormulation(waveAir);
-  system.addFormulation(waveSrcVol);
   system.addFormulation(waveRod);
   system.addFormulation(wavePmlXYZ);
   system.addFormulation(wavePmlXY);
@@ -104,7 +97,7 @@ void compute(const Options& option){
 
   // Dirichlet //
   cout << "Dirichlet conditions... " << endl << flush;
-  SystemHelper<Complex>::dirichlet(system, fs, srcLine, fSrc);
+  SystemHelper<Complex>::dirichlet(system, fs, src, fSrc);
 
   // Assemble and solve //
   cout << "Boubouchons (Order: " << order
@@ -122,7 +115,7 @@ void compute(const Options& option){
   }
   catch(...){
     FEMSolution<Complex> feSol;
-    system.getSolution(feSol, fs, dom);
+    system.getSolution(feSol, fs, domain);
     feSol.write("boubouchons");
   }
 }
@@ -159,7 +152,7 @@ fullVector<Complex> fSrc(fullVector<double>& xyz){
 
   ret(0) = Complex(0, 0);
   ret(1) = Complex(0, 0);
-  ret(2) = Complex(0, 1) * Omega0 * Mu0 * cos(Pi * xyz(2) / srcL);
+  ret(2) = Complex(0, 1) * Omega0 * Mu0;
 
   return ret;
 }

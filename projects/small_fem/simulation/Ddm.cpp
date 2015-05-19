@@ -430,7 +430,10 @@ void compute(const Options& option){
     new SolverDDM(*wave,*silverMuller, *context, *ddm, *upDdm, rhsG);
 
   // Solve
-  solver->solve(maxIt);
+  solver->setMaximumIteration(maxIt);
+  solver->setRestart(maxIt); // No restart!
+  cout << " ! Warning: no restart ! " << endl;
+  solver->solve();
 
   // Get Solution
   solver->getSolution(ddmG);

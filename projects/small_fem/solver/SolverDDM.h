@@ -67,6 +67,10 @@ class SolverDDM{
 
   std::map<Dof, Complex>* rhs;
 
+  // Iterative data //
+  PetscInt maxIt;
+  PetscInt restart;
+
   // Residual history //
   PetscReal* hist;
   PetscInt  nHist;
@@ -81,7 +85,10 @@ class SolverDDM{
 
   ~SolverDDM(void);
 
-  void solve(int nStep);
+  void setMaximumIteration(int maxIt);
+  void setRestart(int restart);
+
+  void solve(void);
   void constructIterationMatrix(Mat* I);
   void constructIterationMatrix(std::string name, std::string filename);
 
