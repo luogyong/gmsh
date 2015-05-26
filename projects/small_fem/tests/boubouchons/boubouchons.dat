@@ -13,7 +13,7 @@ EpsRAirIm = 0; // [-]
 // Rods //
 //////////
 DefineConstant[
-  RodN = {10,    Name "Input/00Rods/00Number [-]"},
+  RodN = {4,     Name "Input/00Rods/00Number [-]"},
   RodP = {0.015, Name "Input/00Rods/01Period [m]"},
   RodR = {0.005, Name "Input/00Rods/02Radius [m]"},
   RodL = {0.03,  Name "Input/00Rods/03Length [m]"},
@@ -52,7 +52,7 @@ AirZ = AirZF * Lambda; // [m]
 // Pml //
 /////////
 DefineConstant[
-  PmlSizeF = {1.0, Name "Input/03Pml/00Thickness [lambda]"}
+  PmlSizeF = {0.5, Name "Input/03Pml/00Thickness [lambda]"}
 ];
 
 PmlSize = PmlSizeF * Lambda; // [m]
@@ -61,9 +61,9 @@ PmlSize = PmlSizeF * Lambda; // [m]
 // Mesh //
 //////////
 DefineConstant[
-  MeshAirF = {5,   Name "Input/04Mesh/00Air size [1\lambda]"},
-  MeshRodF = {5,   Name "Input/04Mesh/01Rod size [1\lambda]"},
-  MeshSrcF = {100, Name "Input/04Mesh/03Source size [1\lambda]"},
+  MeshAirF = {10, Name "Input/04Mesh/00Air size [1\lambda]"},
+  MeshRodF = {10, Name "Input/04Mesh/01Rod size [1\lambda]"},
+  MeshSrcF = {10, Name "Input/04Mesh/03Source size [1\lambda]"},
 
   DoMesh   = {0,   Name "Input/04Mesh/04Mesh", Choices {0, 1}}
 ];

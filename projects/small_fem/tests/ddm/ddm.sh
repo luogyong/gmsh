@@ -2,30 +2,27 @@
 
 ## Binaries
 ROOT=''
-BINREF=$ROOT'waveg'
+BINANA=$ROOT'wavea'
 BINDDM=$ROOT'ddm'
 
 ## Data
 THREADS=2
 TYPE='vector'
-NDOM=2
 DDM='osrc'
-NMSH=4
+NDOM=2
+NMSH=3
 MSH='./guide2d_'
-REF='./guide2d_32.msh'
-INTERP='./guide2d_64.msh'
-OR=4
+INTERP='./guide2d_32.msh'
 OV=4
 OB=4
-K=20
+K=100
 
 ## Useful
 NDOMMinus=$(bc <<< $NDOM'-1')
 
-## Reference Solution
+## Analytical Solution
 echo '#### Reference ####'
-$BINREF -msh $REF -k $K -n $NDOM -type $TYPE -o $OR -sigma 0 \
-        -interp $INTERP -name 'ref'
+$BINANA -msh $INTERP -k $K -n $NDOM -type $TYPE -name 'ref'
 
 ## DDM
 for m in $(seq 1 $NMSH)
@@ -45,7 +42,7 @@ do
                    -max 250 -ddm $DDM \
                    -pade 4 -ck 0 -chi 0 -lc 0.06 -type $TYPE -ov $v -ob $b \
                    -name $NAME -interp $INTERP -hist $NAME'.hist' \
-                   -solver -ksp_rtol 1e-9
+                   -solver -ksp_rtol 1e-9 -ksp_monitor
 
             # -machinefile machine
             ## Synching nodes
@@ -80,6 +77,13 @@ OCTAVE=$OCTAVE$NDOM', '$NMSH', '$OV', '$OB', '
 OCTAVE=$OCTAVE'"'$FILE'"'')'
 octave -q <<< "$OCTAVE"
 
+## Grab every history in a single file
+FILE=$TYPE'_'$DDM'_'$NMSH'_'$OV'_'$OB'.hist.dat'
+OCTAVE='grabHist(''"'$TYPE'"'', ''"'$DDM'"'', '
+OCTAVE=$OCTAVE$NMSH', '$OV', '$OB', '
+OCTAVE=$OCTAVE'"'$FILE'"'')'
+octave -q <<< "$OCTAVE"
+
 ## Clear temp files
 for m in $(seq 1 $NMSH)
 do
@@ -87,10 +91,11 @@ do
     do
         for b in $(seq 1 $v)
         do
+            rm $TYPE'_'$DDM'_'$m'_'$v'_'$b'.hist'
+
             for d in $(seq 0 $NDOMMinus)
             do
-                NAME=$TYPE'_'$DDM'_'$m'_'$v'_'$b'_'$d'.tmp'
-                rm $NAME
+                rm $TYPE'_'$DDM'_'$m'_'$v'_'$b'_'$d'.tmp'
             done
         done
     done

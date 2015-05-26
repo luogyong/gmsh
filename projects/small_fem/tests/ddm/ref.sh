@@ -1,60 +1,79 @@
 #!/bin/bash
 
 ## Binaries
-BINREF='disc'
+ROOT=''
+BINANA=$ROOT'wavea'
+BINFEM=$ROOT'waveg'
 
 ## Data
+THREADS=4
 TYPE='vector'
-NDOM=4
-DOM=0
-MSH='./mesh_all.msh'
-REF='./fine.msh'
-OR=3
-K=5
+NDOM=2
+NMSH=5
+MSH='./guide2d_'
+INTERP='./guide2d_64.msh'
+nO=4
+K=100
 
 ## Useful
 NDOMMinus=$(bc <<< $NDOM'-1')
 
-## Reference Solution
+## Analytical Solution
 echo '#### Reference ####'
-$BINREF -msh $MSH -k $K -n $NDOM -type $TYPE -interp $REF -o $OR -name 'ref'
+$BINANA -msh $INTERP -k $K -n $NDOM -type $TYPE -name 'ref'
 
-## Lower order solution
-for o in $(seq 1 $OR);
+## Iterate on mesh
+for m in $(seq 1 $NMSH)
 do
-    NAME='order_'$o
-    echo '#### '$NAME' ####'
+    MYMESH=$MSH$(bc <<< 2^$m)'.msh'
 
-    $BINREF -msh $MSH -k $K -n $NDOM -type $TYPE -interp $REF -o $o -name $NAME
-    octave -q l2.m $NAME$DOM'.dat' 'ref'$DOM'.dat' > $NAME'.tmp'
-
-    ## Clear
-    for i in $(seq 0 $NDOMMinus);
+    ## Iterate on orders
+    for o in $(seq 1 $nO)
     do
-        rm $NAME$i'.dat'
+        NAME=$TYPE'_'$m'_'$o
+        echo '#### '$NAME' ####'
+
+        ## FEM solution
+        OMP_NUM_THREADS=$THREADS
+        $BINFEM -msh $MYMESH -k $K -o $o -n $NDOM \
+                -type $TYPE -interp $INTERP -name $NAME
+
+        ## L2 Error
+        for d in $(seq 0 $NDOMMinus)
+        do
+            octave -q l2.m $NAME$d'.dat' 'ref'$d'.dat' > $NAME'_'$d'.tmp'
+        done
+
+        ## Clear
+        for d in $(seq 0 $NDOMMinus);
+        do
+            rm $NAME$d'.dat'
+        done
     done
 done
 
 ## Clear Reference
-for i in $(seq 0 $NDOMMinus);
+for d in $(seq 0 $NDOMMinus)
 do
-    rm 'ref'$i'.dat'
+    rm 'ref'$d'.dat'
 done
 
 ## Grab every residual in a single file
-FILE=$'ref_'$OR'.l2'
-echo $FILE             > $FILE
-echo 'Row: FEM order' >> $FILE
-
-for o in $(seq 1 $OR);
-do
-    NAME='order_'$o'.tmp'
-    echo $(cat $NAME) >> $FILE
-done
+FILE=$TYPE'_'$NMSH'_'$nO'.l2.dat'
+OCTAVE='grabL2Lite(''"'$TYPE'"'', '
+OCTAVE=$OCTAVE$NDOM', '$NMSH', '$nO', '
+OCTAVE=$OCTAVE'"'$FILE'"'')'
+octave -q <<< "$OCTAVE"
 
 ## Clear temp files
-for o in $(seq 1 $OR);
+for m in $(seq 1 $NMSH)
 do
-    NAME='order_'$o'.tmp'
-    rm $NAME
+    for o in $(seq 1 $nO)
+    do
+        for d in $(seq 0 $NDOMMinus)
+        do
+            NAME=$TYPE'_'$m'_'$o'_'$d'.tmp'
+            rm $NAME
+        done
+    done
 done
