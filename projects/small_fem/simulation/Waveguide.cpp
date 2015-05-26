@@ -13,6 +13,7 @@ using namespace std;
 static const int    scal = 0;
 static const int    vect = 1;
 
+static const Complex I  = Complex(0, 1);
 static const double  Pi = M_PI;
 
 static const Complex E0 = Complex(1, 0);
@@ -42,7 +43,6 @@ Complex fZeroScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  const Complex I  = Complex(0, 1);
   const double  x  = xyz(0);
   const double  y  = xyz(1);
   const double  z  = xyz(2);

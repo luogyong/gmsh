@@ -4,21 +4,25 @@
 
 using namespace std;
 
-static double k;
+static const Complex I  = Complex(0, 1);
+static const double  Pi = M_PI;
+
+static const Complex E0 = Complex(1, 0);
+static const double  a  = 1;
+static const double  b  = 1;
+static const int     m  = 50 / Pi;
+static const int     n  = 0;
+
+static const double  ky = m * Pi / a;
+static const double  kz = n * Pi / b;
+static       double  k;
+static       Complex kx;
+
+void getKx(void){
+  kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
+}
 
 vector<Complex> fVect(double x, double y, double z){
-  const Complex I  = Complex(0, 1);
-  const double  Pi = M_PI;
-
-  const Complex E0 = Complex(1, 0);
-  const double  a  = 1;
-  const double  b  = 1;
-  const int     m  = 1;
-  const int     n  = 0;
-
-  const Complex ky = Complex(m * Pi / a, 0);
-  const Complex kz = Complex(n * Pi / b, 0);
-  const Complex kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
   /*
   // TEM 2D
   vector<Complex> tmp(3);
@@ -61,6 +65,9 @@ void compute(const Options& option){
   // Get Parameters //
   const size_t nDom  = atoi(option.getValue("-n")[1].c_str());
   k                  = atof(option.getValue("-k")[1].c_str());
+
+  // Compute kx //
+  getKx();
 
   cout << "Wavenumber: " << k     << endl
        << "# Domain:   " << nDom  << endl << flush;

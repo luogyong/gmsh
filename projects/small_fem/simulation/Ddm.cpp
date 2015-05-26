@@ -37,21 +37,28 @@ using namespace std;
 
 static const int    scal = 0;
 static const int    vect = 1;
-static       double k;
+
+static const Complex I  = Complex(0, 1);
+static const double  Pi = M_PI;
+
+static const Complex E0 = Complex(1, 0);
+static const double  a  = 1;
+static const double  b  = 1;
+static const int     m  = 50 / Pi;
+static const int     n  = 0;
+
+static const double  ky = m * Pi / a;
+static const double  kz = n * Pi / b;
+static       double  k;
+static       Complex kx;
+
+void getKx(void){
+  kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
+}
 
 Complex fSourceScal(fullVector<double>& xyz){
-  const double  Pi = M_PI;
   const double  y  = xyz(1);
   const double  z  = xyz(2);
-
-  const Complex E0 = Complex(1, 0);
-  const double  a  = 1;
-  const double  b  = 1;
-  const int     m  = 1;
-  const int     n  = 1;
-
-  const double ky = m * Pi / a;
-  const double kz = n * Pi / b;
 
   return E0 * Complex(sin(ky * y) * sin(kz * z), 0);
 }
@@ -61,21 +68,10 @@ Complex fZeroScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  const Complex I  = Complex(0, 1);
-  const double  Pi = M_PI;
   const double  x  = xyz(0);
   const double  y  = xyz(1);
   const double  z  = xyz(2);
 
-  const Complex E0 = Complex(1, 0);
-  const double  a  = 1;
-  const double  b  = 1;
-  const int     m  = 1;
-  const int     n  = 1;
-
-  const Complex ky = Complex(m * Pi / a, 0);
-  const Complex kz = Complex(n * Pi / b, 0);
-  const Complex kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
   /*
   // TEM 2D
   fullVector<Complex> tmp(3);
@@ -83,13 +79,13 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   tmp(1) = E0;
   tmp(2) = Complex(0, 0);
   */
-  /*
+
   // TMm 2D
   fullVector<Complex> tmp(3);
-  tmp(0) = E0 * I * ky / k * sin(ky * y);
-  tmp(1) = E0 *     kx / k * cos(ky * y);
+  tmp(0) = -E0 * I * ky / k * sin(ky * y);
+  tmp(1) = +E0 *     kx / k * cos(ky * y);
   tmp(2) = Complex(0, 0);
-  */
+
   /*
   // TEm0 3D
   fullVector<Complex> tmp(3);
@@ -104,12 +100,13 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
   tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
   */
+  /*
   // TMmn 3D
   fullVector<Complex> tmp(3);
   tmp(0) = E0                                  * sin(ky * y) * sin(kz * z);
   tmp(1) = E0 * (-I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
   tmp(2) = E0 * (-I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);
-
+  */
   return tmp;
 }
 
@@ -149,6 +146,12 @@ void compute(const Options& option){
   const size_t orderVol = atoi(option.getValue("-ov")[1].c_str());
   const size_t orderSur = atoi(option.getValue("-ob")[1].c_str());
   const size_t maxIt    = atoi(option.getValue("-max")[1].c_str());
+
+  // Compute kx //
+  getKx();
+
+  // Compute kInfinity for mode matching in silver-muller //
+  Complex kInf = (k * k) / kx;
 
   // DDM Formulations //
   const string emdaType("emda");
@@ -274,7 +277,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,orderVol);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,orderSur);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -282,15 +285,15 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp,dirichlet,orderVol);
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp,dirichlet,orderSur);
 
-    if(orderVol == 0)
+    if(orderSur == 0)
       for(int j = 0; j < NPade; j++)
         OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,1);
     else
       for(int j = 0; j < NPade; j++)
         OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,
-                                                 dirichlet, orderVol);
+                                                 dirichlet, orderSur);
 
     OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
   }
@@ -304,10 +307,10 @@ void compute(const Options& option){
   if(ddmType == jflType){
     JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
 
-    if(orderVol == 0)
+    if(orderSur == 0)
       JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
     else
-      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderVol);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderSur);
   }
 
   // Steady Wave Formulation //
@@ -316,7 +319,7 @@ void compute(const Options& option){
 
   wave = new FormulationSteadyWave<Complex>(volume, *fs, k);
   if(myProc == nProcs - 1)
-    silverMuller = new FormulationSilverMuller(infinity, *fs, k);
+    silverMuller = new FormulationSilverMuller(infinity, *fs, kInf);
   else
     silverMuller = new FormulationDummy<Complex>;
 
@@ -519,7 +522,7 @@ void compute(const Options& option){
       feSol.setSaveMesh(false);
       feSol.setBinaryFormat(true);
       feSol.setParition(myProc + 1);
-      feSol.write("ddm");
+      feSol.write(stream.str());
     }
   }
 
