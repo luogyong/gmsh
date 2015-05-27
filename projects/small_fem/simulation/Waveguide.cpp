@@ -19,8 +19,8 @@ static const double  Pi = M_PI;
 static const Complex E0 = Complex(1, 0);
 static const double  a  = 1;
 static const double  b  = 1;
-static const int     m  = 25;
-static const int     n  = 0;
+static const int     m  = 1;
+static const int     n  = 1;
 
 static const double  ky = m * Pi / a;
 static const double  kz = n * Pi / b;
@@ -43,41 +43,24 @@ Complex fZeroScal(fullVector<double>& xyz){
 }
 
 fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  const double  x  = xyz(0);
-  const double  y  = xyz(1);
-  const double  z  = xyz(2);
+  const double y  = xyz(1);
+  const double z  = xyz(2);
 
+  fullVector<Complex> tmp(3);
   /*
-  // TEM 2D
-  fullVector<Complex> tmp(3);
-  tmp(0) = Complex(0, 0);
-  tmp(1) = E0;
-  tmp(2) = Complex(0, 0);
-  */
-
   // TMm 2D
-  fullVector<Complex> tmp(3);
   tmp(0) = -E0 * I * ky / k * sin(ky * y);
   tmp(1) = +E0 *     kx / k * cos(ky * y);
   tmp(2) = Complex(0, 0);
-
-  /*
-  // TEm0 3D
-  fullVector<Complex> tmp(3);
-  tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(0, 0);
-  tmp(2) = E0 * sin(ky * y);
   */
-  /*
+
   // TEmn 3D
-  fullVector<Complex> tmp(3);
   tmp(0) = Complex(0, 0);
   tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
   tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
-  */
+
   /*
   // TMmn 3D
-  fullVector<Complex> tmp(3);
   tmp(0) = E0                                  * sin(ky * y) * sin(kz * z);
   tmp(1) = E0 * (-I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
   tmp(2) = E0 * (-I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);

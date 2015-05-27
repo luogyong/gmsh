@@ -10,8 +10,8 @@ static const double  Pi = M_PI;
 static const Complex E0 = Complex(1, 0);
 static const double  a  = 1;
 static const double  b  = 1;
-static const int     m  = 25;
-static const int     n  = 0;
+static const int     m  = 20;
+static const int     n  = 20;
 
 static const double  ky = m * Pi / a;
 static const double  kz = n * Pi / b;
@@ -23,37 +23,21 @@ void getKx(void){
 }
 
 vector<Complex> fVect(double x, double y, double z){
+  vector<Complex> tmp(3);
   /*
-  // TEM 2D
-  vector<Complex> tmp(3);
-  tmp(0) = Complex(0, 0);
-  tmp(1) = E0;
-  tmp(2) = Complex(0, 0);
-  */
-
   // TMm 2D
-  vector<Complex> tmp(3);
   tmp[0] = -E0 * I * ky / k * sin(ky * y) * exp(I * kx * x);
   tmp[1] = +E0 *     kx / k * cos(ky * y) * exp(I * kx * x);
   tmp[2] = Complex(0, 0);
+  */
+
+  // TEmn 3D
+  tmp[0] = Complex(0, 0);
+  tmp[1] = -E0 * cos(ky * y) * sin(kz * z) * exp(I * kx * x);
+  tmp[2] = +E0 * sin(ky * y) * cos(kz * z) * exp(I * kx * x);
 
   /*
-  // TEm0 3D
-  vector<Complex> tmp(3);
-  tmp(0) = Complex(0, 0);
-  tmp(1) = Complex(0, 0);
-  tmp(2) = E0 * sin(ky * y);
-  */
-  /*
-  // TEmn 3D
-  vector<Complex> tmp(3);
-  tmp(0) = Complex(0, 0);
-  tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
-  tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
-  */
-  /*
   // TMmn 3D
-  vector<Complex> tmp(3);
   tmp(0) = E0                                  * sin(ky * y) * sin(kz * z);
   tmp(1) = E0 * (-I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
   tmp(2) = E0 * (-I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);

@@ -429,7 +429,7 @@ void compute(const Options& option){
       feSol.setSaveMesh(false);
       feSol.setBinaryFormat(true);
       feSol.setParition(myProc + 1);
-      feSol.write(stream.str());
+      feSol.write("ddmCircle");
     }
   }
 
