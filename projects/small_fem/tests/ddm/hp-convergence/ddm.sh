@@ -10,7 +10,7 @@ THREADS=2
 TYPE='vector'
 DDM='osrc'
 NDOM=2
-NMSH=3
+NMSH=5
 MSH='./guide2d_'
 INTERP='./guide2d_32.msh'
 OV=4
@@ -27,7 +27,7 @@ $BINANA -msh $INTERP -k $K -n $NDOM -type $TYPE -name 'ref'
 ## DDM
 for m in $(seq 1 $NMSH)
 do
-    MYMESH=$MSH$(bc <<< 2^$m)'.msh'
+    MYMESH=$MSH$(bc <<< 2^'('$m-1')')'.msh'
     for v in $(seq 1 $OV)
     do
         for b in $(seq 1 $v)
@@ -47,7 +47,6 @@ do
             # -machinefile machine
             ## Synching nodes
             # rsync -avPH ace43:ddm/ .
-            # ssh -x ace43 "rm -fv ~/ddm/*.dat(N)"
 
             ## L2 Error
             for d in $(seq 0 $NDOMMinus)
