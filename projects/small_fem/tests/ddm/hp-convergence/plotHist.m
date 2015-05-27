@@ -13,7 +13,7 @@ function plotHist(filename)
   %% Populate mesh vector
   msh = zeros(nMesh, 1);
   for m = 1:nMesh
-    msh(m) = 2^m;
+    msh(m) = 2^(m-1);
   end
 
   %% Populate iteration vector
@@ -32,13 +32,24 @@ function plotHist(filename)
   end
 
   figure;
-  hold on
+  hold on;
+
+  it = 1;
   for v = 1:nVolume
     %b = v;
     for b = 1:nBorder
-      semilogx(msh, histSize(:, v, b), sprintf('-%s%s', color(v), mark(b)));
+      if isnan(histSize(1, v, b)) == 0
+        semilogx(msh, histSize(:, v, b), sprintf('-%s%s', color(v), mark(b)));
+        myLegend{it} = sprintf('Volume: %d, Border: %d', v, b);
+        it = it + 1;
+      end
     end
   end
-  hold off
-  grid
+
+  title('DDM Convergence')
+  xlabel('Mesh size [per wavelength]');
+  ylabel('Iteration number [-]');
+  legend(myLegend);
+  hold off;
+  grid;
 end
