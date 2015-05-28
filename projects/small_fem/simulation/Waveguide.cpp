@@ -19,8 +19,8 @@ static const double  Pi = M_PI;
 static const Complex E0 = Complex(1, 0);
 static const double  a  = 1;
 static const double  b  = 1;
-static const int     m  = 1;
-static const int     n  = 1;
+static const int     m  = 3;
+static const int     n  = 3;
 
 static const double  ky = m * Pi / a;
 static const double  kz = n * Pi / b;
@@ -53,18 +53,18 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   tmp(1) = +E0 *     kx / k * cos(ky * y);
   tmp(2) = Complex(0, 0);
   */
-
+  /*
   // TEmn 3D
   tmp(0) = Complex(0, 0);
   tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
   tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
+  */
 
-  /*
   // TMmn 3D
   tmp(0) = E0                                 * sin(ky * y) * sin(kz * z);
   tmp(1) = E0 * (I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
   tmp(2) = E0 * (I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);
-  */
+
   return tmp;
 }
 
