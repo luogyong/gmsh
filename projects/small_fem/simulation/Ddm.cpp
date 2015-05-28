@@ -86,9 +86,9 @@ fullVector<Complex> fSourceVect(fullVector<double>& xyz){
   */
 
   // TMmn 3D
-  tmp(0) = E0                                  * sin(ky * y) * sin(kz * z);
-  tmp(1) = E0 * (-I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
-  tmp(2) = E0 * (-I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);
+  tmp(0) = E0                                 * sin(ky * y) * sin(kz * z);
+  tmp(1) = E0 * (I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
+  tmp(2) = E0 * (I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);
 
   return tmp;
 }
