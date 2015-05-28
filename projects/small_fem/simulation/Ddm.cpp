@@ -44,8 +44,8 @@ static const double  Pi = M_PI;
 static const Complex E0 = Complex(1, 0);
 static const double  a  = 1;
 static const double  b  = 1;
-static const int     m  = 4;
-static const int     n  = 4;
+static const int     m  = 1;
+static const int     n  = 1;
 
 static const double  ky = m * Pi / a;
 static const double  kz = n * Pi / b;
