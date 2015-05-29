@@ -10,8 +10,6 @@
 
 #include "System.h"
 #include "SystemHelper.h"
-#include "Interpolator.h"
-#include "NodeSolution.h"
 #include "FormulationHelper.h"
 
 #include "FormulationOO2.h"
@@ -30,72 +28,16 @@
 #include "FormulationUpdateOSRCScalar.h"
 #include "FormulationUpdateOSRCVector.h"
 
-#include <cmath>
+#include <iomanip>
 #include <iostream>
 
 using namespace std;
 
-static const int    scal = 0;
-static const int    vect = 1;
-
-static const Complex I  = Complex(0, 1);
-static const double  Pi = M_PI;
-
-static const Complex E0 = Complex(1, 0);
-static const double  a  = 1;
-static const double  b  = 1;
-static const int     m  = 3;
-static const int     n  = 3;
-
-static const double  ky = m * Pi / a;
-static const double  kz = n * Pi / b;
-static       double  k;
-static       Complex kx;
-
-static       bool    isTE;
-
-void getKx(void){
-  kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
-}
-
-Complex fSourceScal(fullVector<double>& xyz){
-  const double  y  = xyz(1);
-  const double  z  = xyz(2);
-
-  return E0 * Complex(sin(ky * y) * sin(kz * z), 0);
-}
+static const int scal = 0;
+static const int vect = 1;
 
 Complex fZeroScal(fullVector<double>& xyz){
   return Complex(0, 0);
-}
-
-fullVector<Complex> fSourceVect(fullVector<double>& xyz){
-  const double y  = xyz(1);
-  const double z  = xyz(2);
-
-  fullVector<Complex> tmp(3);
-  /*
-  // TMm 2D
-  tmp(0) = -E0 * I * ky / k * sin(ky * y);
-  tmp(1) = +E0 *     kx / k * cos(ky * y);
-  tmp(2) = Complex(0, 0);
-  */
-
-  if(isTE){
-    // TEmn 3D
-    tmp(0) = Complex(0, 0);
-    tmp(1) = -E0 * cos(ky * y) * sin(kz * z);
-    tmp(2) = +E0 * sin(ky * y) * cos(kz * z);
-  }
-
-  else{
-    // TMmn 3D
-    tmp(0) = E0                                  * sin(ky * y) * sin(kz * z);
-    tmp(1) = E0 * (-I * kx * ky) / (k*k - kx*kx) * cos(ky * y) * sin(kz * z);
-    tmp(2) = E0 * (-I * kx * kz) / (k*k - kx*kx) * sin(ky * y) * cos(kz * z);
-  }
-
-  return tmp;
 }
 
 fullVector<Complex> fZeroVect(fullVector<double>& xyz){
@@ -130,29 +72,10 @@ void compute(const Options& option){
 
   // Get Parameters //
   const string ddmType  = option.getValue("-ddm")[1];
-               k        = atof(option.getValue("-k")[1].c_str());
+  const double k        = atof(option.getValue("-k")[1].c_str());
   const size_t orderVol = atoi(option.getValue("-ov")[1].c_str());
   const size_t orderSur = atoi(option.getValue("-ob")[1].c_str());
   const size_t maxIt    = atoi(option.getValue("-max")[1].c_str());
-
-  // Get Mode //
-  string mode = option.getValue("-mode")[1];
-  if(mode.compare("te") == 0)
-    isTE = true;
-  else if(mode.compare("tm") == 0)
-    isTE = false;
-  else
-    throw Exception("Unknown mode %s", mode.c_str());
-
-  // Compute kx //
-  getKx();
-
-  // Compute kInfinity for mode matching in silver-muller //
-  Complex kInf;
-  if(isTE)
-    kInf = kx;
-  else
-    kInf = (k * k) / kx;
 
   // DDM Formulations //
   const string emdaType("emda");
@@ -213,7 +136,6 @@ void compute(const Options& option){
   // Get Domains //
   Mesh msh(option.getValue("-msh")[1]);
   GroupOfElement volume(msh);
-  GroupOfElement source(msh);
   GroupOfElement zero(msh);
   GroupOfElement infinity(msh);
   GroupOfElement ddmBorder(msh);
@@ -221,7 +143,7 @@ void compute(const Options& option){
   volume.add(msh.getFromPhysical(myProc + 1));
 
   if(myProc == 0){
-       source.add(msh.getFromPhysical(nProcs + 1));
+     infinity.add(msh.getFromPhysical(nProcs + 1));
     ddmBorder.add(msh.getFromPhysical(nProcs + 2));
   }
 
@@ -238,21 +160,19 @@ void compute(const Options& option){
   zero.add(msh.getFromPhysical(2 * nProcs + 2));
 
   // Full Domain //
-  vector<const GroupOfElement*> domain(5);
+  vector<const GroupOfElement*> domain(4);
   domain[0] = &volume;
-  domain[1] = &source;
-  domain[2] = &zero;
-  domain[3] = &infinity;
-  domain[4] = &ddmBorder;
+  domain[1] = &zero;
+  domain[2] = &infinity;
+  domain[3] = &ddmBorder;
 
   // DDM Border container //
   vector<const GroupOfElement*> ddmBorderTmp(1);
   ddmBorderTmp[0] = &ddmBorder;
 
   // Dirichlet Border //
-  vector<const GroupOfElement*> dirichlet(2);
-  dirichlet[0] = &source;
-  dirichlet[1] = &zero;
+  vector<const GroupOfElement*> dirichlet(1);
+  dirichlet[0] = &zero;
 
   // Function Space //
   FunctionSpace* fs = NULL;
@@ -319,8 +239,8 @@ void compute(const Options& option){
   Formulation<Complex>* silverMuller;
 
   wave = new FormulationSteadyWave<Complex>(volume, *fs, k);
-  if(myProc == nProcs - 1)
-    silverMuller = new FormulationSilverMuller(infinity, *fs, kInf);
+  if(myProc == nProcs - 1 || myProc == 0)
+    silverMuller = new FormulationSilverMuller(infinity, *fs, k);
   else
     silverMuller = new FormulationDummy<Complex>;
 
@@ -397,14 +317,10 @@ void compute(const Options& option){
   nonHomogenous->addFormulation(*ddm);
 
   // Constraint
-  if(fs->isScalar()){
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero  , fZeroScal);
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceScal);
-  }
-  else{
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero  , fZeroVect);
-    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, source, fSourceVect);
-  }
+  if(fs->isScalar())
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero, fZeroScal);
+  else
+    SystemHelper<Complex>::dirichlet(*nonHomogenous, *fs, zero, fZeroVect);
 
   // Assemble & Solve
   nonHomogenous->assemble();
@@ -434,6 +350,7 @@ void compute(const Options& option){
     new SolverDDM(*wave,*silverMuller, *context, *ddm, *upDdm, rhsG);
 
   // Solve
+  solver->setRandGuess();
   solver->setMaximumIteration(maxIt);
   solver->setRestart(maxIt); // No restart!
   cout << " ! Warning: no restart ! " << endl;
@@ -460,14 +377,10 @@ void compute(const Options& option){
   full.addFormulation(*ddm);
 
   // Constraint
-  if(fs->isScalar()){
-    SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroScal);
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceScal);
-  }
-  else{
-    SystemHelper<Complex>::dirichlet(full, *fs, zero  , fZeroVect);
-    SystemHelper<Complex>::dirichlet(full, *fs, source, fSourceVect);
-  }
+  if(fs->isScalar())
+    SystemHelper<Complex>::dirichlet(full, *fs, zero, fZeroScal);
+  else
+    SystemHelper<Complex>::dirichlet(full, *fs, zero, fZeroVect);
 
   full.assemble();
   full.solve();
@@ -477,54 +390,21 @@ void compute(const Options& option){
     option.getValue("-nopos");
   }
   catch(...){
-    cout << "Writing full problem" << endl << flush;
-
-    stringstream stream;
+    stringstream name;
     try{
-      vector<string> name = option.getValue("-name");
-      stream << name[1] << myProc;
+      name << option.getValue("-name")[1];
     }
     catch(...){
-      stream << "ddm" << myProc;
+      name << "ddmRand";
     }
 
-    try{
-      // Get Visu Mesh //
-      vector<string> visuStr = option.getValue("-interp");
-      Mesh           visuMsh(visuStr[1]);
-      GroupOfElement visuGoe(visuMsh.getFromPhysical(myProc + 1));
+    FEMSolution<Complex> feSol;
+    full.getSolution(feSol, *fs, volume);
 
-      // Solution //
-      map<Dof, Complex> sol;
-
-      FormulationHelper::initDofMap(*fs, volume, sol);
-      full.getSolution(sol, 0);
-
-      // Vertex, Value Map //
-      map<const MVertex*, vector<Complex> > map;
-      Interpolator<Complex>::interpolate(volume, visuGoe, *fs, sol, map);
-
-      // Print //
-      stringstream name;
-      name << stream.str() << ".dat";
-
-      Interpolator<Complex>::write(name.str(), map);
-      /*
-      NodeSolution<Complex> nodeSol;
-      nodeSol.addNodeValue(0, 0, visuMsh, map);
-      nodeSol.write(stream.str());
-      */
-    }
-
-    catch(...){
-      FEMSolution<Complex> feSol;
-      full.getSolution(feSol, *fs, volume);
-
-      feSol.setSaveMesh(false);
-      feSol.setBinaryFormat(true);
-      feSol.setParition(myProc + 1);
-      feSol.write("ddm");
-    }
+    feSol.setSaveMesh(false);
+    feSol.setBinaryFormat(true);
+    feSol.setParition(myProc + 1);
+    feSol.write(name.str());
   }
 
   // Dump history //
@@ -588,8 +468,8 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-mode,-max,-ddm,-chi,-lc,-ck,-pade,"
-                     "-interp,-hist,-name,-nopos");
+  SmallFem::Keywords("-msh,-ov,-ob,-k,-type,-max,-ddm,-chi,-lc,-ck,-pade,"
+                     "-hist,-nopos,-name");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

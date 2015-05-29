@@ -88,9 +88,10 @@ SolverDDM::SolverDDM(const Formulation<Complex>& wave,
   // Set opertation //
   MatShellSetOperation(A, MATOP_MULT, (void(*)(void))(SolverDDM::matMult));
 
-  // Iterative data //
-  maxIt   = 100;
-  restart = 100;
+  // Iterative solver data //
+  useRandGuess = false;
+  maxIt        = 100;
+  restart      = 100;
 
   // History //
   hist  = NULL;
@@ -125,6 +126,14 @@ void SolverDDM::setRestart(int restart){
                     "a negative value was given!");
 }
 
+void SolverDDM::setRandGuess(void){
+  useRandGuess = true;
+}
+
+void SolverDDM::unsetRandGuess(void){
+  useRandGuess = false;
+}
+
 void SolverDDM::solve(void){
   // Create Solver
   KSP solver;
@@ -150,6 +159,21 @@ void SolverDDM::solve(void){
   // Set History
   PetscMalloc(maxIt * sizeof(PetscReal), (void**)(&hist));
   KSPSetResidualHistory(solver, hist, maxIt, PETSC_TRUE);
+
+  // Randomize initial guess if needed
+  if(useRandGuess){
+    PetscRandom rand;
+    PetscRandomCreate(MPI_COMM_WORLD, &rand);
+    PetscRandomSetType(rand, PETSCRAND48);
+    PetscRandomSetFromOptions(rand);
+
+    KSPSetInitialGuessNonzero(solver, PETSC_TRUE);
+    VecSetRandom(x, rand);
+    PetscRandomDestroy(&rand);
+  }
+  else{
+    KSPSetInitialGuessNonzero(solver, PETSC_FALSE);
+  }
 
   // Solve, Get History and Delete Solver //
   KSPSolve(solver, b, x);

@@ -18,6 +18,8 @@ static const double  kz = n * Pi / b;
 static       double  k;
 static       Complex kx;
 
+static       bool    isTE;
+
 void getKx(void){
   kx = sqrt(Complex(k * k, 0) - (ky * ky) - (kz * kz));
 }
@@ -30,17 +32,20 @@ vector<Complex> fVect(double x, double y, double z){
   tmp[1] = +E0 *     kx / k * cos(ky * y) * exp(I * kx * x);
   tmp[2] = Complex(0, 0);
   */
-  /*
-  // TEmn 3D
-  tmp[0] = Complex(0, 0);
-  tmp[1] = -E0 * cos(ky * y) * sin(kz * z) * exp(I * kx * x);
-  tmp[2] = +E0 * sin(ky * y) * cos(kz * z) * exp(I * kx * x);
-  */
 
-  // TMmn 3D
-  tmp[0] = E0                             * sin(ky*y) * sin(kz*z) * exp(I*kx*x);
-  tmp[1] = E0 * (I*kx*ky) / (k*k - kx*kx) * cos(ky*y) * sin(kz*z) * exp(I*kx*x);
-  tmp[2] = E0 * (I*kx*kz) / (k*k - kx*kx) * sin(ky*y) * cos(kz*z) * exp(I*kx*x);
+  if(isTE){
+    // TEmn 3D
+    tmp[0] = Complex(0, 0);
+    tmp[1] = -E0 * cos(ky * y) * sin(kz * z) * exp(I * kx * x);
+    tmp[2] = +E0 * sin(ky * y) * cos(kz * z) * exp(I * kx * x);
+  }
+
+  else{
+    // TMmn 3D
+    tmp[0] = E0                           * sin(ky*y) * sin(kz*z) * exp(I*kx*x);
+    tmp[1] = E0*(I*kx*ky) / (k*k - kx*kx) * cos(ky*y) * sin(kz*z) * exp(I*kx*x);
+    tmp[2] = E0*(I*kx*kz) / (k*k - kx*kx) * sin(ky*y) * cos(kz*z) * exp(I*kx*x);
+  }
 
   return tmp;
 }
@@ -50,10 +55,20 @@ void compute(const Options& option){
   const size_t nDom  = atoi(option.getValue("-n")[1].c_str());
   k                  = atof(option.getValue("-k")[1].c_str());
 
+  // Get Mode //
+  string mode = option.getValue("-mode")[1];
+  if(mode.compare("te") == 0)
+    isTE = true;
+  else if(mode.compare("tm") == 0)
+    isTE = false;
+  else
+    throw Exception("Unknown mode %s", mode.c_str());
+
   // Compute kx //
   getKx();
 
-  cout << "Wavenumber: " << k     << endl
+  cout << "Wavenumber: " << k             << endl
+       << "Mode:       " << mode.c_str()  << endl
        << "# Domain:   " << nDom  << endl << flush;
 
   // Get Domains //
@@ -111,7 +126,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-k,-n,-name");
+  SmallFem::Keywords("-msh,-k,-n,-name,-mode");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

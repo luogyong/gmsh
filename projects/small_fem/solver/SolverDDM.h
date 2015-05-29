@@ -67,7 +67,8 @@ class SolverDDM{
 
   std::map<Dof, Complex>* rhs;
 
-  // Iterative data //
+  // Iterative solver data //
+  bool     useRandGuess;
   PetscInt maxIt;
   PetscInt restart;
 
@@ -87,6 +88,8 @@ class SolverDDM{
 
   void setMaximumIteration(int maxIt);
   void setRestart(int restart);
+  void   setRandGuess(void);
+  void unsetRandGuess(void);
 
   void solve(void);
   void constructIterationMatrix(Mat* I);
