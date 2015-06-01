@@ -7,29 +7,52 @@ Include "boubouchons.dat";
 Include "cell.geo";
 Include "grid.geo";
 Include "ends.geo";
-//Include  "srcLine.geo";
-Include  "srcSphere.geo";
+Include  "src.geo";
 Include  "pml.geo";
 
 // Center geomtry //
 ////////////////////
 Include "center.geo";
 
+// Number of cells //
+/////////////////////
+CellN = (2*PmlN + 2*EndN + RodN);
+
+// Sub-domains size for DDM (in cells) //
+/////////////////////////////////////////
+DdmN  = Ceil(CellN / DomN);
+
+If(DdmN != Floor(CellN / DomN))
+  Error("Size of sub-domains is not integer (%g): abort!", CellN / DomN);
+  Abort;
+EndIf
+
 // Surfaces for DDM //
 //////////////////////
-//Include "ddm.geo";
-Include "ddmTwo.geo";
+Include "ddm.geo";
+
+// Range //
+///////////
+For i In {0:(DomN - 1)}
+  Range~{i} = {i * DdmN, ((i + 1) * DdmN - 1)};
+EndFor
+
+// Reorder stuffs //
+////////////////////
+Include "reorder.geo";
 
 // Physicals //
 ///////////////
-//Include "physical.geo";
-Include "physicalTwo.geo";
+Include "physical.geo";
+
+// Stats //
+///////////
+Include "stats.geo";
 
 // Mesh (with partitions) //
 ////////////////////////////
 If(DoMesh == 1)
   Mesh    3;
-  //Include "partition.geo";
-  Include "partitionTwo.geo";
+  Include "partition.geo";
   Save    "boubouchons.msh";
 EndIf

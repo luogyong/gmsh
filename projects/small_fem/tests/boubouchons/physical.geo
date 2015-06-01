@@ -1,7 +1,7 @@
 // Physical when no DDM is used //
 //////////////////////////////////
 
-// Grab Air & Rods
+// Grab Air & Rods //
 For i In {0:RodN - 1}
   Air[i] = Vol~{i + 1}[1];
   Rod[i] = Vol~{i + 1}[0];
@@ -12,7 +12,7 @@ For i In {0:EndN - 1}
   Air[RodN + i + 1 * EndN] = End~{i}[1];
 EndFor
 
-// Physicals
+// Physicals //
 Physical   Volume(1000) = Pml~{6}[]; // Pml XYZ
 Physical   Volume(1001) = Pml~{5}[]; // Pml XZ
 Physical   Volume(1002) = Pml~{2}[]; // Pml YZ
@@ -23,26 +23,14 @@ Physical   Volume(1006) = Pml~{3}[]; // Pml X
 
 Physical   Volume(1007) = Air[];     // Air
 Physical   Volume(1008) = Rod[];     // Rods
-Physical  Surface(1011) = Src~{1}[]; // Source
+Physical  Surface(1009) = Src~{1}[]; // Source
 
-// Boundaries for 'Rod'
-For i In {0:RodN - 1}
-  Physical Surface(40000 + i + 1) = { DdmSortRod~{i}~{0}[],
-                                      DdmSortRod~{i}~{1}[] };
+// Boundaries for DDM
+For i In {0:(DomN - 1)}
+  Physical Surface(40000 + i + 1) = { DdmBoundary~{Range~{i}[0]}~{1}[],
+                                      DdmBoundary~{Range~{i}[1]}~{0}[] };
 EndFor
 
-// Boundaries for 'End'
-For i In {0:(2 * EndN - 1)}
-  Physical Surface(40000 + i + 1 + RodN) = { DdmSortEnd~{i}~{0}[],
-                                             DdmSortEnd~{i}~{1}[] };
-EndFor
-
-// Boundaries for 'PmlX'
-For i In {0:(2 * PmlN - 1)}
-  Physical Surface(40000 + i + 1 + RodN + 2 * EndN) = { DdmSortPml~{i}~{0}[],
-                                                        DdmSortPml~{i}~{1}[] };
-EndFor
-
-// Clear
+// Clear //
 Air = {};
 Rod = {};

@@ -68,12 +68,7 @@ Function {
   NuR[Air] = TensorDiag[1.0,         1.0,         1.0];
   NuR[Pml] = TensorDiag[1.0 / Lxx[], 1.0 / Lyy[], 1.0 / Lzz[]];
 
-  If(IsSrcParallel == 1)
-    source[] = Complex[0, 1] * Vector[0, 0, Omega0 * Mu0];
-  EndIf
-  If(IsSrcParallel == 0)
-    source[] = Complex[0, 1] * Vector[0, Omega0 * Mu0, 0];
-  EndIf
+  source[] = Complex[0, 1] * Vector[0, Omega0 * Mu0, 0];
 }
 
 Jacobian {
