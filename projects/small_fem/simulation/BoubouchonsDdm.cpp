@@ -66,7 +66,7 @@ void compute(const Options& option){
   const int orderSur = atoi(option.getValue("-ob")[1].c_str());
 
   // EMDA
-  double chi = 1;
+  //double chi = 0;
 
   // OSRC
   double    ck = 0;
@@ -149,17 +149,17 @@ void compute(const Options& option){
   FormulationHelper::initDofMap(fG, ddmBoundary, rhsG);
 
 
-  //DDMContextOSRCVector context(ddmBoundary, dirichlet,
-  //                             fs, fG, OsrcPhi, OsrcRho, OsrcR,
-  //                             k, keps, NPade, Pi / 2);
-  DDMContextEMDA context(ddmBoundary, dirichlet, fs, fG, k, chi);
+  DDMContextOSRCVector context(ddmBoundary, dirichlet,
+                               fs, fG, OsrcPhi, OsrcRho, OsrcR,
+                               k, keps, NPade, Pi / 2);
+  //DDMContextEMDA context(ddmBoundary, dirichlet, fs, fG, k, chi);
   context.setDDMDofs(ddmG);
 
   // Ddm
-  //FormulationOSRCVector         ddm(context);
-  //FormulationUpdateOSRCVector upDdm(context);
-  FormulationEMDA         ddm(context);
-  FormulationUpdateEMDA upDdm(context);
+  FormulationOSRCVector         ddm(context);
+  FormulationUpdateOSRCVector upDdm(context);
+  //FormulationEMDA         ddm(context);
+  //FormulationUpdateEMDA upDdm(context);
 
   // Dummy
   FormulationDummy<Complex> dummy;
