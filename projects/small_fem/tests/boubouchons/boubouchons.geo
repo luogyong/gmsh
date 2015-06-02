@@ -52,6 +52,15 @@ Include "stats.geo";
 // Mesh (with partitions) //
 ////////////////////////////
 If(DoMesh == 1)
+  Mesh.Algorithm   = 6;
+  Mesh.Algorithm3D = 1;
+  Mesh.Optimize    = 1;
+
+  If(MeshOrder > 1)
+    Mesh.HighOrderOptimize = 1;
+    Mesh.ElementOrder      = MeshOrder;
+  EndIf
+
   Mesh    3;
   Include "partition.geo";
   Save    "boubouchons.msh";
