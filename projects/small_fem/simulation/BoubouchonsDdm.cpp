@@ -65,9 +65,6 @@ void compute(const Options& option){
   const int orderVol = atoi(option.getValue("-ov")[1].c_str());
   const int orderSur = atoi(option.getValue("-ob")[1].c_str());
 
-  // EMDA
-  //double chi = 0;
-
   // OSRC
   double    ck = 0;
   int    NPade = 4;
@@ -152,14 +149,11 @@ void compute(const Options& option){
   DDMContextOSRCVector context(ddmBoundary, dirichlet,
                                fs, fG, OsrcPhi, OsrcRho, OsrcR,
                                k, keps, NPade, Pi / 2);
-  //DDMContextEMDA context(ddmBoundary, dirichlet, fs, fG, k, chi);
   context.setDDMDofs(ddmG);
 
   // Ddm
   FormulationOSRCVector         ddm(context);
   FormulationUpdateOSRCVector upDdm(context);
-  //FormulationEMDA         ddm(context);
-  //FormulationUpdateEMDA upDdm(context);
 
   // Dummy
   FormulationDummy<Complex> dummy;
@@ -176,12 +170,18 @@ void compute(const Options& option){
   allFem.addFormulation(wavePmlY);
   allFem.addFormulation(wavePmlZ);
 
+  FormulationContainer<Complex> allDdm;
+  allDdm.addFormulation(ddm);
+
+  FormulationContainer<Complex> allUpDdm;
+  allUpDdm.addFormulation(upDdm);
+
   // Solve non-homogenous problem //
   cout << "Solving non homogenous problem" << endl << flush;
 
   System<Complex>* nonHomogenous = new System<Complex>;
   nonHomogenous->addFormulation(allFem);
-  nonHomogenous->addFormulation(ddm);
+  nonHomogenous->addFormulation(allDdm);
 
   SystemHelper<Complex>::dirichlet(*nonHomogenous, fs, src, fSrc);
 
@@ -192,10 +192,10 @@ void compute(const Options& option){
   cout << "Computing right hand side" << endl << flush;
 
   context.setSystem(*nonHomogenous);
-  upDdm.update(); // update volume solution (at DDM border)
+  allUpDdm.update(); // update volume solution (at DDM border)
 
   System<Complex>* nonHomogenousDDM = new System<Complex>;
-  nonHomogenousDDM->addFormulation(upDdm);
+  nonHomogenousDDM->addFormulation(allUpDdm);
 
   nonHomogenousDDM->assemble();
   nonHomogenousDDM->solve();
@@ -207,7 +207,8 @@ void compute(const Options& option){
 
   // DDM Solver //
   cout << "Solving DDM problem" << endl << flush;
-  SolverDDM* solver = new SolverDDM(allFem, dummy, context, ddm, upDdm, rhsG);
+  SolverDDM* solver =
+    new SolverDDM(allFem, dummy, context, allDdm, allUpDdm, rhsG);
 
   // Solve
   int maxIt = 1000;
@@ -225,11 +226,11 @@ void compute(const Options& option){
 
   // Full Problem //
   cout << "Solving full problem" << endl << flush;
-  ddm.update();
+  allDdm.update();
 
   System<Complex> full;
   full.addFormulation(allFem);
-  full.addFormulation(ddm);
+  full.addFormulation(allDdm);
 
   SystemHelper<Complex>::dirichlet(full, fs, src, fSrc);
 
