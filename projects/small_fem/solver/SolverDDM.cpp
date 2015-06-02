@@ -514,8 +514,6 @@ void SolverDDM::exchange(map<Dof, Complex>& data){
     MPI_Waitall(6, &req[6], &stat[6]);
     unserialize(data, inEntityTwo, inTypeTwo, inValueTwo);
   }
-
-  PetscBarrier(PETSC_NULL);
 }
 
 void SolverDDM::setVecFromDof(Vec& v, map<Dof, Complex>& dof){

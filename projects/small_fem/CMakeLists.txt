@@ -185,10 +185,12 @@ add_executable(fs     simulation/ShowFunctionSpace.cpp)
 add_executable(ref    simulation/RefSpace.cpp)
 add_executable(tester simulation/Test.cpp)
 
-add_executable(bouchon simulation/Boubouchons.cpp
-                       simulation/BoubouchonsHelper.cpp)
-add_executable(bouddm  simulation/BoubouchonsDdm.cpp
-                       simulation/BoubouchonsHelper.cpp)
+add_executable(bouchon    simulation/Boubouchons.cpp
+                          simulation/BoubouchonsHelper.cpp)
+add_executable(bouchonsom simulation/BoubouchonsSom.cpp)
+add_executable(bouddm     simulation/BoubouchonsDdm.cpp
+                          simulation/BoubouchonsHelper.cpp)
+add_executable(bousomddm  simulation/BoubouchonsSomDdm.cpp)
 
 ## Link ##
 ##########
@@ -219,5 +221,7 @@ target_link_libraries(fs     sf)
 target_link_libraries(ref    sf)
 target_link_libraries(tester sf)
 
-target_link_libraries(bouchon sf)
-target_link_libraries(bouddm  sf)
+target_link_libraries(bouchon    sf)
+target_link_libraries(bouchonsom sf)
+target_link_libraries(bouddm     sf)
+target_link_libraries(bousomddm  sf)
