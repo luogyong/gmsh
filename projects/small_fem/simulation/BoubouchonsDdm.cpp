@@ -46,6 +46,9 @@ fullVector<Complex> fSrc(fullVector<double>& xyz);
 // Dummy volume source term //
 fullVector<Complex> sVol(fullVector<double>& xyz);
 
+// Peak Memory //
+double getPeakMemory(void);
+
 void compute(const Options& option){
   // MPI //
   int nProcs;
@@ -170,18 +173,12 @@ void compute(const Options& option){
   allFem.addFormulation(wavePmlY);
   allFem.addFormulation(wavePmlZ);
 
-  FormulationContainer<Complex> allDdm;
-  allDdm.addFormulation(ddm);
-
-  FormulationContainer<Complex> allUpDdm;
-  allUpDdm.addFormulation(upDdm);
-
   // Solve non-homogenous problem //
   cout << "Solving non homogenous problem" << endl << flush;
 
   System<Complex>* nonHomogenous = new System<Complex>;
   nonHomogenous->addFormulation(allFem);
-  nonHomogenous->addFormulation(allDdm);
+  nonHomogenous->addFormulation(ddm);
 
   SystemHelper<Complex>::dirichlet(*nonHomogenous, fs, src, fSrc);
 
@@ -192,10 +189,10 @@ void compute(const Options& option){
   cout << "Computing right hand side" << endl << flush;
 
   context.setSystem(*nonHomogenous);
-  allUpDdm.update(); // update volume solution (at DDM border)
+  upDdm.update(); // update volume solution (at DDM border)
 
   System<Complex>* nonHomogenousDDM = new System<Complex>;
-  nonHomogenousDDM->addFormulation(allUpDdm);
+  nonHomogenousDDM->addFormulation(upDdm);
 
   nonHomogenousDDM->assemble();
   nonHomogenousDDM->solve();
@@ -207,8 +204,7 @@ void compute(const Options& option){
 
   // DDM Solver //
   cout << "Solving DDM problem" << endl << flush;
-  SolverDDM* solver =
-    new SolverDDM(allFem, dummy, context, allDdm, allUpDdm, rhsG);
+  SolverDDM* solver = new SolverDDM(allFem, dummy, context, ddm, upDdm, rhsG);
 
   // Solve
   int maxIt = 1000;
@@ -226,11 +222,11 @@ void compute(const Options& option){
 
   // Full Problem //
   cout << "Solving full problem" << endl << flush;
-  allDdm.update();
+  ddm.update();
 
   System<Complex> full;
   full.addFormulation(allFem);
-  full.addFormulation(allDdm);
+  full.addFormulation(ddm);
 
   SystemHelper<Complex>::dirichlet(full, fs, src, fSrc);
 
@@ -247,17 +243,52 @@ void compute(const Options& option){
     FEMSolution<Complex> feSol;
     full.getSolution(feSol, fs, domain);
 
-    feSol.setSaveMesh(true);
+    feSol.setSaveMesh(false);
     feSol.setBinaryFormat(true);
     feSol.setParition(myProc + 1);
     feSol.write("boubouchon");
   }
+
+  // Give peak virtual memory //
+  double  myVmPeak = getPeakMemory();
+  double* alVmPeak = new double[nProcs];
+
+  MPI_Allgather(&myVmPeak,1,MPI_DOUBLE, alVmPeak,1,MPI_DOUBLE, MPI_COMM_WORLD);
+
+  cout << "Peak VM:" << endl << flush;
+  for(int i = 0; i < nProcs; i++)
+    cout << " ** Process " << i << ": " << alVmPeak[i] << " MB"
+         << endl << flush;
+
+  // Give max peak VMem accross all processes //
+  int maxIdx = 0;
+  for(int i = 1; i < nProcs; i++)
+    if(alVmPeak[maxIdx] < alVmPeak[i])
+      maxIdx = i;
+
+  cout << "Maximum Peak VM accross MPI processes:" << endl
+       << " ** Process " << maxIdx << ": " << alVmPeak[maxIdx] << " MB"
+       << endl << flush;
+
+  // Give systems sizes //
+  int  mySize = full.getSize();
+  int* alSize = new int[nProcs];
+
+  MPI_Allgather(&mySize, 1, MPI_INT, alSize, 1, MPI_INT, MPI_COMM_WORLD);
+
+  cout << "Volume system size:" << endl << flush;
+  for(int i = 0; i < nProcs; i++)
+    cout << " ** Process " << i << ": " << alSize[i] << " unknowns"
+         << endl << flush;
 
   // Clear //
   for(int j = 0; j < NPade; j++){
     delete OsrcPhi[j];
     delete OsrcRho[j];
   }
+
+  delete[] alVmPeak;
+  delete[] alSize;
 }
 
 int main(int argc, char** argv){
@@ -302,4 +333,29 @@ fullVector<Complex> sVol(fullVector<double>& xyz){
   ret(0) = 0; ret(1) = 0; ret(2) = 0;
 
   return ret;
+}
+
+double getPeakMemory(void){
+  // Stream //
+  ifstream stream("/proc/self/status", ifstream::in);
+  char        tmp[1048576];
+  double   vmPeak;
+
+  // Is open ? //
+  if(!stream.is_open())
+    throw Exception("Boubouchons: cannot open /proc/self/status for VmPeak");
+
+  // Look for "VmPeak:" //
+  stream >> tmp;
+  while(strncmp(tmp, "VmPeak:", 1048576) != 0){
+    stream.getline(tmp, 1048576);
+    stream >> tmp;
+  }
+
+  // Read VmPeak //
+  stream >> vmPeak;
+
+  // Close & Return //
+  stream.close();
+  return vmPeak / 1024;
 }

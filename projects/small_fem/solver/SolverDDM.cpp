@@ -481,39 +481,60 @@ void SolverDDM::exchange(int target, vector<int>& out, vector<int>& in,
 }
 
 void SolverDDM::exchange(map<Dof, Complex>& data){
+  Timer exch;
+  Timer ser;
+  Timer user;
+
   MPI_Request  req[12];
   MPI_Status  stat[12];
 
   // Exchange with neighbour one //
   if(neighbourOne != -1){
+    ser.start();
     serialize(data, neighbourOne, outEntityOne, outTypeOne, outValueOne);
+    ser.stop();
 
+    exch.start();
     exchange<int>    (neighbourOne, outEntityOne, inEntityOne, &req[0],&req[1]);
     exchange<int>    (neighbourOne, outTypeOne  , inTypeOne  , &req[2],&req[3]);
     exchange<Complex>(neighbourOne, outValueOne , inValueOne , &req[4],&req[5]);
+    exch.stop();
   }
 
   // Exchange with neighbour two //
   if(neighbourTwo != -1){
+    ser.start();
     serialize(data, neighbourTwo, outEntityTwo, outTypeTwo, outValueTwo);
+    ser.stop();
 
+    exch.start();
     exchange<int>    (neighbourTwo, outEntityTwo, inEntityTwo, &req[6],&req[7]);
     exchange<int>    (neighbourTwo, outTypeTwo  , inTypeTwo  , &req[8],&req[9]);
     exchange<Complex>(neighbourTwo, outValueTwo , inValueTwo ,
                       &req[10],&req[11]);
+    exch.stop();
   }
 
   // Reconstruct data from neighbour one //
   if(neighbourOne != -1){
     MPI_Waitall(6, &req[0], &stat[0]);
+    user.start();
     unserialize(data, inEntityOne, inTypeOne, inValueOne);
+    user.stop();
   }
 
   // Reconstruct data from neighbour two //
   if(neighbourTwo != -1){
     MPI_Waitall(6, &req[6], &stat[6]);
+    user.start();
     unserialize(data, inEntityTwo, inTypeTwo, inValueTwo);
+    user.stop();
   }
+  /*
+  cout << "Exchange    (" << myProc << "): " << exch.time() << endl << flush;
+  cout << "Serialize   (" << myProc << "): " <<  ser.time() << endl << flush;
+  cout << "Unserialize (" << myProc << "): " << user.time() << endl << flush;
+  */
 }
 
 void SolverDDM::setVecFromDof(Vec& v, map<Dof, Complex>& dof){
@@ -563,6 +584,11 @@ fullVector<Complex> SolverDDM::fZeroVect(fullVector<double>& xyz){
 }
 
 PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
+  // Timer //
+  Timer all;
+  Timer sys;
+
+  all.start();
   // Get SolverDDM Object //
   SolverDDM* solver;
   MatShellGetContext(A, (void**)(&solver));
@@ -587,6 +613,7 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
   ddm.update();
 
   // Solve Full Volume & Update Problems Once //
+  sys.start();
   if(!solver->once){
     // Prepare Volume Problem
     volume.addFormulation(wave);
@@ -637,6 +664,7 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
     update.assembleAgainRHS();  // Update problem
     update.solveAgain();        // --------------
   }
+  sys.stop();
 
   update.getSolution(ddmG, 0);
   solver->exchange(ddmG);
@@ -648,6 +676,13 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
 
   // Wait for MPI coherence and return //
   PetscBarrier(PETSC_NULL);
+  all.stop();
+
+  int myProc;
+  MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
+  cout << "Total  (" << myProc << "): " << all.time() << endl << flush;
+  cout << "System (" << myProc << "): " << sys.time() << endl << flush;
+
   PetscFunctionReturn(0);
 }
 

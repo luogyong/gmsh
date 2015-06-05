@@ -39,9 +39,9 @@ DefineConstant[
 // Air //
 /////////
 DefineConstant[
-  AirXF = {1.0, Name "Input/02Air/00Air size (X) [lambda]"},
-  AirYF = {1.0, Name "Input/02Air/01Air size (Y) [lambda]"},
-  AirZF = {1.5, Name "Input/02Air/02Air size (Z) [lambda]"}
+  AirXF = {2.0, Name "Input/02Air/00Air size (X) [lambda]"},
+  AirYF = {2.0, Name "Input/02Air/01Air size (Y) [lambda]"},
+  AirZF = {2.5, Name "Input/02Air/02Air size (Z) [lambda]"}
 ];
 
 AirX = AirXF * Lambda; // [m]
@@ -49,24 +49,15 @@ AirY = AirYF * Lambda; // [m]
 AirZ = AirZF * Lambda; // [m]
 
 
-// Pml //
-/////////
-DefineConstant[
-  PmlSizeF = {0.5, Name "Input/03Pml/00Thickness [lambda]"}
-];
-
-PmlSize = PmlSizeF * Lambda; // [m]
-
-
 // Mesh //
 //////////
 DefineConstant[
-  MeshAirF  = {5,  Name "Input/04Mesh/00Air size [1\lambda]"},
-  MeshRodF  = {5,  Name "Input/04Mesh/01Rod size [1\lambda]"},
-  MeshSrcF  = {10,  Name "Input/04Mesh/03Source size [1\lambda]"},
+  MeshAirF  = {10, Name "Input/04Mesh/00Air size [1\lambda]"},
+  MeshRodF  = {10, Name "Input/04Mesh/01Rod size [1\lambda]"},
+  MeshSrcF  = {10, Name "Input/04Mesh/03Source size [1\lambda]"},
 
-  DoMesh    = {0,   Name "Input/04Mesh/04Mesh", Choices {0, 1}},
-  MeshOrder = {1,   Name "Input/04Mesh/05Order"}
+  DoMesh    = {0,  Name "Input/04Mesh/04Mesh", Choices {0, 1}},
+  MeshOrder = {1,  Name "Input/04Mesh/05Order"}
 ];
 
 MeshAir = Lambda / MeshAirF;

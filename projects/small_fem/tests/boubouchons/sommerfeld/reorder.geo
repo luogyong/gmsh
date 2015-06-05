@@ -35,7 +35,7 @@ EndFor
 // Infinity //
 Off = 0;
 For i In {0:(EndN - 1)}
-  Infinity~{i + Off} = InfinityEnd~{EndN - (i * 2 + 0)}[];
+  Infinity~{i + Off} = InfinityEnd~{(EndN - i - 1) * 2}[];
 EndFor
 
 Off = EndN;
@@ -45,7 +45,7 @@ EndFor
 
 Off = EndN + RodN;
 For i In {0:(EndN - 1)}
-  Infinity~{i + Off} = InfinityEnd~{(i * 2 + 1)}[];
+  Infinity~{i + Off} = InfinityEnd~{i * 2 + 1}[];
 EndFor
 
 // Clear //
