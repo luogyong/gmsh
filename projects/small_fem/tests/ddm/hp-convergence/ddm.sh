@@ -8,21 +8,22 @@ BINDDM=$ROOT'ddm'
 ## Data
 THREADS=2
 TYPE='vector'
-DDM='osrc'
+MODE='tm'
+DDM='emda'
 NDOM=2
-NMSH=5
+NMSH=6
 MSH='./guide2d_'
 INTERP='./guide2d_32.msh'
-OV=4
-OB=4
-K=100
+OV=1
+OB=1
+K=20
 
 ## Useful
 NDOMMinus=$(bc <<< $NDOM'-1')
 
 ## Analytical Solution
 echo '#### Reference ####'
-$BINANA -msh $INTERP -k $K -n $NDOM -type $TYPE -name 'ref'
+$BINANA -msh $INTERP -k $K -n $NDOM -type $TYPE -mode $MODE -name 'ref'
 
 ## DDM
 for m in $(seq 1 $NMSH)
@@ -39,7 +40,7 @@ do
             mpirun -bind-to none \
                    -np $NDOM \
                    $BINDDM -msh $MYMESH -k $K \
-                   -max 250 -ddm $DDM \
+                   -max 250 -ddm $DDM -mode $MODE \
                    -pade 4 -ck 0 -chi 0 -lc 0.06 -type $TYPE -ov $v -ob $b \
                    -name $NAME -interp $INTERP -hist $NAME'.hist' \
                    -solver -ksp_rtol 1e-9 -ksp_monitor
