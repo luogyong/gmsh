@@ -20,7 +20,7 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 #
 # cvs configuration (co and update)
 find_program(CTEST_CVS_COMMAND NAMES cvs)
-set(CTEST_CVS_REPOS "noels@cm3004.ltas.ulg.ac.be:/home/cvs")
+set(CTEST_CVS_REPOS "cm3004.ltas.ulg.ac.be:/home/cvs")
 set(CTEST_CVS_MFH "personal/noels/Programmes/MFH")
 set(CTEST_MFH_NAME "nightly_MFH")
 set(CTEST_SOURCE_DIRECTORY "$ENV{HOME}/${CTEST_MFH_NAME}")
