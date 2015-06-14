@@ -1,4 +1,4 @@
 #!/bin/sh
 SSH=/usr/bin/ssh
-KEY=$USER/cron/id_rsa.cvsbackup
+KEY=$HOME/cron/id_rsa.cvsbackup
 $SSH -i $KEY $*
