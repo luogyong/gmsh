@@ -1,7 +1,13 @@
-# Created by Octave 3.8.2, Mon Jun 15 11:30:34 2015 CEST <nicolas@ace80>
+# Created by Octave 3.8.2, Mon Jun 15 13:09:06 2015 CEST <nicolas@ace80>
 # name: data
 # type: matrix
-# ndims: 3
- 6 0 0
+# rows: 6
+# columns: 1
+ 1.9042
+ 10.4105
+ 2.5426
+ 0.6133
+ 0.25506
+ 0.128379
 
 
