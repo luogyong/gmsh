@@ -278,7 +278,7 @@ void compute(const Options& option){
     OSRCScalPhi.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,orderSur);
+      OSRCScalPhi[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,orderVol);
   }
 
   if(ddmType == osrcType && type == vect){
@@ -286,17 +286,17 @@ void compute(const Options& option){
     OSRCVectRho.resize(NPade);
 
     for(int j = 0; j < NPade; j++)
-      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp,dirichlet,orderSur);
+      OSRCVectPhi[j] = new FunctionSpaceVector(ddmBorderTmp,dirichlet,orderVol);
 
-    if(orderSur == 0)
+    if(orderVol == 0)
       for(int j = 0; j < NPade; j++)
         OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,dirichlet,1);
     else
       for(int j = 0; j < NPade; j++)
         OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorderTmp,
-                                                 dirichlet, orderSur);
+                                                 dirichlet, orderVol);
 
-    OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
+    OSRCVectR = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderVol);
   }
 
   cout << "WARNING!: check aux space orders !!" << endl;
@@ -306,12 +306,12 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
+    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderVol);
 
-    if(orderSur == 0)
+    if(orderVol == 0)
       JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
     else
-      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderSur);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderVol);
   }
 
   // Steady Wave Formulation //

@@ -213,7 +213,7 @@ void compute(const Options& option){
       for(int j = 0; j < NPade; j++)
         OSRCVectRho[j] = new FunctionSpaceScalar(ddmBorder, orderVol);
 
-    OSRCVectR = new FunctionSpaceVector(ddmBorder, orderSur);
+    OSRCVectR = new FunctionSpaceVector(ddmBorder, orderVol);
   }
 
   // Jin Fa Lee
@@ -221,7 +221,7 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(ddmBorder, orderSur);
+    JFPhi = new FunctionSpaceVector(ddmBorder, orderVol);
 
     if(orderVol == 0)
       JFRho = new FunctionSpaceScalar(ddmBorder, 1);
