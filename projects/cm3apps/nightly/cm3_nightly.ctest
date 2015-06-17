@@ -2,6 +2,7 @@
 set(NCPUS 4)
 set(CTEST_SITE "$ENV{HOST}")
 set(GMSH_HOST "$ENV{HOST}")
+set(MPIEXEC "$ENV{MPI_HOME}/bin/mpiexec")
 set(CDASH_MODEL "Nightly")
 #set(CDASH_MODEL "Experimental")
 set(CTEST_BUILD_NAME "Linux64")
@@ -100,8 +101,8 @@ ctest_build(TARGET package NUMBER_ERRORS ERR)
 set(ENV{CM3_BUILD_ERROR} ${ERR})
 
 
-set(CTEST_TEST_TIMEOUT 5000)
-set(DART_TESTING_TIMEOUT 5000)
+set(CTEST_TEST_TIMEOUT 15000)
+set(DART_TESTING_TIMEOUT 15000)
 # launch test on 4 processor
 ctest_test(PARALLEL_LEVEL ${NCPUS})
 ctest_submit()
