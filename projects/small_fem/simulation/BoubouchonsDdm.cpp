@@ -117,15 +117,15 @@ void compute(const Options& option){
 
   vector<const FunctionSpaceVector*> OsrcPhi(NPade, NULL);
   vector<const FunctionSpaceScalar*> OsrcRho(NPade, NULL);
-  FunctionSpaceVector                OsrcR(ddmBoundaryDomain, orderSur);
+  FunctionSpaceVector                OsrcR(ddmBoundaryDomain, orderVol);
 
   for(int j = 0; j < NPade; j++){
-    OsrcPhi[j] = new FunctionSpaceVector(ddmBoundaryDomain, orderSur);
+    OsrcPhi[j] = new FunctionSpaceVector(ddmBoundaryDomain, orderVol);
 
-    if(orderSur == 0)
+    if(orderVol == 0)
       OsrcRho[j] = new FunctionSpaceScalar(ddmBoundaryDomain, 1);
     else
-      OsrcRho[j] = new FunctionSpaceScalar(ddmBoundaryDomain, orderSur);
+      OsrcRho[j] = new FunctionSpaceScalar(ddmBoundaryDomain, orderVol);
   }
 
   // Formulations //
