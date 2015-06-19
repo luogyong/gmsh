@@ -306,12 +306,12 @@ void compute(const Options& option){
   FunctionSpaceScalar* JFRho = NULL;
 
   if(ddmType == jflType){
-    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderVol);
+    JFPhi = new FunctionSpaceVector(ddmBorderTmp, dirichlet, orderSur);
 
-    if(orderVol == 0)
+    if(orderSur == 0)
       JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, 1);
     else
-      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderVol);
+      JFRho = new FunctionSpaceScalar(ddmBorderTmp, dirichlet, orderSur);
   }
 
   // Steady Wave Formulation //
