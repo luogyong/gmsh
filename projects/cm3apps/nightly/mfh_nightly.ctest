@@ -8,7 +8,7 @@ set(CTEST_BUILD_NAME "Linux64")
 set(CTEST_BUILD_CONFIGURATION "release") # allow choosing type of build
 set(CTEST_NIGHTLY_START_TIME "23:59:57 UTC") # ensure to get head revision
 # setup for the drop site
-set(CUSTOM_DROP_SITE "cm3015.ltas.ulg.ac.be" CACHE STRING "overided" FORCE)
+set(CUSTOM_DROP_SITE "cm3012.ltas.ulg.ac.be" CACHE STRING "overided" FORCE)
 set(CUSTOM_DROP_LOCATION "/CDash/submit.php?project=cm3_nightly" CACHE STRING "overrided" FORCE)
 set(CUSTOM_DROP_PROJECT "cm3_nightly" CACHE STRING "overided" FORCE)
 
@@ -20,7 +20,7 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 #
 # cvs configuration (co and update)
 find_program(CTEST_CVS_COMMAND NAMES cvs)
-set(CTEST_CVS_REPOS "cm3004.ltas.ulg.ac.be:/home/cvs")
+set(CTEST_CVS_REPOS "cm3015.ltas.ulg.ac.be:/home/cvs")
 set(CTEST_CVS_MFH "personal/noels/Programmes/MFH")
 set(CTEST_MFH_NAME "nightly_MFH")
 set(CTEST_SOURCE_DIRECTORY "$ENV{HOME}/${CTEST_MFH_NAME}")
