@@ -94,6 +94,7 @@ macro(add_cm3python_mpi_test NCPU PYFILE ARGN)
     string(REPLACE " " "_" MYDIR ${MYDIR})
     # launch
     add_test(NAME "${PROJECT_NAME}/${MYDIR}/${PYFILE}" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/runtestandclean.py "${MPIEXEC} -n ${NCPU} ${CMAKE_BINARY_DIR}/bin/cm3py" ${PYFILE} ${DELF})
+   set_tests_properties("${PROJECT_NAME}/${MYDIR}/${PYFILE}" PROPERTIES RUN_SERIAL ON) 
   endif(NOT ENABLE_MPI)  
 endmacro(add_cm3python_mpi_test)
 # add the different projects
