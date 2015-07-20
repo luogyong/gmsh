@@ -139,68 +139,80 @@ void compute(const Options& option){
   sys.assemble();
   cout << "Assembled: " << sys.getSize() << endl << flush;
 
-  // Set number of eigenvalue (if any, else default)
+  // Just dump matrices ? //
   try{
-    const size_t nWave = atoi(option.getValue("-n")[1].c_str());
-    sys.setNumberOfEigenValues(nWave);
+    string name = option.getValue("-dump")[1];
+    string dummy;
+
+    dummy.clear();
+
+    sys.writeMatrix(name, dummy);
   }
 
   catch(...){
-  }
+    // Set number of eigenvalue (if any, else default)
+    try{
+      const size_t nWave = atoi(option.getValue("-n")[1].c_str());
+      sys.setNumberOfEigenValues(nWave);
+    }
 
-  // Set shift (if any, else default)
-  try{
-    const double shift = atof(option.getValue("-shift")[1].c_str());
+    catch(...){
+    }
 
-    sys.setWhichEigenpairs("target_magnitude");
-    sys.setTarget(Complex(shift, 0));
-  }
+    // Set shift (if any, else default)
+    try{
+      const double shift = atof(option.getValue("-shift")[1].c_str());
 
-  catch(...){
-  }
+      sys.setWhichEigenpairs("target_magnitude");
+      sys.setTarget(Complex(shift, 0));
+    }
 
-  // Set tolerance (if any, else default)
-  try{
-    sys.setTolerance(atof(option.getValue("-tol")[1].c_str()));
-  }
+    catch(...){
+    }
 
-  catch(...){
-  }
+    // Set tolerance (if any, else default)
+    try{
+      sys.setTolerance(atof(option.getValue("-tol")[1].c_str()));
+    }
 
-  // Solve
-  sys.solve();
-  cout << "Solved" << endl << flush;
+    catch(...){
+    }
 
-  // Display //
-  if(myProc == 0){
-    fullVector<Complex> eigenValue;
-    const size_t nEigenValue = sys.getNComputedSolution();
-    sys.getEigenValues(eigenValue);
+    // Solve
+    sys.solve();
+    cout << "Solved" << endl << flush;
 
-    cout << "Number of found Eigenvalues: " << nEigenValue
-         << endl
-         << endl
-         << "Number\tEigen Value" << endl;
+    // Display //
+    if(myProc == 0){
+      fullVector<Complex> eigenValue;
+      const size_t nEigenValue = sys.getNComputedSolution();
+      sys.getEigenValues(eigenValue);
 
-    for(size_t i = 0; i < nEigenValue; i++)
-      cout << "#" << i + 1  << "\t"
-           << eigenValue(i) << endl;
+      cout << "Number of found Eigenvalues: " << nEigenValue
+           << endl
+           << endl
+           << "Number\tEigen Value" << endl;
 
-  }
-  // Write Sol //
-  try{
-    option.getValue("-nopos");
-  }
-  catch(...){
-    FEMSolution<Complex> feSol;
-    sys.getSolution(feSol, *fs, *volume);
+      for(size_t i = 0; i < nEigenValue; i++)
+        cout << "#" << i + 1  << "\t"
+             << eigenValue(i) << endl;
 
-    feSol.setSaveMesh(false);
-    feSol.setBinaryFormat(true);
-    if(nProcs != 1)
-      feSol.setParition(myProc + 1);
+    }
+    // Write Sol //
+    try{
+      option.getValue("-nopos");
+    }
+    catch(...){
+      FEMSolution<Complex> feSol;
+      sys.getSolution(feSol, *fs, *volume);
 
-    feSol.write("eigenModes");
+      feSol.setSaveMesh(false);
+      feSol.setBinaryFormat(true);
+      if(nProcs != 1)
+        feSol.setParition(myProc + 1);
+
+      feSol.write("eigenModes");
+    }
   }
 
   // Clean //
@@ -211,7 +223,7 @@ void compute(const Options& option){
 
 int main(int argc, char** argv){
   // Init SmallFem //
-  SmallFem::Keywords("-msh,-o,-n,-shift,-nopos,-type,-tol");
+  SmallFem::Keywords("-msh,-o,-n,-shift,-nopos,-type,-tol,-dump");
   SmallFem::Initialize(argc, argv);
 
   compute(SmallFem::getOptions());

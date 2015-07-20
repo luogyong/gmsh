@@ -253,21 +253,6 @@ void SystemEigen::assemble(void){
 
   // Wait for everything to be ok //
   MPI_Barrier(MPI_COMM_WORLD);
-
-  // View //
-  /*
-  PetscViewer viewer;
-  PetscObjectSetName((PetscObject)(*B), "B");
-
-  PetscViewerBinaryOpen(PETSC_COMM_WORLD, "B.m", FILE_MODE_WRITE, &viewer);
-  PetscViewerSetFormat(viewer, PETSC_VIEWER_NATIVE);
-  //PetscViewerASCIIOpen(PETSC_COMM_WORLD, "B.m", &viewer);
-  //PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
-  MatView(*B, viewer);
-
-  PetscViewerDestroy(&viewer);
-  MPI_Barrier(MPI_COMM_WORLD);
-  */
 }
 
 void SystemEigen::solve(void){
@@ -415,5 +400,43 @@ getSolution(FEMSolution<Complex>& feSol,
 
 void SystemEigen::writeMatrix(string fileName,
                               string matrixName) const{
-  throw Exception("SystemEigen::writeMatrix -- not implemented");
+  // Names //
+  string nameA(matrixName);
+  string nameB(matrixName);
+
+  string fileA(fileName);
+  string fileB(fileName);
+
+  nameA.append(string("A"));
+  nameB.append(string("B"));
+
+  fileA.append(string("A.dat"));
+  fileB.append(string("B.dat"));
+
+  PetscObjectSetName((PetscObject)(A), nameA.c_str());
+  PetscObjectSetName((PetscObject)(B), nameB.c_str());
+
+  // Viewers //
+  PetscViewer viewerA;
+  PetscViewer viewerB;
+
+
+  //PetscViewerASCIIOpen(PETSC_COMM_WORLD, "A.m", &viewer);
+  PetscViewerBinaryOpen(PETSC_COMM_WORLD,
+                        fileA.c_str(), FILE_MODE_WRITE, &viewerA);
+  PetscViewerBinaryOpen(PETSC_COMM_WORLD,
+                        fileB.c_str(), FILE_MODE_WRITE, &viewerB);
+
+  PetscViewerSetFormat(viewerA, PETSC_VIEWER_NATIVE);
+  PetscViewerSetFormat(viewerB, PETSC_VIEWER_NATIVE);
+  //PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+
+  // Do your job //
+  MatView(A, viewerA);
+  MatView(B, viewerB);
+
+  // Clean & coherence //
+  PetscViewerDestroy(&viewerA);
+  PetscViewerDestroy(&viewerB);
+  MPI_Barrier(MPI_COMM_WORLD);
 }
