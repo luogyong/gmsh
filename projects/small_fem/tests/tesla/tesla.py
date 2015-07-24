@@ -15,11 +15,11 @@ ol.openProject(name + '.geo')
 ## Get SmallFEM data
 mshOrder = ol.defineNumber(name = 'Input/00Mesh/00Order',       value = 2)
 femOrder = ol.defineNumber(name = 'Input/01FEM/00Order',        value = 2)
-target   = ol.defineNumber(name = 'Input/02Eigen/00Target',     value = 0.00074)
+target   = ol.defineNumber(name = 'Input/02Eigen/00Target',     value = 7e-4)
 nEig     = ol.defineNumber(name = 'Input/02Eigen/01Number',     value = 10)
 postpro  = ol.defineNumber(name = 'Input/03Post-Pro/00Draw',    choices = {0,1},
                                                                   value = 1)
-nProc    = ol.defineNumber(name = 'Input/04Solver/00Process',   value = 2)
+nProc    = ol.defineNumber(name = 'Input/04Solver/00Process',   value = 1)
 tol      = ol.defineNumber(name = 'Input/04Solver/01Tolerance', value = 1e-6)
 #maxit    = ol.defineNumber(name = 'Input/04Solver/02Iteration', value = 10000)
 
@@ -61,7 +61,7 @@ if postpro == 0:
 
 cmd += '-solver -eps_monitor' # -eps_view'
 
-os.environ['OMP_NUM_THREADS'] = str(2)
+os.environ['OMP_NUM_THREADS'] = str(4)
 ol.call('sf', cmd)
 
 ## Draw

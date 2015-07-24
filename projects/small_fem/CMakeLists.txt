@@ -46,8 +46,13 @@ endif(NOT DEFINED PETSC_DIR OR NOT DEFINED PETSC_ARCH)
 set(PETSC_INCLUDES "${PETSC_DIR}/include;${PETSC_DIR}/${PETSC_ARCH}/include")
 
 ## PETSc variables
-file(STRINGS ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
-  PETSC_VARIABLES NEWLINE_CONSUME)
+if(EXISTS ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables)
+  file(STRINGS ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables
+    PETSC_VARIABLES NEWLINE_CONSUME)
+else(EXISTS ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables)
+  file(STRINGS ${PETSC_DIR}/${PETSC_ARCH}/lib/petsc/conf/petscvariables
+    PETSC_VARIABLES NEWLINE_CONSUME)
+endif(EXISTS ${PETSC_DIR}/${PETSC_ARCH}/conf/petscvariables)
 
 ## PETSc external packages
 string(REGEX MATCH "PETSC_WITH_EXTERNAL_LIB = [^\n\r]*"
