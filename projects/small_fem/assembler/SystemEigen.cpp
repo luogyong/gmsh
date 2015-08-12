@@ -420,8 +420,7 @@ void SystemEigen::writeMatrix(string fileName,
   PetscViewer viewerA;
   PetscViewer viewerB;
 
-
-  //PetscViewerASCIIOpen(PETSC_COMM_WORLD, "A.m", &viewer);
+  // Binary
   PetscViewerBinaryOpen(PETSC_COMM_WORLD,
                         fileA.c_str(), FILE_MODE_WRITE, &viewerA);
   PetscViewerBinaryOpen(PETSC_COMM_WORLD,
@@ -429,7 +428,12 @@ void SystemEigen::writeMatrix(string fileName,
 
   PetscViewerSetFormat(viewerA, PETSC_VIEWER_NATIVE);
   PetscViewerSetFormat(viewerB, PETSC_VIEWER_NATIVE);
-  //PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+
+  // ASCII
+  //PetscViewerASCIIOpen(PETSC_COMM_WORLD, fileA.c_str(), &viewerA);
+  //PetscViewerASCIIOpen(PETSC_COMM_WORLD, fileB.c_str(), &viewerB);
+  //PetscViewerSetFormat(viewerA, PETSC_VIEWER_ASCII_MATLAB);
+  //PetscViewerSetFormat(viewerB, PETSC_VIEWER_ASCII_MATLAB);
 
   // Do your job //
   MatView(A, viewerA);

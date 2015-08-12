@@ -55,7 +55,7 @@ void compute(const Options& option){
   FunctionSpaceVector fs(domain, order);
 
   // Formulation & System //
-  FormulationSteadySlow wave(volume, fs, k);
+  FormulationSteadySlow<double> wave(volume, fs, k);
   System<double> sys;
   sys.addFormulation(wave);
 

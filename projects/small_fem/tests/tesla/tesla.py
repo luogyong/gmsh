@@ -9,7 +9,7 @@ import os
 ol = onelab.client()
 
 ## Gmsh geometry
-name = 'tesla_1cell_UQparam'
+name = 'tesla'
 ol.openProject(name + '.geo')
 
 ## Get SmallFEM data

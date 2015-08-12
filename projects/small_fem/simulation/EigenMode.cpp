@@ -6,48 +6,40 @@
 
 #include "FormulationStiffness.h"
 #include "FormulationMass.h"
+#include "FormulationSteadyWave.h"
+
+#include "TextSolution.h"
 
 #include <iostream>
 #include <complex>
+#include <cmath>
 
 using namespace std;
 
 static const size_t scal = 0;
 static const size_t vect = 1;
+static const double Pi   = atan(1.0) * 4;
+static const double c0   = 299792458;
+static const double mu0  = 4 * Pi * 1e-7;
+static const double eps0 = 1.0 / (mu0 * c0 * c0);
+static const double nu0  = 1.0 / mu0;
 
-/*
 void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
   tensor.scale(0);
 
-  tensor(0, 0) = Complex(xyz(0) + 10, xyz(0) - 10);
-  tensor(1, 1) = Complex(xyz(1) + 10, xyz(1) - 10);
-  tensor(2, 2) = Complex(xyz(2) + 10, xyz(2) - 10);
+  tensor(0, 0) = nu0 * 1e3; // Scaling for millimeters
+  tensor(1, 1) = nu0 * 1e3; // Scaling for millimeters
+  tensor(2, 2) = nu0 * 1e3; // Scaling for millimeters
 }
 
 void eps(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
   tensor.scale(0);
 
-  tensor(0, 0) = Complex(xyz(0) + 10, xyz(0) - 10);
-  tensor(1, 1) = Complex(xyz(1) + 10, xyz(1) - 10);
-  tensor(2, 2) = Complex(xyz(2) + 10, xyz(2) - 10);
+  tensor(0, 0) = eps0 / 1e3; // Scaling for millimeters
+  tensor(1, 1) = eps0 / 1e3; // Scaling for millimeters
+  tensor(2, 2) = eps0 / 1e3; // Scaling for millimeters
 }
 
-void nu(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
-  tensor.scale(0);
-
-  tensor(0, 0) = Complex(1, 0);
-  tensor(1, 1) = Complex(2, 0);
-  tensor(2, 2) = Complex(3, 0);
-}
-
-void eps(fullVector<double>& xyz, fullMatrix<Complex>& tensor){
-  tensor.scale(0);
-
-  tensor(0, 0) = Complex(1, 0);
-  tensor(1, 1) = Complex(2, 0);
-  tensor(2, 2) = Complex(3, 0);
-}
-*/
 fullVector<Complex> fVect(fullVector<double>& xyz){
   fullVector<Complex> f(3);
 
@@ -120,12 +112,14 @@ void compute(const Options& option){
     fs = new FunctionSpaceVector(domain, order);
 
   // Formulations & System //
-  FormulationStiffness<Complex> stiff(*volume, *fs, *fs);//, nu);
-  FormulationMass<Complex>       mass(*volume, *fs, *fs);//, eps);
+  FormulationStiffness<Complex> stiff(*volume, *fs, *fs, nu);
+  FormulationMass<Complex>       mass(*volume, *fs, *fs, eps);
+  //FormulationSteadyWave<Complex> wave(*volume, *fs, 4.94967);
 
   SystemEigen sys;
   sys.addFormulation(stiff);
   sys.addFormulationB(mass);
+  //sys.addFormulation(wave);
 
   // Dirichlet //
   if(type == scal)
@@ -203,6 +197,7 @@ void compute(const Options& option){
       option.getValue("-nopos");
     }
     catch(...){
+      // Fields
       FEMSolution<Complex> feSol;
       sys.getSolution(feSol, *fs, *volume);
 
@@ -212,6 +207,23 @@ void compute(const Options& option){
         feSol.setParition(myProc + 1);
 
       feSol.write("eigenModes");
+
+      // Eigenvalues
+      const size_t        nEigenValue = sys.getNComputedSolution();
+      TextSolution        eigenSol;
+      fullVector<Complex> eigenValue;
+
+      sys.getEigenValues(eigenValue);
+
+      for(size_t i = 0; i < nEigenValue; i++){
+        stringstream stream;
+        stream << "Eigen value " << i + 1 << ": " << eigenValue(i) << " ";
+
+        eigenSol.addValues(i * 2 + 0, stream.str().append("(real part)"));
+        eigenSol.addValues(i * 2 + 1, stream.str().append("(imaginary part)"));
+      }
+
+      eigenSol.write("eigenModes");
     }
   }
 

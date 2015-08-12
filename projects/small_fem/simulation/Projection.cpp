@@ -68,7 +68,7 @@ void fem(fullVector<Complex> (*f)(fullVector<double>& xyz),
          bool nopos);
 
 // Modulus of a Complex number //
-double mod(Complex a);
+double modulusSquare(Complex a);
 
 // L2 norms and error (|A|, |A - B| and |A - B| / |A|) //
 double l2Norm(const fullMatrix<Complex>& val);

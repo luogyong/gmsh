@@ -1,3 +1,10 @@
+//////////////////////////////////////////////////////////
+// Templates Implementations for FormulationSteadySlow: //
+// Inclusion compilation model                          //
+//                                                      //
+// Damn you gcc: we want 'export' !                     //
+//////////////////////////////////////////////////////////
+
 #include "SmallFem.h"
 #include <cmath>
 
@@ -5,14 +12,15 @@
 #include "Mapper.h"
 #include "FormulationSteadySlow.h"
 
-using namespace std;
 
-FormulationSteadySlow::FormulationSteadySlow(const GroupOfElement& domain,
-                                             const FunctionSpaceVector& fs,
-                                             double k){
+template<typename scalar>
+FormulationSteadySlow<scalar>::
+FormulationSteadySlow(const GroupOfElement& domain,
+                      const FunctionSpace& fs,
+                      double k){
   // Check domain stats: uniform mesh //
-  pair<bool, size_t> uniform = domain.isUniform();
-  size_t               eType = uniform.second;
+  std::pair<bool, size_t> uniform = domain.isUniform();
+  size_t                    eType = uniform.second;
 
   if(!uniform.first)
     throw Exception("FormulationSteadySlow needs a uniform mesh");
@@ -24,6 +32,9 @@ FormulationSteadySlow::FormulationSteadySlow(const GroupOfElement& domain,
   ddomain = &domain;
 
   // Save FunctionSpace & Get Basis //
+  if(fs.isScalar())
+    throw Exception("FormulationSteadySlow needs a vectorial function space");
+
   fspace = &fs;
   basis  = &fs.getBasis(eType);
 
@@ -50,7 +61,8 @@ FormulationSteadySlow::FormulationSteadySlow(const GroupOfElement& domain,
   jac2 = new GroupOfJacobian(domain, *gC2, "invert");
 }
 
-FormulationSteadySlow::~FormulationSteadySlow(void){
+template<typename scalar>
+FormulationSteadySlow<scalar>::~FormulationSteadySlow(void){
   delete gC1;
   delete gW1;
   delete gC2;
@@ -59,7 +71,8 @@ FormulationSteadySlow::~FormulationSteadySlow(void){
   delete jac2;
 }
 
-double FormulationSteadySlow::
+template<typename scalar>
+scalar FormulationSteadySlow<scalar>::
 weak(size_t dofI, size_t dofJ, size_t elementId) const{
   // Init Some Stuff //
   const fullMatrix<double>* jac;
@@ -67,8 +80,8 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
   fullVector<double> phiI(3);
   fullVector<double> phiJ(3);
 
-  double integral1 = 0;
-  double integral2 = 0;
+  scalar integral1 = 0;
+  scalar integral2 = 0;
   double det;
 
   // Get Element //
@@ -82,10 +95,10 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
     basis->getPreEvaluatedFunctions(element);
 
   // Get Jacobians //
-  const vector<const pair<const fullMatrix<double>*, double>*>& MJac =
+  const std::vector<const std::pair<const fullMatrix<double>*, double>*>& MJac =
     jac1->getJacobian(elementId).getJacobianMatrix();
 
-  const vector<const pair<const fullMatrix<double>*, double>*>& invJac =
+  const std::vector<const std::pair<const fullMatrix<double>*, double>*>& invJac =
     jac2->getJacobian(elementId).getInvertJacobianMatrix();
 
   // Loop over Integration Point (Term 1) //
@@ -116,22 +129,28 @@ weak(size_t dofI, size_t dofJ, size_t elementId) const{
   return integral1 - integral2;
 }
 
-double FormulationSteadySlow::rhs(size_t equationI, size_t elementId) const{
+template<typename scalar>
+scalar FormulationSteadySlow<scalar>::
+rhs(size_t equationI, size_t elementId) const{
   return 0;
 }
 
-const FunctionSpace& FormulationSteadySlow::field(void) const{
+template<typename scalar>
+const FunctionSpace& FormulationSteadySlow<scalar>::field(void) const{
   return *fspace;
 }
 
-const FunctionSpace& FormulationSteadySlow::test(void) const{
+template<typename scalar>
+const FunctionSpace& FormulationSteadySlow<scalar>::test(void) const{
   return *fspace;
 }
 
-const GroupOfElement& FormulationSteadySlow::domain(void) const{
+template<typename scalar>
+const GroupOfElement& FormulationSteadySlow<scalar>::domain(void) const{
   return *ddomain;
 }
 
-bool FormulationSteadySlow::isBlock(void) const{
+template<typename scalar>
+bool FormulationSteadySlow<scalar>::isBlock(void) const{
   return true;
 }

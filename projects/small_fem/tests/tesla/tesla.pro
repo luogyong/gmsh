@@ -6,8 +6,15 @@ Group {
 }
 
 Function {
+  c0   = 299792458;
+  mu0  = 4 * Pi * 1e-7;
+  eps0 = 1.0 / (mu0 * c0 * c0);
+  nu0  = 1.0 / mu0;
+  mm   = 1e3; // Scaling from milimeters
+
   nEig = 10;
-  eTarget = 1e-4;
+  //eTarget = 1e-4;  // Wavenumber squared
+  eTarget = 6.67e19; // Angular frequency squared
 }
 
 Constraint {
@@ -57,10 +64,10 @@ Formulation {
       { Name e; Type Local; NameOfSpace Hcurl;}
     }
     Equation {
-      Galerkin {[Dof{Curl e} , {Curl e}];
+      Galerkin {[nu0 * mm * Dof{Curl e} , {Curl e}];
         In Domain; Jacobian JVol; Integration Int; }
 
-      Galerkin { DtDt[Dof{e}, {e}];
+      Galerkin {DtDt[eps0 / mm * Dof{e}, {e}];
         In Domain; Jacobian JVol; Integration Int;  }
     }
   }

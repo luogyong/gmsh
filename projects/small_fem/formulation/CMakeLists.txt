@@ -4,7 +4,6 @@ set(src
   FormulationPoisson.cpp
   FormulationImpedance.cpp
   FormulationSilverMuller.cpp
-  FormulationSteadySlow.cpp
   FormulationPML.cpp
 
   FormulationLagrange.cpp

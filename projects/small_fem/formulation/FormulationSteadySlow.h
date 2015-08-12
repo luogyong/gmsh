@@ -15,10 +15,8 @@
    This version don't use the fast integration algorithm.
  */
 
-class FormulationSteadySlow: public FormulationBlock<double>{
- private:
-  static void dummy(fullVector<double>&, fullMatrix<double>&);
-
+template<typename scalar>
+class FormulationSteadySlow: public FormulationBlock<scalar>{
  private:
   // Wavenumber Squared //
   double kSquare;
@@ -41,18 +39,18 @@ class FormulationSteadySlow: public FormulationBlock<double>{
   GroupOfJacobian* jac2;
 
   // Function Space & Basis //
-  const FunctionSpaceVector* fspace;
-  const Basis*               basis;
+  const FunctionSpace* fspace;
+  const Basis*         basis;
 
  public:
   FormulationSteadySlow(const GroupOfElement& domain,
-                        const FunctionSpaceVector& fs,
+                        const FunctionSpace& fs,
                         double k);
 
   virtual ~FormulationSteadySlow(void);
 
-  virtual double weak(size_t dofI, size_t dofJ, size_t elementId) const;
-  virtual double rhs(size_t equationI, size_t elementId)          const;
+  virtual scalar weak(size_t dofI, size_t dofJ, size_t elementId) const;
+  virtual scalar rhs(size_t equationI, size_t elementId)          const;
 
   virtual const FunctionSpace&  field(void)  const;
   virtual const FunctionSpace&  test(void)   const;
@@ -77,5 +75,14 @@ class FormulationSteadySlow: public FormulationBlock<double>{
    @fn FormulationSteadySlow::~FormulationSteadySlow
    Deletes this FormulationSteadySlow
 */
+
+//////////////////////////////////////
+// Templates Implementations:       //
+// Inclusion compilation model      //
+//                                  //
+// Damn you gcc: we want 'export' ! //
+//////////////////////////////////////
+
+#include "FormulationSteadySlowInclusion.h"
 
 #endif
