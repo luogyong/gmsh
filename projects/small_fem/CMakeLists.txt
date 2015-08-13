@@ -183,7 +183,9 @@ add_executable(cirsp simulation/DdmCircleSpectrum.cpp)
 add_executable(disc  simulation/DiscScattering.cpp)
 add_executable(waveg simulation/Waveguide.cpp)
 add_executable(wavea simulation/WaveguideAnalytic.cpp)
+
 add_executable(waves simulation/WaveguideSimple.cpp)
+add_executable(cavit simulation/CavitySimple.cpp)
 
 add_executable(proj   simulation/Projection.cpp)
 add_executable(mesh   simulation/Mesh.cpp)
@@ -220,7 +222,9 @@ target_link_libraries(cirsp sf)
 target_link_libraries(disc  sf)
 target_link_libraries(waveg sf)
 target_link_libraries(wavea sf)
+
 target_link_libraries(waves sf)
+target_link_libraries(cavit sf)
 
 target_link_libraries(proj   sf)
 target_link_libraries(mesh   sf)
