@@ -38,14 +38,7 @@ void compute(const Options& option){
   set<Dof> dof;
   fSpace->getKeys(domain, dof);
 
-  // Enumerate Dofs //
-  DofManager<double> dofM;
-  dofM.addToDofManager(dof);
-  dofM.generateGlobalIdSpace();
-
-  // FunctionSpace is solution of FEM problem                         //
   // For every global basis, every dofs are equal to zero excepte one //
-
   // Dof - Coef Map
   set<Dof>::iterator dEnd = dof.end();
   set<Dof>::iterator  dIt = dof.begin();

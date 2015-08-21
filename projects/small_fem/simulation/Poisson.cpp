@@ -1,6 +1,7 @@
 #include "SmallFem.h"
 #include "Mesh.h"
 #include "System.h"
+#include "SystemPETSc.h"
 #include "SystemHelper.h"
 #include "FormulationPoisson.h"
 
@@ -56,11 +57,14 @@ void compute(const Options& option){
   SystemHelper<double>::dirichlet(sysPoisson, fs, boundary0, fDirichlet0);
   SystemHelper<double>::dirichlet(sysPoisson, fs, boundary1, fDirichlet1);
 
+  cout << "Assembling..." << endl;
+  sysPoisson.assemble();
+
   cout << "Poisson -- Order " << order
        << ": " << sysPoisson.getSize()
        << endl << flush;
 
-  sysPoisson.assemble();
+  cout << "Solving..." << endl;
   sysPoisson.solve();
 
   // Write Sol //
