@@ -20,7 +20,7 @@ chkconfig mysql on
 chkconfig apache2 on
 
 5) copy private key without passwd in $HOME/cron//id_rsa.cvsbackup (only user readable)
-   copy public key without passwd in your cm3004:$HOME/.ssh/authorized_keys(2) 
+   copy public key without passwd in your cm3015:$HOME/.ssh/authorized_keys(2) 
    copy cvs.cron.identity in $HOME
 
 6) add the crontab for automatic execution 
