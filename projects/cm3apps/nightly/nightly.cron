@@ -1,6 +1,6 @@
 # define env variable for cm3012 should be adapted
-MPI_HOME=/usr/lib64/mpi/gcc/openmpi
-HOST=cm3012.ltas.ulg.ac.be
+MPI_HOME=/usr/lib
+HOST=cm3011.ltas.ulg.ac.be
 # cm3apps build 1h01 each day
 1 1 * * * cd ${HOME} && /usr/bin/ctest -S mfh_nightly.ctest -VV &> ${HOME}/log_mfh/nightly.log
 # cm3apps build 2h01 each day

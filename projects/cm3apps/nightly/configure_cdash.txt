@@ -7,7 +7,7 @@ unzip blabla
 
 
 3) Allow apache to have an index.php as home page
- edit /etc/apache2/httpd.conf and search for DirectoryIndex on the list of possible index file (as index.html) add index.php
+ edit /etc/apache2/httpd.conf or /etc/apache2/mods-available/dir.conf and search for DirectoryIndex on the list of possible index file (as index.html) add index.php
 DirectoryIndex index.html index.html.var index.php
 
 3) start required service
@@ -15,7 +15,7 @@ a2enmod php5
 service mysql start
 service apache2 start
 
-4) Set auto start of the service at boot
+4) Set auto start of the service at boot (in ubuntu use sysv-rc-conf) 
 chkconfig mysql on
 chkconfig apache2 on
 
