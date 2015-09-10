@@ -1,9 +1,11 @@
 0) Install the package required by cdash (see cdash documentation) this includes mysql, php5, apache2,...
+for unbuntu sudo apt-get install apache2 mysql-server php5 php5-mysql php5-xsl php5-curl php5-gd
 
 1) Extract the zip in the /srv/www/htdocs
 unzip blabla
 
 2) copy the config.local.php in CDash/cdash
+see information on http://www.vtk.org/Wiki/CDash:Installation
 
 
 3) Allow apache to have an index.php as home page
