@@ -12,20 +12,33 @@ see information on http://www.vtk.org/Wiki/CDash:Installation
  edit /etc/apache2/httpd.conf or /etc/apache2/mods-available/dir.conf and search for DirectoryIndex on the list of possible index file (as index.html) add index.php
 DirectoryIndex index.html index.html.var index.php
 
-3) start required service
+4) ensure that the .../CDash/rss (and .../CDash/backup) directory is writable by the user account that Apache runs under (typically wwwrun or www-data). 
+
+sudo mkdir /srv/www/htdocs/CDash/rss
+sudo groupadd cdashaccess
+sudo usermod -a -G cdashaccess www-data
+sudo chgrp -R cdashaccess  /srv/www/htdocs/CDash/rss
+sudo chmod -R g+wx /srv/www/htdocs/CDash/rss
+sudo chgrp -R cdashaccess  /srv/www/htdocs/CDash/backup/
+sudo chmod -R g+wx /srv/www/htdocs/CDash/backup/
+
+
+5) Copy cdash.conf in /etc/apache2/mods-enabled/
+
+6) start required service
 a2enmod php5
 service mysql start
 service apache2 start
 
-4) Set auto start of the service at boot (in ubuntu use sysv-rc-conf) 
+7) Set auto start of the service at boot (in ubuntu use sysv-rc-conf) 
 chkconfig mysql on
 chkconfig apache2 on
 
-5) copy private key without passwd in $HOME/cron//id_rsa.cvsbackup (only user readable)
+8) copy private key without passwd in $HOME/cron//id_rsa.cvsbackup (only user readable)
    copy public key without passwd in your cm3015:$HOME/.ssh/authorized_keys(2) 
    copy cvs.cron.identity in $HOME
 
-6) add the crontab for automatic execution 
+9) add the crontab for automatic execution 
 crontab -e -u gauthier
 and copy paste the nighly.cron file
 
