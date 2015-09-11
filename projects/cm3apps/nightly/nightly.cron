@@ -6,3 +6,15 @@ HOST=cm3011.ltas.ulg.ac.be
 # cm3apps build 2h01 each day
 1 2 * * * cd ${HOME} && /usr/bin/ctest -S cm3_nightly.ctest -VV &> ${HOME}/log_gmsh/nightly.log 
 
+
+#if the output does not work, the shell is not bash use
+MPI_HOME=/usr/lib/openmpi/lib/
+HOST=cm3011.ltas.ulg.ac.be
+# cm3apps build 1h01 each day
+1 1 * * * cd ${HOME} && /usr/bin/ctest -S mfh_nightly.ctest -VV >> ${HOME}/log_mfh/nightly.log 2>&1
+# cm3apps build 1h10 each day
+10 1 * * * cd ${HOME} && /usr/bin/ctest -S cm3_nightly.ctest -VV >> ${HOME}/log_gmsh/nightly.log 2>&1
+
+#or put in front
+SHELL=/bin/bash 
+
