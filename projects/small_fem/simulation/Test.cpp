@@ -47,11 +47,10 @@
 using namespace std;
 
 void compute(const Options& option){
-  TextSolution sol;
+  QuadReferenceSpace ref;
 
-  sol.addValues(4, "4");
-  sol.addValues(0, "canard");
-  sol.write("test");
+  LineNodeBasis p(3);
+  cout << p.toString() << endl;
 }
 
 int main(int argc, char** argv){

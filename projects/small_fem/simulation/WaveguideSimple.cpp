@@ -22,8 +22,8 @@ static const double  Pi = M_PI;
 static const Complex E0 = Complex(1, 0);
 static const double  a  = 0.25;
 static const double  b  = 0.25;
-static const int     m  = 0;
-static const int     n  = 0;
+static const int     m  = 1;
+static const int     n  = 1;
 
 static const double  ky = m * Pi / a;
 static const double  kz = n * Pi / b;
@@ -47,7 +47,10 @@ Complex fSourceScal(fullVector<double>& xyz){
   const double y = xyz(1);
   const double z = xyz(2);
 
-  return E0 * sin(ky * y);// * Complex(sin(ky * y) * sin(kz * z), 0);
+  if(is2D)
+    return E0 * sin(ky * y);
+  else
+    return E0 * sin(ky * y) * sin(kz * z);
 }
 
 Complex fAnaScal(fullVector<double>& xyz){

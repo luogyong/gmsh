@@ -11,7 +11,7 @@
 using namespace std;
 
 double fDirichlet0(fullVector<double>& xyz){
-  return 0;
+  return 1;
 }
 
 double fDirichlet1(fullVector<double>& xyz){
@@ -19,14 +19,22 @@ double fDirichlet1(fullVector<double>& xyz){
 }
 
 double fSource(fullVector<double>& xyz){
-  return 1;
+  return 0;
 }
 
 void fMaterial(fullVector<double>& xyz, fullMatrix<double>& tensor){
   tensor.scale(0);
-  tensor(0, 0) = 1;
-  tensor(1, 1) = 2;
-  tensor(2, 2) = 1;
+
+  if(xyz(0) > 0){
+    tensor(0, 0) = 1;
+    tensor(1, 1) = 1;
+    tensor(2, 2) = 1;
+  }
+  if(xyz(0) <= 0){
+    tensor(0, 0) = 2;
+    tensor(1, 1) = 2;
+    tensor(2, 2) = 2;
+  }
 }
 
 void compute(const Options& option){
