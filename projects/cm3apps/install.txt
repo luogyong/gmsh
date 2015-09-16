@@ -18,6 +18,10 @@ A) The packages needed to install gmsh are (gmsh has to be install to use cm3app
       - libfltk1.3-dev
       - libpng-dev
       - libjpeg-dev
+      #To use vnc
+       a) launch drivers and select the most recent propreitary driver
+       b) install vnc4server
+
     # opensuse add
       - freeglut-devel
       - libopenssl-devel
