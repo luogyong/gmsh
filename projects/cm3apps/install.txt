@@ -14,10 +14,15 @@ A) The packages needed to install gmsh are (gmsh has to be install to use cm3app
       - liblapack-dev
       - g++
       - gfortran
+      - cmake-curses-gui
       - swig
       - libfltk1.3-dev
       - libpng-dev
       - libjpeg-dev
+      - petsc-dev
+      - libslepc3.4.2-dev
+      - optional: python-scipy
+      - optional: libmumps-dev
       #To use vnc
        a) launch drivers and select the most recent propreitary driver
        b) install vnc4server
