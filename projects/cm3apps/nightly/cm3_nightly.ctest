@@ -20,6 +20,7 @@ set(CUSTOM_DROP_PROJECT "cm3_nightly" CACHE STRING "overided" FORCE)
 # cmake command
 set(CTEST_CMAKE_COMMAND "/usr/bin/cmake")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
+set(CTEST_PROJECT_NAME "cm3")
 
 # source and binary directory
 set(CTEST_SOURCE_DIRECTORY "$ENV{HOME}/nightly_gmsh")
