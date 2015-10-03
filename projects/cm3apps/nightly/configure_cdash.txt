@@ -1,7 +1,7 @@
 0) Install the package required by cdash (see cdash documentation) this includes mysql, php5, apache2,...
 for unbuntu sudo apt-get install apache2 mysql-server php5 php5-mysql php5-xsl php5-curl php5-gd
 
-1) Extract the zip in the /srv/www/htdocs
+1) Extract the zip in the /srv/www/htdocs or (ubuntu) /var/www/html
 unzip blabla
 
 2) copy the config.local.php in CDash/cdash
@@ -10,17 +10,19 @@ see information on http://www.vtk.org/Wiki/CDash:Installation
 
 3) Allow apache to have an index.php as home page
  edit /etc/apache2/httpd.conf or /etc/apache2/mods-available/dir.conf and search for DirectoryIndex on the list of possible index file (as index.html) add index.php
-DirectoryIndex index.html index.html.var index.php
+DirectoryIndex index.php index.html index.html.var 
 
-4) ensure that the .../CDash/rss (and .../CDash/backup) directory is writable by the user account that Apache runs under (typically wwwrun or www-data). 
+4) ensure that the CDash/rss CDash/backup CDash/uplaod directories are writable by the user account that Apache runs under (typically wwwrun or www-data). 
 
 sudo mkdir /srv/www/htdocs/CDash/rss
 sudo groupadd cdashaccess
 sudo usermod -a -G cdashaccess www-data
-sudo chgrp -R cdashaccess  /srv/www/htdocs/CDash/rss
-sudo chmod -R g+wx /srv/www/htdocs/CDash/rss
-sudo chgrp -R cdashaccess  /srv/www/htdocs/CDash/backup/
-sudo chmod -R g+wx /srv/www/htdocs/CDash/backup/
+sudo chgrp -R cdashaccess  /var/www/html/CDash/rss
+sudo chmod -R g+wx /var/www/html/CDash/rss
+sudo chgrp -R cdashaccess  /var/www/html/CDash/backup/
+sudo chmod -R g+wx /var/www/html/CDash/backup/
+sudo chgrp -R cdashaccess  /var/www/html/CDash/upload/
+sudo chmod -R g+wx /var/www/html/CDash/upload/
 
 
 5) Copy cdash.conf in /etc/apache2/mods-enabled/
@@ -34,11 +36,14 @@ service apache2 start
 chkconfig mysql on
 chkconfig apache2 on
 
-8) copy private key without passwd in $HOME/cron//id_rsa.cvsbackup (only user readable)
+8) start a web browser on the station and connect to cm3011.ltas.ulg.ac.be/CDash follow installation
+   add ani IN exception (http) in firewall (using gufw )
+
+9) copy private key without passwd in $HOME/cron//id_rsa.cvsbackup (only user readable)
    copy public key without passwd in your cm3015:$HOME/.ssh/authorized_keys(2) 
    copy cvs.cron.identity in $HOME
 
-9) add the crontab for automatic execution 
+10) add the crontab for automatic execution 
 crontab -e -u gauthier
 and copy paste the nighly.cron file
 
