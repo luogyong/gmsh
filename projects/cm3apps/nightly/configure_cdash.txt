@@ -37,7 +37,8 @@ chkconfig mysql on
 chkconfig apache2 on
 
 8) start a web browser on the station and connect to cm3011.ltas.ulg.ac.be/CDash follow installation
-   create the project project=cm3_nightly
+   create the project cm3_nightly
+   create the project mfh_nightly
 
 9) on the running machine
    add ani IN exception (http) in firewall (using gufw )
