@@ -1,5 +1,7 @@
 0) Install the package required by cdash (see cdash documentation) this includes mysql, php5, apache2,...
 for unbuntu sudo apt-get install apache2 mysql-server php5 php5-mysql php5-xsl php5-curl php5-gd
+ also install the mail server
+sudo apt-get install mailutils
 
 1) Extract the zip in the /srv/www/htdocs or (ubuntu) /var/www/html
 unzip blabla
