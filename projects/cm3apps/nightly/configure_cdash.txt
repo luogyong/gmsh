@@ -37,13 +37,16 @@ chkconfig mysql on
 chkconfig apache2 on
 
 8) start a web browser on the station and connect to cm3011.ltas.ulg.ac.be/CDash follow installation
+   create the project project=cm3_nightly
+
+9) on the running machine
    add ani IN exception (http) in firewall (using gufw )
 
-9) copy private key without passwd in $HOME/cron//id_rsa.cvsbackup (only user readable)
+10) copy private key without passwd in $HOME/cron//id_rsa.cvsbackup (only user readable)
    copy public key without passwd in your cm3015:$HOME/.ssh/authorized_keys(2) 
    copy cvs.cron.identity in $HOME
 
-10) add the crontab for automatic execution 
+11) add the crontab for automatic execution 
 crontab -e -u gauthier
 and copy paste the nighly.cron file
 
