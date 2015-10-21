@@ -1,0 +1,53 @@
+WARNING!: check aux space orders !!
+Solving non homogenous problem
+Computing right hand side
+Solving DDM problem
+ ! Warning: no restart ! 
+  0 KSP Residual norm 4.773584366572e-01 
+  1 KSP Residual norm 8.250655130121e-02 
+  2 KSP Residual norm 2.877592248625e-03 
+  3 KSP Residual norm 1.125870880982e-03 
+  4 KSP Residual norm 7.163138392848e-04 
+  5 KSP Residual norm 4.028230263416e-04 
+  6 KSP Residual norm 2.516755247318e-04 
+  7 KSP Residual norm 1.472978096169e-04 
+  8 KSP Residual norm 1.007567942950e-04 
+  9 KSP Residual norm 7.777717144196e-05 
+ 10 KSP Residual norm 6.176762067121e-05 
+ 11 KSP Residual norm 4.369046975248e-05 
+ 12 KSP Residual norm 2.608305551530e-05 
+ 13 KSP Residual norm 1.485842569205e-05 
+ 14 KSP Residual norm 1.003010430949e-05 
+ 15 KSP Residual norm 6.357119780639e-06 
+ 16 KSP Residual norm 4.381978620166e-06 
+ 17 KSP Residual norm 2.858454509393e-06 
+ 18 KSP Residual norm 2.037129189612e-06 
+ 19 KSP Residual norm 1.249724908809e-06 
+ 20 KSP Residual norm 8.398709400983e-07 
+ 21 KSP Residual norm 5.147932278673e-07 
+ 22 KSP Residual norm 3.389549660963e-07 
+Solving full problem
+Writing full problem
+0: 4.773584e-01
+1: 8.250655e-02
+2: 2.877592e-03
+3: 1.125871e-03
+4: 7.163138e-04
+5: 4.028230e-04
+6: 2.516755e-04
+7: 1.472978e-04
+8: 1.007568e-04
+9: 7.777717e-05
+10: 6.176762e-05
+11: 4.369047e-05
+12: 2.608306e-05
+13: 1.485843e-05
+14: 1.003010e-05
+15: 6.357120e-06
+16: 4.381979e-06
+17: 2.858455e-06
+18: 2.037129e-06
+19: 1.249725e-06
+20: 8.398709e-07
+21: 5.147932e-07
+22: 3.389550e-07
