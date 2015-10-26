@@ -334,7 +334,7 @@ void compute(const Options& option){
   eigen.setProblem("non_hermitian");
   eigen.setNumberOfEigenValues(size);
   eigen.setMaxIteration(size * 10);
-  eigen.setTolerance(1e-9);
+  eigen.setTolerance(1e-3);
   eigen.solve();
 
   // Dump eigenvalues //

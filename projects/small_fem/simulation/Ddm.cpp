@@ -218,6 +218,7 @@ void compute(const Options& option){
   GroupOfElement infinity(msh);
   GroupOfElement ddmBorder(msh);
 
+  // No Corner
   volume.add(msh.getFromPhysical(myProc + 1));
 
   if(myProc == 0){
@@ -236,7 +237,41 @@ void compute(const Options& option){
   }
 
   zero.add(msh.getFromPhysical(2 * nProcs + 2));
+  /*
+  // 4 Corner
+  switch(myProc){
+  case 0:
+       volume.add(msh.getFromPhysical(11));
+       source.add(msh.getFromPhysical(21));
+         zero.add(msh.getFromPhysical(31));
+    ddmBorder.add(msh.getFromPhysical(41));
+    break;
 
+  case 1:
+       volume.add(msh.getFromPhysical(12));
+     infinity.add(msh.getFromPhysical(22));
+         zero.add(msh.getFromPhysical(32));
+    ddmBorder.add(msh.getFromPhysical(42));
+    break;
+
+  case 2:
+       volume.add(msh.getFromPhysical(13));
+     infinity.add(msh.getFromPhysical(23));
+         zero.add(msh.getFromPhysical(33));
+    ddmBorder.add(msh.getFromPhysical(43));
+    break;
+
+  case 3:
+       volume.add(msh.getFromPhysical(14));
+       source.add(msh.getFromPhysical(24));
+         zero.add(msh.getFromPhysical(34));
+    ddmBorder.add(msh.getFromPhysical(44));
+    break;
+
+  default:
+    throw Exception("Unknown domain");
+  }
+  */
   // Full Domain //
   vector<const GroupOfElement*> domain(5);
   domain[0] = &volume;
@@ -319,11 +354,24 @@ void compute(const Options& option){
   Formulation<Complex>* silverMuller;
 
   wave = new FormulationSteadyWave<Complex>(volume, *fs, k);
+
+  // No Corner
   if(myProc == nProcs - 1)
     silverMuller = new FormulationSilverMuller(infinity, *fs, kInf);
   else
     silverMuller = new FormulationDummy<Complex>;
 
+  /*
+  // 4 Corner
+  switch(myProc){
+  case 0: silverMuller = new FormulationDummy<Complex>; break;
+  case 1: silverMuller = new FormulationSilverMuller(infinity, *fs, kInf);break;
+  case 2: silverMuller = new FormulationSilverMuller(infinity, *fs, kInf);break;
+  case 3: silverMuller = new FormulationDummy<Complex>; break;
+
+  default: throw Exception("Unknown domain");
+  }
+  */
   // DDM Solution Map //
   map<Dof, Complex> ddmG;
   map<Dof, Complex> rhsG;

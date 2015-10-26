@@ -555,8 +555,8 @@ void SolverDDM::setVecFromDof(Vec& v, map<Dof, Complex>& dof){
 
 void SolverDDM::setDofFromVec(Vec& v, map<Dof, Complex>& dof){
   // Pointer to PETSc Vec data //
-  Complex* ptr;
-  VecGetArray(v, &ptr);
+  const Complex* ptr;
+  VecGetArrayRead(v, &ptr);
 
   // Copy PETSc Vec values into Map //
   map<Dof, Complex>::iterator it  = dof.begin();
@@ -566,7 +566,7 @@ void SolverDDM::setDofFromVec(Vec& v, map<Dof, Complex>& dof){
     it->second = ptr[i];
 
   // PETSc Coherence //
-  VecRestoreArray(v, &ptr);
+  VecRestoreArrayRead(v, &ptr);
 }
 
 Complex SolverDDM::fZeroScal(fullVector<double>& xyz){
@@ -680,8 +680,8 @@ PetscErrorCode SolverDDM::matMult(Mat A, Vec x, Vec y){
 
   int myProc;
   MPI_Comm_rank(MPI_COMM_WORLD,&myProc);
-  cout << "Total  (" << myProc << "): " << all.time() << endl << flush;
-  cout << "System (" << myProc << "): " << sys.time() << endl << flush;
+  //cout << "Total  (" << myProc << "): " << all.time() << endl << flush;
+  //cout << "System (" << myProc << "): " << sys.time() << endl << flush;
 
   PetscFunctionReturn(0);
 }

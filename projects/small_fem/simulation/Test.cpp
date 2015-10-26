@@ -47,10 +47,12 @@
 using namespace std;
 
 void compute(const Options& option){
-  QuadReferenceSpace ref;
+  Timer time;
+  time.start();
+  HexReferenceSpace ref;
+  time.stop();
 
-  LineNodeBasis p(3);
-  cout << p.toString() << endl;
+  cout << time.time() << " " << time.unit() << endl;
 }
 
 int main(int argc, char** argv){
