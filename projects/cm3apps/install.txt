@@ -477,3 +477,7 @@ D) add a test to the suite
    ° redo make to reload the CMakeLists 
 
    ° launch ctest to verify your test appear into the suite. The name of the test is auto generated and is <Project_Name>/<test folder name>/<python script name>
+
+   ° tp print Vec and Mat PETSc object in gdb (ddd or codeblocks debugger) one can use:
+        call VecView(v,0)
+        call MatView(M,0)
